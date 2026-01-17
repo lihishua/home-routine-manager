@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
@@ -26,6 +28,10 @@
                 <span class="material-symbols-rounded menu-icon">dark_mode</span>
                 <span class="menu-text">ערב</span>
             </button>
+            <button onclick="showView('market')" class="menu-card week" style="background: #EBFBEE; color: #2b8a3e;">
+                <span class="material-symbols-rounded menu-icon">stars</span>
+                <span class="menu-text">שוק מטלות</span>
+            </button>
             <button onclick="showView('week')" class="menu-card week">
                 <span class="material-symbols-rounded menu-icon">calendar_month</span>
                 <span class="menu-text">לו"ז שבועי</span>
@@ -38,13 +44,20 @@
         <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
+    <section id="view-market" class="view hidden">
+        <div class="settings-container">
+            <h2 style="text-align:center; margin-top:20px;">🛒 שוק המטלות המשפחתי</h2>
+            <div id="market-list"></div>
+        </div>
+        <button onclick="showView('home')" class="back-btn">חזרה</button>
+    </section>
+
     <section id="view-week" class="view hidden">
         <div class="week-container">
             <div id="week-grid" class="week-grid"></div>
         </div>
         <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
-
     <section id="view-settings" class="view hidden">
         <div class="settings-container">
             <div class="settings-header-sticky">
@@ -52,6 +65,9 @@
                 <button onclick="saveAndRestart()" class="save-top-btn">שמירה והפעלה</button>
             </div>
             
+            <div id="settings-market-section" class="settings-section" style="background: #EBFBEE; border: 1px solid #2b8a3e;">
+                </div>
+    
             <div class="settings-section">
                 <h3 class="compact-h3">אירוע חדש בלו"ז</h3>
                 <div id="event-form" class="form-group-compact flex-wrap">
@@ -77,7 +93,7 @@
                 </div>
                 <div id="settings-event-list" class="compact-chore-list" style="margin-top:10px;"></div>
             </div>
-
+    
             <div class="settings-section">
                 <h3 class="compact-h3">הוספת ילד/ה</h3>
                 <div class="form-group-compact">
@@ -85,17 +101,27 @@
                     <button onclick="addChild()" class="mini-add-btn">הוספה</button>
                 </div>
             </div>
-
+    
             <div id="settings-child-list"></div>
-
+    
             <div class="settings-section" style="background: #fffaf0; border: 1px dashed #e67e22;">
                 <h3 class="compact-h3">תחזוקה</h3>
                 <button onclick="weeklyCleanup()" style="width:100%; padding:10px; background:#e67e22; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold;">ניקוי אירועים חד-פעמיים</button>
             </div>
         </div>
+        
         <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
+    <div id="modal-kid-picker" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">מי ביצע את המטלה?</h2>
+            <div id="kid-picker-buttons" class="kid-grid-small"></div>
+            <button onclick="closeModal()" class="close-modal-btn">ביטול</button>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
