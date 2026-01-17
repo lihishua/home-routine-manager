@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Routine Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+</head>
+<body>
+
+    <header>
+        <button onclick="showView('settings')" class="icon-btn">⚙️</button>
+        <div id="header-kids-nav" class="stars-summary"></div>
+        <div id="clock">00:00</div>
+    </header>
+
+    <main id="view-home" class="view">
+        <div class="menu-grid">
+            <button onclick="showView('morning')" class="menu-card morning">
+                <span class="material-symbols-rounded menu-icon">light_mode</span>
+                <span class="menu-text">בוקר</span>
+            </button>
+            <button onclick="showView('evening')" class="menu-card evening">
+                <span class="material-symbols-rounded menu-icon">dark_mode</span>
+                <span class="menu-text">ערב</span>
+            </button>
+            <button onclick="showView('week')" class="menu-card week">
+                <span class="material-symbols-rounded menu-icon">calendar_month</span>
+                <span class="menu-text">לו"ז שבועי</span>
+            </button>
+        </div>
+    </main>
+
+    <section id="view-routine" class="view hidden">
+        <div id="child-slider" class="snap-slider"></div>
+        <button onclick="showView('home')" class="back-btn">חזרה</button>
+    </section>
+
+    <section id="view-week" class="view hidden">
+        <div class="week-container">
+            <div id="week-grid" class="week-grid"></div>
+        </div>
+        <button onclick="showView('home')" class="back-btn">חזרה</button>
+    </section>
+
+    <section id="view-settings" class="view hidden">
+        <div class="settings-container">
+            <div class="settings-header-sticky">
+                <h2 style="margin:0;">ניהול הבית</h2>
+                <button onclick="saveAndRestart()" class="save-top-btn">שמירה והפעלה</button>
+            </div>
+            
+            <div class="settings-section">
+                <h3 class="compact-h3">אירוע חדש בלו"ז</h3>
+                <div id="event-form" class="form-group-compact flex-wrap">
+                    <input type="hidden" id="edit-event-idx" value="-1">
+                    <input type="text" id="event-name" placeholder="מה קורה?" style="width: 80px;">
+                    <select id="event-day" class="mini-select">
+                        <option value="0">א'</option><option value="1">ב'</option>
+                        <option value="2">ג'</option><option value="3">ד'</option>
+                        <option value="4">ה'</option><option value="5">ו'</option>
+                        <option value="6">ש'</option>
+                    </select>
+                    <div class="time-range-selectors">
+                        <select id="start-h" class="mini-select-time"></select>:<select id="start-m" class="mini-select-time"></select>
+                        <span>-</span>
+                        <select id="end-h" class="mini-select-time"></select>:<select id="end-m" class="mini-select-time"></select>
+                    </div>
+                    <select id="event-target" class="mini-select" style="width: 70px;"></select>
+                    <label style="font-size: 0.7rem; display: flex; align-items: center; gap: 2px;">
+                        <input type="checkbox" id="event-repeat" checked> קבוע
+                    </label>
+                    <button id="btn-add-event" onclick="addEvent()" class="mini-add-btn">+</button>
+                    <button id="btn-update-event" onclick="updateEvent()" class="mini-add-btn hidden" style="background:#f39c12;">עדכון</button>
+                </div>
+                <div id="settings-event-list" class="compact-chore-list" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="settings-section">
+                <h3 class="compact-h3">הוספת ילד/ה</h3>
+                <div class="form-group-compact">
+                    <input type="text" id="new-child-name" placeholder="שם..." style="width: 100px;">
+                    <button onclick="addChild()" class="mini-add-btn">הוספה</button>
+                </div>
+            </div>
+
+            <div id="settings-child-list"></div>
+
+            <div class="settings-section" style="background: #fffaf0; border: 1px dashed #e67e22;">
+                <h3 class="compact-h3">תחזוקה</h3>
+                <button onclick="weeklyCleanup()" style="width:100%; padding:10px; background:#e67e22; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold;">ניקוי אירועים חד-פעמיים</button>
+            </div>
+        </div>
+        <button onclick="showView('home')" class="back-btn">חזרה</button>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+</html>

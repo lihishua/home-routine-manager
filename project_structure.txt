@@ -1,0 +1,9 @@
+home_routine_manager/
+├── index.html          # The main "Kiosk" entry point
+├── style.css           # All your RTL and kid-friendly styling
+├── app.js              # Main logic (Navigation, Swiping kids, Phase switching)
+├── data.js             # Initial sample data (Children, Chores, Icons)
+├── assets/             # Folder for images and sounds
+│   ├── icons/          # Chore images (brush.png, bag.png, etc.)
+│   └── sounds/         # Feedback sounds (success.mp3)
+└── README.md           # The manual for your project
