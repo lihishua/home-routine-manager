@@ -11,12 +11,14 @@
 </head>
 <body>
 
+    <!-- Top bar with settings and clock -->
     <header>
         <button onclick="showView('settings')" class="icon-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
         <div id="header-kids-nav" class="stars-summary"></div>
         <div id="clock" style="font-weight:bold; font-size:1.1rem;">00:00</div>
     </header>
 
+    <!-- Primary navigation grid -->
     <main id="view-home" class="view">
         <div class="menu-grid">
             <button onclick="showView('morning')" class="menu-card morning">
@@ -38,29 +40,34 @@
         </div>
     </main>
 
+    <!-- Routine carousel view -->
     <section id="view-routine" class="view hidden">
         <div id="child-slider" class="snap-slider"></div>
         <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
+    <!-- Task market view -->
     <section id="view-market" class="view hidden">
-        <h2 style="text-align:center; margin:20px 0;">🛒 שוק המטלות</h2>
+        <h2 style="text-align:center; margin:20px 0;">🛒 בנק המטלות</h2>
         <div id="market-list"></div>
         <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
+    <!-- Weekly calendar view -->
     <section id="view-week" class="view hidden">
         <h2 style="text-align:center; margin:20px 0;">📅 לו"ז שבועי</h2>
         <div id="week-grid"></div>
         <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
+    <!-- Settings hub for events and routines -->
     <section id="view-settings" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2>ניהול הבית</h2>
             <button onclick="location.reload()" class="action-btn-blue">רענון</button>
         </div>
         
+        <!-- Event planner -->
         <div class="settings-section">
             <h3>📅 אירועים</h3>
             <button id="toggle-event-btn" onclick="toggleEventForm()" class="action-btn-purple" style="width:100%; margin:10px 0;">➕ הוספת אירוע</button>
@@ -79,6 +86,7 @@
             <div id="actual-events-list"></div>
         </div>
 
+        <!-- Placeholders filled by app.js -->
         <div id="settings-market-manager"></div>
         <div id="settings-child-list"></div>
         
