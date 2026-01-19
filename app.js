@@ -1,6 +1,11 @@
 const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 
+// Ensure required arrays exist
+if (!currentFamily.children) currentFamily.children = [];
+if (!currentFamily.market) currentFamily.market = [];
+if (!currentFamily.events) currentFamily.events = [];
+
 // Persist the active family configuration to storage.
 function saveData() { localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily)); }
 
@@ -45,124 +50,222 @@ function renderSettings() {
     if (targetSelect) {
         targetSelect.innerHTML = `<option value="family">כולם</option>` + 
             currentFamily.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-    
-    const childList = document.getElementById('settings-child-list');
-    if (childList) {
-        childList.innerHTML = currentFamily.children.map((c, ci) => `
-            <div class="settings-section" style="border-right: 8px solid ${c.color}">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h3 style="display:inline-block; margin-left:10px;">${c.name}</h3>
-                        <span style="background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:10px; font-weight:bold;">
-                            ⭐ ${c.stars || 0}
-                        </span>
-                    </div>
-                    <button onclick="currentFamily.children.splice(${ci},1); renderSettings(); saveData();" class="delete-bin-btn-small">🗑️</button>
-                </div>
-                
-                <div style="display:flex; gap:5px; margin: 15px 0; flex-wrap:wrap;">
-                    <input type="text" id="ci-${ci}" placeholder="מטלה..." style="flex:1; padding:8px; border-radius:10px; border:1px solid #ddd;">
-                    <select id="ct-${ci}"><option value="morning">☀️</option><option value="evening">🌙</option></select>
-                    <button onclick="addChore(${ci})" class="action-btn-blue">הוספה</button>
-                    <button onclick="addChoreToAll(${ci})" class="action-btn-purple">לכולם ✨</button>
-                </div>
-
-                <div style="background:#f8fafc; border-radius:10px;">
-                    ${c.morning.map((m, mi) => `<div class="chore-edit-row"><span>☀️ ${m.task}</span><button class="delete-bin-btn-small" onclick="currentFamily.children[${ci}].morning.splice(${mi},1); renderSettings(); saveData();">🗑️</button></div>`).join('')}
-                    ${c.evening.map((e, ei) => `<div class="chore-edit-row"><span>🌙 ${e.task}</span><button class="delete-bin-btn-small" onclick="currentFamily.children[${ci}].evening.splice(${ei},1); renderSettings(); saveData();">🗑️</button></div>`).join('')}
-                </div>
-            </div>`).join('');
-            
-        // Append the global reset button under the child list
-        childList.innerHTML += `
-            <button onclick="resetAllStars()" class="back-btn" style="background:#f1f5f9; color:#64748b; margin-top:10px; width:100%; padding:15px;">
-                איפוס כוכבים לכולם 🔄
-            </button>`;
+        targetSelect.value = 'family';
+        if (typeof resetEventForm === 'function') resetEventForm();
     }
 
     renderEventsList();
-    renderSettingsMarket(); 
+    renderMarketSection();
+    renderChildList();
 }
 
-// Render the market manager card inside settings.
-function renderSettingsMarket() {
-    const container = document.getElementById('settings-market-manager');
-    if (!container) return;
+function renderMarketSection() {
+    const listContainer = document.getElementById('market-items-list');
+    if (!listContainer) return;
     
-    container.innerHTML = `
-        <div class="settings-section market-manager-card">
-            <h3 style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-                ניהול שוק המטלות 🛒
-            </h3>
-            <div style="display:flex; gap:10px; margin: 15px 0; flex-direction: row-reverse;">
-                <input type="text" id="new-market-task" placeholder="מטלה חדשה לשוק..." 
-                       style="flex:1; padding:12px; border-radius:12px; border:1px solid #e2e8f0; text-align:right;">
-                <button onclick="addMarketTask()" class="add-market-btn">הוספה</button>
-            </div>
-            <div id="settings-market-list">
-                ${currentFamily.market.map((item, i) => `
-                    <div class="market-edit-row">
-                        <div class="star-stepper">
-                            <button onclick="updateMarketStar(${i}, 1)">+</button>
-                            <span class="star-count">${item.stars || 1} ⭐</span>
-                            <button onclick="updateMarketStar(${i}, -1)">-</button>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:15px; flex:1; justify-content:flex-end;">
-                            <span class="market-task-name">${item.task}</span>
-                            <button class="delete-bin-btn-small" onclick="currentFamily.market.splice(${i},1); renderSettings(); saveData();">🗑️</button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
+    const marketItems = currentFamily.market || [];
+
+    if (marketItems.length === 0) {
+        listContainer.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:10px;">אין משימות</div>';
+        return;
+    }
+
+    let html = '';
+    marketItems.forEach((item, i) => {
+        html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; margin:4px 0; background:white; border-radius:8px;">
+                <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();">🗑️</button>
+                <span style="flex:1; font-size:0.85rem; margin:0 8px;">${item.task || ''}</span>
+                <div class="star-adjuster">
+                    <button onclick="updateMarketStars(${i}, -1)">-</button>
+                    <span>⭐${item.stars || 1}</span>
+                    <button onclick="updateMarketStars(${i}, 1)">+</button>
+                </div>
+            </div>`;
+    });
+
+    listContainer.innerHTML = html;
+}
+
+function renderChildList() {
+    const childList = document.getElementById('settings-child-list');
+    if (!childList) return;
+    
+    const children = currentFamily.children || [];
+    
+    if (children.length === 0) {
+        childList.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">אין חברים - הוסף חבר חדש</div>';
+        return;
+    }
+
+    let html = '';
+    children.forEach((c, ci) => {
+        const color = c.color || '#ccc';
+        const name = c.name || 'ללא שם';
+        const stars = c.stars || 0;
+        
+        // Build chores list
+        let choresHtml = '';
+        ['morning', 'evening'].forEach(time => {
+            const tasks = c[time] || [];
+            tasks.forEach((t, ti) => {
+                const icon = time === 'morning' ? '☀️' : '🌙';
+                choresHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #f1f5f9">';
+                choresHtml += '<button class="del-chore-btn" onclick="currentFamily.children[' + ci + '][\'' + time + '\'].splice(' + ti + ',1);saveData();renderSettings()">🗑️</button>';
+                choresHtml += '<span>' + icon + ' ' + (t.task || '') + '</span>';
+                choresHtml += '</div>';
+            });
+        });
+
+        html += '<div class="settings-child-card" style="border-top-color:' + color + '">';
+        
+        // Header with name, color picker, delete button
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+        html += '<div style="display:flex;align-items:center;gap:8px">';
+        html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
+        html += '<input type="color" value="' + color + '" onchange="currentFamily.children[' + ci + '].color=this.value;saveData();renderSettings()" style="width:24px;height:24px;border:none;cursor:pointer">';
+        html += '</div>';
+        html += '<button class="del-chore-btn" onclick="if(confirm(\'למחוק?\')){currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()}">🗑️</button>';
+        html += '</div>';
+        
+        // Stars and reset
+        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;color:#64748b;font-size:0.85rem">';
+        html += '<span>⭐ <b>' + stars + '</b></span>';
+        html += '<button onclick="currentFamily.children[' + ci + '].stars=0;saveData();renderSettings()" class="reset-btn-small">איפוס</button>';
+        html += '</div>';
+        
+        // Add chore input
+        html += '<div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">';
+        html += '<input type="text" id="chore-in-' + ci + '" placeholder="מטלה חדשה..." style="flex:1;min-width:100px;padding:6px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.8rem">';
+        html += '<select id="chore-time-' + ci + '" style="padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;font-size:0.8rem">';
+        html += '<option value="morning">☀️ בוקר</option>';
+        html += '<option value="evening">🌙 ערב</option>';
+        html += '<option value="both">🌤️ שניהם</option>';
+        html += '</select>';
+        html += '</div>';
+        html += '<div style="display:flex;gap:5px;margin-bottom:8px">';
+        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn" style="flex:1;font-size:0.8rem;padding:6px">הוספה</button>';
+        html += '<button onclick="addChoreToAll(' + ci + ')" class="action-btn-blue" style="flex:1;font-size:0.8rem;padding:6px">הוסף לכולם</button>';
+        html += '</div>';
+        
+        // Chores list
+        html += '<div style="max-height:150px;overflow-y:auto;font-size:0.8rem">';
+        html += choresHtml || '<div style="color:#999;text-align:center;padding:10px">אין מטלות</div>';
+        html += '</div>';
+        
+        html += '</div>';
+    });
+    
+    childList.innerHTML = html;
 }
 
 // Adjust the star cost for a market item and refresh settings.
-function updateMarketStar(index, change) {
-    let currentStars = currentFamily.market[index].stars || 1;
-    currentStars = Math.max(1, currentStars + change); 
-    currentFamily.market[index].stars = currentStars;
+function updateMarketStars(index, change) {
+    currentFamily.market[index].stars = Math.max(1, currentFamily.market[index].stars + change);
     saveData();
     renderSettings();
 }
 
 // Create a new market task and refresh the UI.
-function addMarketTask() {
-    const taskInput = document.getElementById('new-market-task');
-    if(taskInput.value) {
-        currentFamily.market.push({ task: taskInput.value, stars: 1, id: Date.now() });
+function addMarketItem() {
+    const taskInput = document.getElementById('new-market-name');
+    const taskValue = taskInput ? taskInput.value.trim() : '';
+    
+    if (taskValue) {
+        currentFamily.market.push({ id: Date.now(), task: taskValue, stars: 1 });
         taskInput.value = '';
         saveData();
-        renderSettings();
+        renderMarketSection(); // Directly render the market section
     }
 }
 
 // Add a single chore to one child’s routine.
 function addChore(ci) {
-    const v = document.getElementById(`ci-${ci}`).value;
-    const t = document.getElementById(`ct-${ci}`).value;
-    if(v) { currentFamily.children[ci][t].push({id: Date.now(), task: v}); renderSettings(); saveData(); }
+    const input = document.getElementById(`chore-in-${ci}`);
+    const v = input ? input.value.trim() : '';
+    const t = document.getElementById(`chore-time-${ci}`).value;
+    
+    if (v) {
+        if (t === 'both') {
+            currentFamily.children[ci].morning.push({id: Date.now(), task: v});
+            currentFamily.children[ci].evening.push({id: Date.now() + 1, task: v});
+        } else {
+            currentFamily.children[ci][t].push({id: Date.now(), task: v});
+        }
+        input.value = '';
+        saveData();
+        renderChildList();
+    }
 }
 
-// Copy a chore to every child’s routine list.
+// Copy a chore to every child's routine list.
 function addChoreToAll(ci) {
-    const v = document.getElementById(`ci-${ci}`).value;
-    const t = document.getElementById(`ct-${ci}`).value;
-    if(v) { currentFamily.children.forEach(c => c[t].push({id: Date.now()+Math.random(), task:v})); renderSettings(); saveData(); }
+    const input = document.getElementById(`chore-in-${ci}`);
+    const v = input ? input.value.trim() : '';
+    const t = document.getElementById(`chore-time-${ci}`).value;
+    
+    if (v) {
+        currentFamily.children.forEach(c => {
+            if (t === 'both') {
+                c.morning.push({id: Date.now() + Math.random(), task: v});
+                c.evening.push({id: Date.now() + Math.random() + 1, task: v});
+            } else {
+                c[t].push({id: Date.now() + Math.random(), task: v});
+            }
+        });
+        input.value = '';
+        saveData();
+        renderChildList();
+    }
 }
 
-// Show or hide the event creation form.
-function toggleEventForm() { document.getElementById('event-form-container').classList.toggle('hidden'); }
+// Add a new child to the family.
+function addChild() {
+    const nameInput = document.getElementById('new-child-name');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    
+    const colors = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c'];
+    const color = colors[currentFamily.children.length % colors.length];
+    
+    currentFamily.children.push({
+        id: 'child-' + Date.now(),
+        name: name,
+        color: color,
+        morning: [],
+        evening: [],
+        stars: 0
+    });
+    
+    nameInput.value = '';
+    saveData();
+    renderSettings();
+    renderHeaderNav();
+}
 
 // Rebuild the list of scheduled events in settings.
 function renderEventsList() {
-    document.getElementById('actual-events-list').innerHTML = currentFamily.events.map((ev, i) => `
-        <div class="chore-edit-row">
-            <span>${DAYS[ev.day]}' - ${ev.name} (<span style="direction:ltr; display:inline-block;">${ev.start}-${ev.end}</span>)</span>
-            <button class="delete-bin-btn-small" onclick="currentFamily.events.splice(${i},1); renderSettings(); saveData();">🗑️</button>
-        </div>`).join('');
+    const list = document.getElementById('settings-event-list');
+    if (!list) return;
+    
+    const events = currentFamily.events || [];
+
+    if (events.length === 0) {
+        list.innerHTML = `<div style="color:#64748b; font-size:0.75rem; text-align:center;">אין אירועים</div>`;
+        return;
+    }
+
+    list.innerHTML = events.map((ev, i) => {
+        const child = currentFamily.children.find(c => c.id === ev.target);
+        return `
+            <div class="chore-edit-row" style="padding:4px 0; font-size:0.75rem; border-bottom:1px solid #e2e8f0;">
+                <span style="flex:1;">
+                    ${DAYS[ev.day]}' - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
+                    ${child ? `- ${child.name}` : ''}
+                </span>
+                <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();">🗑️</button>
+            </div>`;
+    }).join('');
 }
 
 // Save a new event from the settings form.
@@ -176,23 +279,135 @@ function addEvent() {
     const t = document.getElementById('event-target').value;
     
     if(n) { 
-        currentFamily.events.push({ name: n, day: parseInt(d), start: `${sh}:${sm}`, end: `${eh}:${em}`, target: t }); 
-        toggleEventForm(); 
+        const repeat = document.getElementById('event-repeat')?.checked;
+        currentFamily.events.push({ name: n, day: parseInt(d), start: `${sh}:${sm}`, end: `${eh}:${em}`, target: t, repeat });
         saveData();
+        resetEventForm();
         renderSettings(); 
     }
 }
 
+function editEvent(index) {
+    const ev = currentFamily.events[index];
+    if (!ev) return;
+    
+    const nameEl = document.getElementById('event-name');
+    const dayEl = document.getElementById('event-day');
+    const startH = document.getElementById('start-h');
+    const startM = document.getElementById('start-m');
+    const endH = document.getElementById('end-h');
+    const endM = document.getElementById('end-m');
+    const targetEl = document.getElementById('event-target');
+    const repeatEl = document.getElementById('event-repeat');
+    const editIdx = document.getElementById('edit-event-idx');
+    const btnAdd = document.getElementById('btn-add-event');
+    const btnUpdate = document.getElementById('btn-update-event');
+    
+    if (nameEl) nameEl.value = ev.name;
+    if (dayEl) dayEl.value = ev.day;
+    if (startH) startH.value = ev.start.split(':')[0];
+    if (startM) startM.value = ev.start.split(':')[1];
+    if (endH) endH.value = ev.end.split(':')[0];
+    if (endM) endM.value = ev.end.split(':')[1];
+    if (targetEl) targetEl.value = ev.target;
+    if (repeatEl) repeatEl.checked = ev.repeat ?? true;
+    if (editIdx) editIdx.value = index;
+    if (btnAdd) btnAdd.classList.add('hidden');
+    if (btnUpdate) btnUpdate.classList.remove('hidden');
+}
+
+function updateEvent() {
+    const idx = parseInt(document.getElementById('edit-event-idx').value, 10);
+    if (isNaN(idx) || idx < 0) return;
+
+    const n = document.getElementById('event-name').value;
+    const d = document.getElementById('event-day').value;
+    const sh = document.getElementById('start-h').value;
+    const sm = document.getElementById('start-m').value;
+    const eh = document.getElementById('end-h').value;
+    const em = document.getElementById('end-m').value;
+    const t = document.getElementById('event-target').value;
+    const repeat = document.getElementById('event-repeat')?.checked;
+
+    if (n) {
+        currentFamily.events[idx] = { ...currentFamily.events[idx], name: n, day: parseInt(d), start: `${sh}:${sm}`, end: `${eh}:${em}`, target: t, repeat };
+        saveData();
+        resetEventForm();
+        renderSettings();
+    }
+}
+
+function resetEventForm() {
+    document.getElementById('event-name').value = '';
+    document.getElementById('event-day').value = '0';
+    const startH = document.getElementById('start-h');
+    const startM = document.getElementById('start-m');
+    const endH = document.getElementById('end-h');
+    const endM = document.getElementById('end-m');
+    const target = document.getElementById('event-target');
+    const editIdx = document.getElementById('edit-event-idx');
+    const repeatEl = document.getElementById('event-repeat');
+    const btnAdd = document.getElementById('btn-add-event');
+    const btnUpdate = document.getElementById('btn-update-event');
+    
+    if (startH) startH.value = '08';
+    if (startM) startM.value = '00';
+    if (endH) endH.value = '08';
+    if (endM) endM.value = '00';
+    if (target) target.value = 'family';
+    if (editIdx) editIdx.value = '-1';
+    if (repeatEl) repeatEl.checked = true;
+    if (btnAdd) btnAdd.classList.remove('hidden');
+    if (btnUpdate) btnUpdate.classList.add('hidden');
+}
+
 // Draw the weekly grid with events per day.
+// Draw the weekly grid with events per day using a table layout.
+function hexToRgba(hex, alpha) {
+    if (!hex) return `rgba(15,23,42,${alpha})`;
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(ch => ch + ch).join('');
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Draw the weekly grid with events per day using a table layout.
 function renderWeek() {
     const grid = document.getElementById('week-grid');
+    if (!grid) return;
     const today = new Date().getDay();
-    grid.innerHTML = DAYS.map((day, i) => `<div class="day-column ${i === today ? 'today-highlight' : ''}"><div style="font-weight:800; font-size:1.2rem; border-bottom:1px solid #eee; padding-bottom:5px;">${day} ${i === today ? '(היום)' : ''}</div><div id="day-events-${i}"></div></div>`).join('');
-    currentFamily.events.forEach(ev => {
-        const c = currentFamily.children.find(child => child.id === ev.target);
-        const color = c ? c.color : '#cbd5e1';
-        document.getElementById(`day-events-${ev.day}`).innerHTML += `<div class="event-tag" style="background:${color}25; border-right:4px solid ${color}"><span>${ev.name}</span><span style="direction:ltr;">${ev.start}-${ev.end}</span></div>`;
-    });
+
+    const headerRow = DAYS.map((day, i) => `<th class="${i === today ? 'today-col' : ''}">${day}</th>`).join('');
+    const bodyRow = DAYS.map((day, i) => {
+        const eventsForDay = currentFamily.events.filter(ev => ev.day === i);
+        if (!eventsForDay.length) return `<td class="week-day-cell empty" data-day="${day}"></td>`;
+
+        const eventsMarkup = eventsForDay.map(ev => {
+            const child = currentFamily.children.find(c => c.id === ev.target);
+            const color = child ? child.color : '#cbd5e1';
+            const chipBg = hexToRgba(color, 0.15);
+            return `
+                <div class="event-chip" style="background:${chipBg}; border-left-color:${color};">
+                    <span>${ev.name}</span>
+                    <span class="event-time">${ev.start}-${ev.end}</span>
+                </div>
+            `;
+        }).join('');
+
+        return `<td class="week-day-cell" data-day="${day}">${eventsMarkup}</td>`;
+    }).join('');
+
+    grid.innerHTML = `
+        <div class="week-table-wrapper">
+            <table class="week-table">
+                <thead><tr>${headerRow}</tr></thead>
+                <tbody><tr>${bodyRow}</tr></tbody>
+            </table>
+        </div>
+    `;
 }
 
 // Show all market items for purchase selection.
@@ -265,7 +480,7 @@ function processMarketWin(itemIndex, childIndex) {
 
 // Populate hour/minute selectors used in event forms.
 function initTimeSelectors() {
-    const h = Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0')).map(x => `<option value="${x}">${x}</option>`).join('');
+    const h = Array.from({length: 13}, (_, i) => (8 + i).toString().padStart(2, '0')).map(x => `<option value="${x}">${x}</option>`).join('');
     const m = ["00", "15", "30", "45"].map(x => `<option value="${x}">${x}</option>`).join('');
     ['start-h', 'end-h'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = h; });
     ['start-m', 'end-m'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = m; });
@@ -278,25 +493,22 @@ setInterval(() => {
 }, 1000);
 
 // Build the routine cards for each child for the selected time.
+// Build the routine cards for each child for the selected time.
 function renderRoutine(type) {
     const container = document.getElementById('child-slider');
     if (!container) return;
 
-    // Build a card for every child
     container.innerHTML = currentFamily.children.map((child, ci) => `
-        <div class="routine-child-card" style="border-top: 10px solid ${child.color}">
+        <div class="routine-child-card">
             <div class="routine-child-header">
-                <span style="font-size:2rem;">${child.icon || '👤'}</span>
-                <h2>${child.name}</h2>
-                <div class="routine-type-tag">${type === 'morning' ? '☀️ בוקר' : '🌙 ערב'}</div>
+                <h2 style="color: ${child.color}">${child.name}</h2>
             </div>
             
             <div class="routine-tasks-list">
                 ${child[type].map((task, ti) => `
                     <div class="routine-item" onclick="toggleTask(${ci}, '${type}', ${ti}, this)">
-                        <div class="task-check-circle"></div>
+                        <span class="task-icon">${task.icon || '✨'}</span>
                         <span class="task-text">${task.task}</span>
-                        <span style="margin-right:auto;">${task.icon || '✨'}</span>
                     </div>
                 `).join('')}
             </div>
