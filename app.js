@@ -1,6 +1,23 @@
 const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 
+// Set splash screen greeting based on time of day
+(function setSplashGreeting() {
+    const hour = new Date().getHours();
+    const greeting = document.getElementById('splash-greeting');
+    if (greeting) {
+        if (hour >= 5 && hour < 12) {
+            greeting.textContent = "בוקר טוב! ☀️";
+        } else if (hour >= 12 && hour < 17) {
+            greeting.textContent = "צהריים טובים! 🌤️";
+        } else if (hour >= 17 && hour < 21) {
+            greeting.textContent = "ערב טוב! 🌙";
+        } else {
+            greeting.textContent = "לילה טוב! 🌟";
+        }
+    }
+})();
+
 // Ensure required arrays exist
 if (!currentFamily.children) currentFamily.children = [];
 if (!currentFamily.market) currentFamily.market = [];
@@ -8,6 +25,29 @@ if (!currentFamily.events) currentFamily.events = [];
 
 // Persist the active family configuration to storage.
 function saveData() { localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily)); }
+
+// Beez icon and helpers
+const BEE_IMG = "https://freesvg.org/img/Cartoon-Bee.png";
+
+function getBeezIconHtml() {
+    return `<span class="beez-icons-stack">
+        <img src="${BEE_IMG}" class="beez-icon bee-back" alt="beez">
+        <img src="${BEE_IMG}" class="beez-icon bee-front" alt="beez">
+    </span>`;
+}
+
+function getBeezText(count) {
+    return count === 1 ? "ביז" : "ביזים";
+}
+
+function renderChildScore(child) {
+    return `
+        <span class="beez-display">
+            ${getBeezIconHtml()}
+            <span class="beez-number">${child.beez}</span>
+        </span>
+    `;
+}
 
 // Show one of the main app views and re-render related data.
 function showView(viewId) {
@@ -31,13 +71,17 @@ function showView(viewId) {
 // Rebuild the header pills that show each child.
 function renderHeaderNav() {
     const nav = document.getElementById('header-kids-nav');
-    nav.innerHTML = currentFamily.children.map(c => `<div class="child-nav-pill" style="border-bottom-color: ${c.color}">${c.name}</div>`).join('');
+    nav.innerHTML = currentFamily.children.map(child => {
+        return `<div class="child-nav-pill" style="border-bottom-color: ${child.color}">
+            ${child.icon || ''} ${child.name}
+        </div>`;
+    }).join('');
 }
 
-// Clear every child’s earned stars after confirmation.
-function resetAllStars() {
-    if (confirm('האם אתה בטוח שברצונך לאפס את כל הכוכבים של הילדים?')) {
-        currentFamily.children.forEach(c => c.stars = 0);
+// Clear every child's earned beez after confirmation.
+function resetAllBeez() {
+    if (confirm('האם אתה בטוח שברצונך לאפס את כל הביזים של הילדים?')) {
+        currentFamily.children.forEach(c => c.beez = 0);
         saveData();
         renderSettings();
         renderHeaderNav();
@@ -73,13 +117,14 @@ function renderMarketSection() {
     let html = '';
     marketItems.forEach((item, i) => {
         html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; margin:4px 0; background:white; border-radius:8px;">
-                <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();">🗑️</button>
-                <span style="flex:1; font-size:0.85rem; margin:0 8px;">${item.task || ''}</span>
-                <div class="star-adjuster">
-                    <button onclick="updateMarketStars(${i}, -1)">-</button>
-                    <span>⭐${item.stars || 1}</span>
-                    <button onclick="updateMarketStars(${i}, 1)">+</button>
+            <div class="market-edit-row">
+                <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>
+                <span class="market-task-name">${item.task || ''}</span>
+                <div class="beez-stepper">
+                    <button onclick="updateMarketBeez(${i}, -1)">-</button>
+                    <span class="beez-count">${item.beez || 1}</span>
+                    ${getBeezIconHtml()}
+                    <button onclick="updateMarketBeez(${i}, 1)">+</button>
                 </div>
             </div>`;
     });
@@ -102,7 +147,7 @@ function renderChildList() {
     children.forEach((c, ci) => {
         const color = c.color || '#ccc';
         const name = c.name || 'ללא שם';
-        const stars = c.stars || 0;
+        const beez = c.beez || 0;
         
         // Build chores list
         let choresHtml = '';
@@ -111,7 +156,7 @@ function renderChildList() {
             tasks.forEach((t, ti) => {
                 const icon = time === 'morning' ? '☀️' : '🌙';
                 choresHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #f1f5f9">';
-                choresHtml += '<button class="del-chore-btn" onclick="currentFamily.children[' + ci + '][\'' + time + '\'].splice(' + ti + ',1);saveData();renderSettings()">🗑️</button>';
+                choresHtml += '<button class="del-chore-btn" onclick="currentFamily.children[' + ci + '][\'' + time + '\'].splice(' + ti + ',1);saveData();renderSettings()"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>';
                 choresHtml += '<span>' + icon + ' ' + (t.task || '') + '</span>';
                 choresHtml += '</div>';
             });
@@ -119,19 +164,19 @@ function renderChildList() {
 
         html += '<div class="settings-child-card" style="border-top-color:' + color + '">';
         
-        // Header with name, color picker, delete button
+        // Header with name, loom icon, color picker, delete button
         html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
         html += '<div style="display:flex;align-items:center;gap:8px">';
         html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
+        html += renderChildScore({beez: beez});
         html += '<input type="color" value="' + color + '" onchange="currentFamily.children[' + ci + '].color=this.value;saveData();renderSettings()" style="width:24px;height:24px;border:none;cursor:pointer">';
         html += '</div>';
-        html += '<button class="del-chore-btn" onclick="if(confirm(\'למחוק?\')){currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()}">🗑️</button>';
+        html += '<button class="del-chore-btn" onclick="if(confirm(\'למחוק?\')){currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()}">מחיקה</button>';
         html += '</div>';
         
-        // Stars and reset
-        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;color:#64748b;font-size:0.85rem">';
-        html += '<span>⭐ <b>' + stars + '</b></span>';
-        html += '<button onclick="currentFamily.children[' + ci + '].stars=0;saveData();renderSettings()" class="reset-btn-small">איפוס</button>';
+        // Reset beez button
+        html += '<div style="margin-bottom:10px">';
+        html += '<button onclick="currentFamily.children[' + ci + '].beez=0;saveData();renderSettings()" class="reset-btn-small">איפוס ביזים</button>';
         html += '</div>';
         
         // Add chore input
@@ -159,9 +204,9 @@ function renderChildList() {
     childList.innerHTML = html;
 }
 
-// Adjust the star cost for a market item and refresh settings.
-function updateMarketStars(index, change) {
-    currentFamily.market[index].stars = Math.max(1, currentFamily.market[index].stars + change);
+// Adjust the beez cost for a market item and refresh settings.
+function updateMarketBeez(index, change) {
+    currentFamily.market[index].beez = Math.max(1, currentFamily.market[index].beez + change);
     saveData();
     renderSettings();
 }
@@ -172,7 +217,7 @@ function addMarketItem() {
     const taskValue = taskInput ? taskInput.value.trim() : '';
     
     if (taskValue) {
-        currentFamily.market.push({ id: Date.now(), task: taskValue, stars: 1 });
+        currentFamily.market.push({ id: Date.now(), task: taskValue, beez: 1 });
         taskInput.value = '';
         saveData();
         renderMarketSection(); // Directly render the market section
@@ -234,7 +279,7 @@ function addChild() {
         color: color,
         morning: [],
         evening: [],
-        stars: 0
+        beez: 0
     });
     
     nameInput.value = '';
@@ -263,7 +308,7 @@ function renderEventsList() {
                     ${DAYS[ev.day]}' - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
                     ${child ? `- ${child.name}` : ''}
                 </span>
-                <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();">🗑️</button>
+                <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>
             </div>`;
     }).join('');
 }
@@ -422,9 +467,9 @@ function renderMarket() {
         <div class="menu-card market-card" style="aspect-ratio: auto; padding: 25px; margin-bottom: 15px; flex-direction: row; justify-content: space-between; width: 100%; cursor: pointer;" onclick="openMarketSelection(${i})">
             <div style="text-align: right;">
                 <div style="font-weight:800; font-size:1.5rem;">${item.task}</div>
-                <div style="color:#059669; font-weight:bold;">⭐ ${item.stars} כוכבים</div>
+                <div style="color:#059669; font-weight:bold;">${item.beez} ${getBeezIconHtml()} ${getBeezText(item.beez)}</div>
             </div>
-            <span class="material-symbols-rounded" style="font-size: 3rem; color: #10b981;">stars</span>
+            <span class="material-symbols-rounded" style="font-size: 3rem; color: #10b981;">emoji_events</span>
         </div>
     `).join('');
 }
@@ -451,7 +496,7 @@ function openMarketSelection(index) {
     document.body.appendChild(overlay);
 }
 
-// Grant stars to a child and celebrate the win.
+// Grant beez to a child and celebrate the win.
 function processMarketWin(itemIndex, childIndex) {
     const item = currentFamily.market[itemIndex];
     const child = currentFamily.children[childIndex];
@@ -460,9 +505,9 @@ function processMarketWin(itemIndex, childIndex) {
     if (child.age <= 5) multiplier = 2;
     if (child.age >= 18) multiplier = 0;
     
-    const finalStars = item.stars * multiplier;
-    if (!child.stars) child.stars = 0;
-    child.stars += finalStars;
+    const finalBeez = item.beez * multiplier;
+    if (!child.beez) child.beez = 0;
+    child.beez += finalBeez;
 
     document.getElementById('market-overlay').remove();
     
@@ -472,7 +517,7 @@ function processMarketWin(itemIndex, childIndex) {
     } catch(e) {}
 
     setTimeout(() => {
-        alert(`כל הכבוד ${child.name}! צברת ${finalStars} כוכבים!`);
+        alert(`כל הכבוד ${child.name}! צברת ${finalBeez} ${getBeezText(finalBeez)}!`);
         saveData();
         renderHeaderNav();
     }, 500);

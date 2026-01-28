@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family Routine Manager</title>
-    <link rel="stylesheet" href="style.css?v=12">
+    <title>Easy Beezy</title>
+    <link rel="stylesheet" href="style.css?v=114">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
+    <!-- Splash screen -->
+    <div id="splash-screen">
+        <h1>Easy Beezy</h1>
+        <img src="https://freesvg.org/img/Cartoon-Bee.png" width="100" alt="🐝">
+        <p id="splash-greeting">It's Morning Time!</p>
+    </div>
+
     <!-- Top bar with settings and clock -->
     <header>
         <button onclick="showView('settings')" class="icon-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
-        <div id="header-kids-nav" class="stars-summary"></div>
+        <div id="header-kids-nav" class="beez-summary"></div>
         <div id="clock" style="font-weight:bold; font-size:1.1rem;">00:00</div>
     </header>
 
@@ -30,7 +37,7 @@
                 <span class="menu-text">ערב</span>
             </button>
             <button onclick="showView('market')" class="menu-card market-card">
-                <span class="material-symbols-rounded menu-icon">stars</span>
+                <span class="material-symbols-rounded menu-icon">emoji_events</span>
                 <span class="menu-text">שוק מטלות</span>
             </button>
             <button onclick="showView('week')" class="menu-card week">
@@ -118,7 +125,7 @@
         </div>
     </section>
 
-    <script src="data.js?v=14"></script>
-    <script src="app.js?v=14"></script>
+    <script src="data.js?v=113"></script>
+    <script src="app.js?v=113"></script>
 </body>
 </html>

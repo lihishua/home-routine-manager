@@ -1,17 +1,140 @@
-/* Global color tokens */
+/* Global color tokens - Easy Beezy Theme */
 :root { 
-    --bg: #F8FAFC; 
+    --bg: #87CEEB; /* Bright sky blue */
+    --bg-light: #B8E2F2; /* Lighter blue */
     --white: #ffffff; 
-    --shadow: 0 10px 25px rgba(0,0,0,0.05); 
-    --green-bg: #f0f9f1;
-    --green-border: #c6e9cb;
+    --shadow: 0 10px 25px rgba(0,0,0,0.1); 
+    --bee-yellow: #FFD700; /* Pure Gold */
+    --honey-warm: #FFF9C4; /* Very light cream-yellow for card backgrounds */
+    --bee-brown: #5D4037; /* Softer brown for text */
+    --bee-gold: #F5C518;
+    --bee-light-yellow: #FFF8DC;
+    --honey: #F4A460;
 }
 
 /* Reset baseline styles */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; direction: rtl; }
 
 /* Center the main document layout */
-body { background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+body { 
+    /* A softer, dreamier sky gradient */
+    background: linear-gradient(180deg, #AFE1F0 0%, #E0F4FA 100%); 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+}
+
+/* Splash screen */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #FFF9C4 0%, #FFECB3 50%, #FFE082 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeOut 0.5s ease-out 2.5s forwards;
+}
+#splash-screen h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #8B4513; /* Use brown for the main title to match the bee stripes */
+    text-shadow: 3px 3px 0px var(--bee-yellow); /* Thick yellow shadow for a 3D effect */
+    margin-bottom: 20px;
+}
+#splash-screen img {
+    animation: bounce 1s ease-in-out infinite;
+}
+#splash-screen p {
+    background: white;
+    padding: 5px 20px;
+    border-radius: 20px;
+    color: var(--honey);
+    font-size: 1.1rem;
+    box-shadow: 0 4px 0px rgba(0,0,0,0.05);
+    margin-top: 20px;
+    font-weight: 600;
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+@keyframes fadeOut {
+    to { opacity: 0; pointer-events: none; }
+}
+
+/* Loom icon (spool of thread) - legacy */
+.loom-icon {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.2s;
+    vertical-align: middle;
+}
+.loom-icon:hover {
+    transform: scale(1.15);
+}
+
+/* The Beez Icon */
+.beez-icons-stack {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    margin: 0 4px;
+}
+.beez-icon {
+    width: 32px;
+    height: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+    transition: transform 0.2s;
+}
+.bee-back {
+    transform: translate(2px, 2px) scale(0.9);
+    opacity: 0.7;
+    z-index: 1;
+}
+.bee-front {
+    z-index: 2;
+}
+.beez-icons-stack:hover .bee-front {
+    transform: scale(1.1);
+}
+
+/* Beez display without pill */
+.beez-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 800;
+    color: var(--bee-brown);
+}
+.beez-number {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--bee-brown);
+}
+
+/* The Beez Counter Pill */
+.beez-pill {
+    background: linear-gradient(to bottom, #ffffff, #fffdf0); /* Subtle honey tint */
+    border: 2px solid var(--bee-yellow); /* Gold border */
+    padding: 6px 14px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 800;
+    color: var(--bee-brown); /* Darker brown text is easier to read than gold */
+    box-shadow: 0 4px 10px rgba(245, 197, 24, 0.2);
+}
 
 /* Header styling */
 header {
@@ -36,7 +159,14 @@ header {
     background: #f1f5f9; 
     border-radius: 20px; 
     font-weight: 800; 
-    border-bottom: 3px solid transparent; 
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+.child-nav-pill.active {
+    background: var(--bee-yellow);
+    color: var(--bee-brown);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
 .view { width: 100%; max-width: 600px; padding: 20px; display: flex; flex-direction: column; }
@@ -73,10 +203,11 @@ header {
 }
 
 .settings-card {
-    background: white;
-    border-radius: 20px;
-    padding: 15px;
-    box-shadow: var(--shadow);
+    background: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+    border: none; /* Remove the heavy borders */
+    border-radius: 30px; /* Much rounder corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Soft shadow, not a line */
+    padding: 25px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -90,14 +221,14 @@ header {
     text-align: center;
 }
 
-.settings-card-purple { background: #F3E5F5; border: 2px solid #d8b4fe; }
-.settings-card-purple h3 { color: #6b21a8; }
-
-.settings-card-green { background: #EBFBEE; border: 2px solid #86efac; }
-.settings-card-green h3 { color: #166534; }
-
-.settings-card-blue { background: #E7F5FF; border: 2px solid #93c5fd; }
-.settings-card-blue h3 { color: #1e40af; }
+.settings-card-purple, .settings-card-green, .settings-card-blue { 
+    background: var(--honey-warm); 
+    border: none;
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.15); /* Yellow tinted shadow */
+}
+.settings-card-purple h3, .settings-card-green h3, .settings-card-blue h3 { 
+    color: var(--bee-brown); 
+}
 
 .settings-card-input {
     width: 100%;
@@ -132,16 +263,36 @@ header {
     margin-top: auto;
     padding: 10px;
     border: none;
-    border-radius: 12px;
-    font-weight: 700;
+    border-radius: 15px;
+    font-weight: 800;
     cursor: pointer;
-    background: rgba(0,0,0,0.1);
-    color: inherit;
+    background: var(--bee-yellow);
+    color: var(--bee-brown);
+    box-shadow: 0 4px 0px #D4AF37;
+    transition: all 0.1s;
+}
+.settings-card-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0px #D4AF37;
 }
 
-.settings-card-purple .settings-card-btn { background: #7c3aed; color: white; }
-.settings-card-green .settings-card-btn { background: #22c55e; color: white; }
-.settings-card-blue .settings-card-btn { background: #3b82f6; color: white; }
+.settings-card-purple .settings-card-btn, 
+.settings-card-green .settings-card-btn, 
+.settings-card-blue .settings-card-btn { 
+    border: none;
+    border-radius: 15px;
+    background: var(--bee-yellow);
+    color: var(--bee-brown);
+    font-weight: 800;
+    box-shadow: 0 4px 0px #D4AF37; /* 3D "Pressable" effect */
+    transition: all 0.1s;
+}
+.settings-card-purple .settings-card-btn:active,
+.settings-card-green .settings-card-btn:active,
+.settings-card-blue .settings-card-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0px #D4AF37;
+}
 
 .settings-card-list {
     max-height: 120px;
@@ -268,7 +419,7 @@ header {
     display: grid;
     place-items: center;
 }
-.star-adjuster {
+.beez-adjuster {
     min-width: 32px;
     justify-content: center;
 }
@@ -290,13 +441,24 @@ header {
 }
 .child-card-info { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .del-chore-btn {
-    background: #fff5f5;
-    color: #d9464a;
-    border: 1px solid #fde2e2;
-    border-radius: 10px;
-    padding: 3px 7px;
-    font-size: 0.85rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 4px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    transition: transform 0.2s;
+}
+.del-chore-btn:hover {
+    transform: scale(1.1);
+}
+.del-chore-btn img {
+    width: 24px;
+    height: 24px;
 }
 .reset-btn-small {
     background: #eef2ff;
@@ -429,18 +591,19 @@ header {
     transform: translateY(-1px);
 }
 
-/* Pill for adjusting market star cost */
-.star-stepper {
-    background: white;
+/* Pill for adjusting market beez cost */
+.beez-stepper {
+    background: #ffffff;
+    border: 2px solid #FFD700;
+    border-radius: 50px; /* Round pill shape */
+    padding: 5px 15px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 4px 14px;
-    border-radius: 24px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.04);
 }
 
-.star-stepper button {
+.beez-stepper button {
     border: none;
     background: none;
     font-size: 1.2rem;
@@ -450,14 +613,32 @@ header {
     padding: 0 4px;
 }
 
-.star-count { font-weight: 800; min-width: 40px; text-align: center; color: #145c32; }
+.beez-count { 
+    color: var(--bee-brown);
+    font-size: 1.2rem;
+    font-weight: 900;
+    min-width: 40px; 
+    text-align: center; 
+}
 .market-task-name { font-weight: 600; color: #1e3a25; font-size: 1rem; }
 
 /* General Buttons */
 .delete-bin-btn-small { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 5px 8px; border-radius: 8px; cursor: pointer; }
-.action-btn-green { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 8px 12px; border-radius: 10px; font-weight: 800; cursor: pointer; }
-.action-btn-blue { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-.action-btn-purple { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+.action-btn-green, .action-btn-blue, .action-btn-purple, .settings-card-btn {
+    border: none;
+    border-radius: 15px;
+    background: var(--bee-yellow);
+    color: var(--bee-brown);
+    font-weight: 800;
+    box-shadow: 0 4px 0px #D4AF37; /* 3D "Pressable" effect */
+    transition: all 0.1s;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+.action-btn-green:active, .action-btn-blue:active, .action-btn-purple:active, .settings-card-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0px #D4AF37;
+}
 .back-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
 /* Slider that hosts the routine cards */
 .snap-slider {
