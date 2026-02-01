@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Easy Beezy</title>
-    <link rel="stylesheet" href="style.css?v=114">
+    <link rel="stylesheet" href="style.css?v=199">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
@@ -14,15 +15,15 @@
     <!-- Splash screen -->
     <div id="splash-screen">
         <h1>Easy Beezy</h1>
-        <img src="https://freesvg.org/img/Cartoon-Bee.png" width="100" alt="🐝">
-        <p id="splash-greeting">It's Morning Time!</p>
+        <img src="https://freesvg.org/img/Cartoon-Bee.png" class="splash-bee" alt="🐝">
+        <p id="splash-greeting" class="splash-greeting">It's Morning Time!</p>
     </div>
 
     <!-- Top bar with settings and clock -->
     <header>
-        <button onclick="showView('settings')" class="icon-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
+        <button onclick="showView('settings')" class="icon-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color: #ffffff;">⚙️</button>
         <div id="header-kids-nav" class="beez-summary"></div>
-        <div id="clock" style="font-weight:bold; font-size:1.1rem;">00:00</div>
+        <div id="clock" style="font-weight:bold; font-size:1.1rem; color: #ffffff;">00:00</div>
     </header>
 
     <!-- Primary navigation grid -->
@@ -49,22 +50,29 @@
 
     <!-- Routine carousel view -->
     <section id="view-routine" class="view hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="margin:0;">שגרת יומית</h2>
+            <button onclick="showView('home')" class="back-btn">חזרה</button>
+        </div>
         <div id="child-slider" class="snap-slider"></div>
-        <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
     <!-- Task market view -->
     <section id="view-market" class="view hidden">
-        <h2 style="text-align:center; margin:20px 0;">🛒 בנק המטלות</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="margin:0;">🛒 בנק המטלות</h2>
+            <button onclick="showView('home')" class="back-btn">חזרה</button>
+        </div>
         <div id="market-list"></div>
-        <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
     <!-- Weekly calendar view -->
     <section id="view-week" class="view hidden">
-        <h2 style="text-align:center; margin:20px 0;">📅 לו"ז שבועי</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="margin:0;">📅 לו"ז שבועי</h2>
+            <button onclick="showView('home')" class="back-btn">חזרה</button>
+        </div>
         <div id="week-grid"></div>
-        <button onclick="showView('home')" class="back-btn">חזרה</button>
     </section>
 
     <!-- Settings hub for events and routines -->
@@ -72,7 +80,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2>ניהול הבית</h2>
             <div style="display:flex; gap:10px;">
-                <button onclick="location.reload()" class="action-btn-blue">שמור</button>
+                <button onclick="location.reload()" class="save-btn">שמור</button>
                 <button onclick="showView('home')" class="back-btn">חזרה</button>
             </div>
         </div>
@@ -80,8 +88,8 @@
         <!-- Top row: 3 add cards -->
         <div class="settings-grid-top">
             <!-- Event planner card -->
-            <div class="settings-card settings-card-purple">
-                <h3>📅 הוסף אירוע חדש</h3>
+            <div class="settings-card settings-card-purple add-event-card">
+                <h3>📅 הוסף אירוע</h3>
                 <input type="hidden" id="edit-event-idx" value="-1">
                 <input type="text" id="event-name" placeholder="מה קורה?" class="settings-card-input">
                 <select id="event-day" class="settings-card-select">
@@ -102,30 +110,22 @@
 
             <!-- Market chore card -->
             <div class="settings-card settings-card-green" id="settings-market-section">
-                <h3>🛒 הוסף משימת בית חדשה</h3>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="new-market-name" placeholder="מה שעושים?" class="settings-card-input" style="flex:1;">
-                    <button onclick="addMarketItem()" class="settings-card-btn" style="flex-shrink:0;">הוספה</button>
+                <h3>🛒 הוסף מטלה</h3>
+                <div class="add-task-row">
+                    <input type="text" id="new-market-name" placeholder="מה שעושים?" class="settings-card-input">
+                    <button onclick="addMarketItem()" class="settings-card-btn">הוספה</button>
                 </div>
                 <div id="market-items-list" class="settings-card-list"></div>
-            </div>
-
-            <!-- Add child card -->
-            <div class="settings-card settings-card-blue">
-                <h3>👶 הוסף חבר חדש</h3>
-                <input type="text" id="new-child-name" placeholder="שם..." class="settings-card-input">
-                <button onclick="addChild()" class="settings-card-btn">הוספה</button>
             </div>
         </div>
 
         <!-- Bottom row: child cards horizontal scroll -->
-        <h3 style="margin: 20px 0 10px; color: #64748b;">עריכת חברים</h3>
         <div id="settings-child-list" class="settings-child-slider">
             <div style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">טוען...</div>
         </div>
     </section>
 
-    <script src="data.js?v=113"></script>
-    <script src="app.js?v=113"></script>
+    <script src="data.js?v=125"></script>
+    <script src="app.js?v=125"></script>
 </body>
 </html>

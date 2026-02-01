@@ -1,24 +1,49 @@
 /* Global color tokens - Easy Beezy Theme */
 :root { 
-    --bg: #87CEEB; /* Bright sky blue */
-    --bg-light: #B8E2F2; /* Lighter blue */
+    --bee-blue: #5A9CB5;      /* Main Headers & Background depth */
+    --bee-yellow: #FACE68;    /* Action Buttons (Add/Save) */
+    --bee-coral: #FA6868;     /* The Uniform Child Color & Delete 'X' */
+    --hive-cream: #FDF4E3;    /* The Card Color (Warm & Cozy) */
+    --text-dark: #134686;     /* Deep Blue for clear text */
+    --bg-darker: #E6F1F5;     /* Darker, richer blue-grey background */
     --white: #ffffff; 
-    --shadow: 0 10px 25px rgba(0,0,0,0.1); 
-    --bee-yellow: #FFD700; /* Pure Gold */
-    --honey-warm: #FFF9C4; /* Very light cream-yellow for card backgrounds */
-    --bee-brown: #5D4037; /* Softer brown for text */
-    --bee-gold: #F5C518;
-    --bee-light-yellow: #FFF8DC;
-    --honey: #F4A460;
+    --shadow: 0 10px 25px rgba(0,0,0,0.1);
+    /* Legacy aliases for compatibility */
+    --bg: var(--bg-darker);
+    --bg-page: var(--bg-darker);
+    --bg-soft-sky: var(--bg-darker);
+    --bg-sky: var(--bg-darker);
+    --bg-light: #ffffff;
+    --hive-cream: #FDF4E3;
+    --text-main: var(--text-dark);
+    --bee-brown: var(--text-dark);
+    --bee-gold: var(--bee-yellow);
+    --honey-warm: var(--white);
+    --accent-sage: var(--bee-yellow);
+    --bee-red: var(--bee-coral);
+    --action-red: var(--bee-coral);
+    --accent-coral: var(--bee-coral);
+    --honey: var(--bee-coral);
+    --child-blue: #BBDEFB;
+    --child-pink: #F8BBD0;
+    --child-green: #C8E6C9;
 }
 
 /* Reset baseline styles */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; direction: rtl; }
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Fredoka', sans-serif !important; 
+    color: var(--text-dark);
+    direction: rtl; 
+}
 
 /* Center the main document layout */
-body { 
-    /* A softer, dreamier sky gradient */
-    background: linear-gradient(180deg, #AFE1F0 0%, #E0F4FA 100%); 
+body {
+    /* Use a deeper version of your blue for the background to make cards POP */
+    background: linear-gradient(180deg, #5A9CB5 0%, #8FBCCB 100%); 
+    color: var(--text-dark);
     min-height: 100vh; 
     display: flex; 
     flex-direction: column; 
@@ -32,37 +57,61 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #FFF9C4 0%, #FFECB3 50%, #FFE082 100%);
+    background: linear-gradient(135deg, #5A9CB5 0%, #8FBCCB 100%);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     z-index: 9999;
-    animation: fadeOut 0.5s ease-out 2.5s forwards;
+    animation: fadeOut 0.8s ease-out 2.5s forwards;
 }
-#splash-screen h1 {
-    font-size: 3.5rem;
+#splash-screen h1,
+.splash-title {
+    font-family: 'Fredoka', sans-serif; /* Use your rounded font */
+    color: #134686; /* Deep Blue */
+    font-size: 4.5rem;
     font-weight: 900;
-    color: #8B4513; /* Use brown for the main title to match the bee stripes */
-    text-shadow: 3px 3px 0px var(--bee-yellow); /* Thick yellow shadow for a 3D effect */
-    margin-bottom: 20px;
+    text-shadow: 3px 3px 0px #FACE68; /* Yellow 3D shadow */
+    letter-spacing: -2px;
+    margin-bottom: 0;
 }
-#splash-screen img {
-    animation: bounce 1s ease-in-out infinite;
+#splash-screen img,
+.splash-bee {
+    width: 80px;
+    margin: 20px 0;
+    animation: hoverBee 3s ease-in-out infinite;
 }
-#splash-screen p {
+#splash-screen p,
+.splash-greeting {
+    margin-top: 30px;
+    background: #FDF4E3; /* Warm Cream */
+    color: #134686; /* Deep Blue text */
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    border: 3px solid #FAAC68; /* Orange border highlight */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+#splash-screen .tagline {
+    margin-top: 40px;
     background: white;
-    padding: 5px 20px;
-    border-radius: 20px;
-    color: var(--honey);
-    font-size: 1.1rem;
-    box-shadow: 0 4px 0px rgba(0,0,0,0.05);
-    margin-top: 20px;
-    font-weight: 600;
+    padding: 10px 30px;
+    border-radius: 50px;
+    color: #F4A460;
+    font-weight: 700;
+    font-size: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+
+/* Animations */
+@keyframes hoverBee {
+    0%, 100% { transform: translateY(0) rotate(5deg); }
+    50% { transform: translateY(-15px) rotate(-5deg); }
+}
+@keyframes beeFloat {
+    0%, 100% { transform: translateY(0) rotate(5deg); }
+    50% { transform: translateY(-25px) rotate(-5deg); }
 }
 @keyframes fadeOut {
     to { opacity: 0; pointer-events: none; }
@@ -115,12 +164,12 @@ body {
     align-items: center;
     gap: 4px;
     font-weight: 800;
-    color: var(--bee-brown);
+    color: var(--text-main);
 }
 .beez-number {
     font-size: 0.9rem;
     font-weight: 800;
-    color: var(--bee-brown);
+    color: var(--text-main);
 }
 
 /* The Beez Counter Pill */
@@ -132,7 +181,7 @@ body {
     display: inline-flex;
     align-items: center;
     font-weight: 800;
-    color: var(--bee-brown); /* Darker brown text is easier to read than gold */
+    color: var(--text-main); /* Darker brown text is easier to read than gold */
     box-shadow: 0 4px 10px rgba(245, 197, 24, 0.2);
 }
 
@@ -143,33 +192,98 @@ header {
     align-items: center;
     width: 100%;
     padding: 10px 20px;
-    background: var(--white);
-    border-bottom: 1px solid #e2e8f0;
+    background: #134686; /* Deep Blue header */
+    z-index: 1000;
+    position: relative;
+    border-bottom: none;
+}
+header .icon-btn {
+    color: #ffffff !important; /* White icon on blue background */
+}
+header #clock {
+    color: #ffffff !important; /* White clock text on blue background */
+    font-weight: bold;
+}
+
+.header-container,
+.top-header {
+    background-color: #134686 !important; /* Deep Blue Bar */
+    height: 60px !important;
+    display: flex !important;
+    justify-content: center !important; 
+    align-items: center !important;
+    padding: 10px 0;
+    width: 100%;
+    z-index: 1000;
+    position: relative;
+    border-bottom: none;
+}
+
+.header-bar {
+    background-color: #134686 !important;
+    height: 55px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100%;
+    z-index: 1000;
+    position: relative;
+    border-bottom: none;
 }
 
 #header-kids-nav {
     display: flex;
     gap: 10px;
-    justify-content: center;
+    justify-content: center; /* Re-centers the names */
     flex-grow: 1;
+    align-items: center;
 }
 
-.child-nav-pill { 
-    padding: 6px 12px; 
-    background: #f1f5f9; 
-    border-radius: 20px; 
-    font-weight: 800; 
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
+/* The name bubbles in the header */
+.child-nav-pill,
+.child-name-pill {
+    background-color: #ffffff !important; 
+    color: #134686 !important; /* Deep Blue Text */
+    font-weight: 900 !important;
+    border: 2px solid #FAAC68 !important; /* Orange border */
+    border-radius: 50px;
+    padding: 5px 20px !important;
+    margin: 0 10px;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    visibility: visible !important;
+    display: block !important;
+    align-items: center;
+    justify-content: center;
 }
+
+.child-pill {
+    background: white !important;
+    color: #134686 !important;
+    padding: 4px 18px !important;
+    border-radius: 20px !important;
+    border: 2px solid #FAAC68 !important;
+    font-weight: 800 !important;
+    margin: 0 6px !important;
+}
+
 .child-nav-pill.active {
-    background: var(--bee-yellow);
-    color: var(--bee-brown);
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    background: #FA6868 !important; /* Coral for the active child */
+    color: #ffffff !important;
+    border-color: #ffffff;
 }
 
 .view { width: 100%; max-width: 600px; padding: 20px; display: flex; flex-direction: column; }
+
+/* Routine view specific styling */
+#view-routine {
+    overflow: hidden !important;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0; /* Remove padding to maximize space */
+}
 .hidden { display: none !important; }
 
 /* Allow the week section to expand wider than the default card width */
@@ -185,65 +299,170 @@ header {
     cursor: pointer; transition: transform 0.1s;
 }
 .menu-card:active { transform: scale(0.95); }
-.morning { background: #FFF9DB; color: #856404; }
-.evening { background: #E7F5FF; color: #1971c2; }
-.market-card { background: #EBFBEE; color: #2b8a3e; }
-.week { background: #F3E5F5; color: #6b21a8; }
-.menu-icon { font-size: 3.5rem !important; margin-bottom: 10px; }
+/* Morning Button */
+/* Morning Button - Yellow */
+.morning { 
+    background-color: #FACE68 !important; 
+    color: #134686 !important; 
+}
+
+/* Evening Button - Orange */
+.evening { 
+    background-color: #FAAC68 !important; 
+    color: #134686 !important; 
+}
+
+/* Market/Chores Bank - Red */
+.market-card {
+    background-color: #FA6868 !important; /* Coral */
+    color: #ffffff !important;
+}
+
+/* Weekly Schedule Button */
+.week {
+    background-color: #FDF4E3 !important; /* Cream */
+    color: #134686 !important;
+    border: 3px solid #5A9CB5; /* Blue border */
+}
+.menu-icon { 
+    font-size: 3.5rem !important; 
+    margin-bottom: 10px;
+    font-family: 'Material Symbols Rounded' !important;
+    font-weight: normal;
+    font-style: normal;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
 .menu-text { font-size: 1.4rem; font-weight: 800; }
 
 /* Settings Grid Layout */
 #view-settings { max-width: 900px; }
 
+/* The three main management cards at the top */
+/* Container for the 3 main cards */
 .settings-grid-top {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start; /* Prevents cards from stretching to match neighbors */
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.settings-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important; /* Keeps the top of the cards aligned */
+    gap: 25px !important;
 }
 
 .settings-card {
-    background: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
-    border: none; /* Remove the heavy borders */
-    border-radius: 30px; /* Much rounder corners */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Soft shadow, not a line */
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-height: 200px;
+    width: 310px !important;
+    height: 420px !important; /* LOCKED height for perfect rows */
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important; /* Prevents content from stretching the card */
+    background-color: #FDF4E3 !important;
+    border-radius: 30px !important;
+    padding: 20px !important;
+    box-shadow: 0 10px 0px rgba(0,0,0,0.05) !important;
+    margin: 0 !important;
+    box-sizing: border-box;
 }
 
 .settings-card h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0 0 5px;
-    text-align: center;
+    color: #134686 !important; /* Dark blue like kids name in header */
+    font-size: 1.1rem !important; /* Slightly smaller */
+    font-weight: 800 !important;
+    margin-bottom: 8px !important; /* Reduced margin */
+    margin-top: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important; /* Reduced gap */
+    text-align: center !important;
+    letter-spacing: -0.5px !important;
+    flex-shrink: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
+/* Specific styling for the 'Easy Beezy' themed cards */
 .settings-card-purple, .settings-card-green, .settings-card-blue { 
-    background: var(--honey-warm); 
-    border: none;
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.15); /* Yellow tinted shadow */
+    background: var(--white); /* White cards */
+    border: none; /* No borders */
 }
-.settings-card-purple h3, .settings-card-green h3, .settings-card-blue h3 { 
-    color: var(--bee-brown); 
+/* Target the specific Event Card */
+.add-event-card {
+    background-color: #ffffff !important;
+    border-radius: 30px !important;
+    border: none !important;
+    /* This creates the 3D 'thickness' look in Orange */
+    box-shadow: 0 10px 0px #FAAC68 !important; 
+    transition: transform 0.2s ease;
 }
 
-.settings-card-input {
+.add-event-card:active {
+    /* Subtle 'click' effect */
+    transform: translateY(4px);
+    box-shadow: 0 6px 0px #FAAC68 !important;
+}
+
+.add-event-card input, .add-event-card select {
     width: 100%;
+    max-width: 100%;
     padding: 8px 10px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
+    margin: 0;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    border: 2px solid #E6F1F5; /* Soft blue border */
+    cursor: pointer; /* Ensures the cursor looks right */
+    box-sizing: border-box;
     font-size: 0.85rem;
 }
+/* Keep the icons inside blue to match the theme */
+.add-event-card i {
+    color: #5A9CB5;
+}
+/* Example for the middle "Add Task" card */
+.settings-card.add-task,
+.add-task-card,
+.settings-card-green {
+    border-top: 6px solid #FACE68; /* The Yellow accent */
+}
+/* The "Add Member" card could have a Coral border-top */
+.add-member-card,
+.settings-card-blue {
+    border-top: 6px solid #FA6868; /* Coral */
+}
+.settings-card-purple h3, .settings-card-green h3, .settings-card-blue h3 { 
+    color: #134686 !important; /* Dark blue like kids name in header */
+}
+/* Make the icons in headers match the blue palette */
+.settings-card h3 i {
+    color: #5A9CB5; /* Palette Blue */
+    margin-left: 10px;
+}
 
-.settings-card-select {
-    padding: 6px 8px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    font-size: 0.8rem;
-    background: white;
+.settings-card-input, .settings-card-select {
+    background: #F8FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 6px 8px; /* Reduced padding to match child cards */
+    font-size: 0.8rem; /* Slightly smaller font */
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0; /* Allow inputs to shrink */
+    margin-bottom: 3px; /* Reduced spacing */
+}
+.settings-card-input:focus, .settings-card-select:focus {
+    outline: none;
+    border-color: var(--bee-yellow);
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .settings-card-time {
@@ -252,53 +471,128 @@ header {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    max-width: 100%;
     direction: ltr !important;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     background: #f8fafc;
-    padding: 8px 12px;
+    padding: 6px 8px;
     border-radius: 8px;
+    box-sizing: border-box;
+    min-width: 0; /* Allow flex container to shrink */
+    gap: 4px; /* Small gap between elements */
+    margin-bottom: 6px;
 }
 
-.settings-card-btn {
-    margin-top: auto;
-    padding: 10px;
-    border: none;
+/* The "Add" Buttons - make them look like candy */
+/* The Yellow "Add" Buttons */
+.settings-card-btn, .action-btn-green, .action-btn-yellow {
+    background-color: #FACE68 !important; /* Soft Honey */
+    color: #134686 !important; /* Dark Blue text for high-end contrast */
     border-radius: 15px;
-    font-weight: 800;
+    box-shadow: 0 4px 0px #E5B959; /* 3D bottom */
+    border: none;
+    font-weight: 800 !important;
+    padding: 10px 12px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.1s;
     cursor: pointer;
-    background: var(--bee-yellow);
-    color: var(--bee-brown);
-    box-shadow: 0 4px 0px #D4AF37;
-    transition: all 0.1s;
+    margin-top: auto;
+    flex-shrink: 0; /* Ensure button is always visible */
+    width: 100%;
+    box-sizing: border-box;
 }
-.settings-card-btn:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0px #D4AF37;
+/* Use Orange for the 'Add' buttons inside the cards to make them pop */
+.add-btn-inside-card {
+    background-color: #FAAC68 !important;
+    color: #134686;
+    border-radius: 20px;
+    border: none;
+    font-weight: 800 !important;
+    padding: 12px !important;
+    font-size: 0.95rem !important;
+    transition: all 0.1s;
+    cursor: pointer;
 }
 
-.settings-card-purple .settings-card-btn, 
-.settings-card-green .settings-card-btn, 
-.settings-card-blue .settings-card-btn { 
-    border: none;
-    border-radius: 15px;
-    background: var(--bee-yellow);
-    color: var(--bee-brown);
-    font-weight: 800;
-    box-shadow: 0 4px 0px #D4AF37; /* 3D "Pressable" effect */
-    transition: all 0.1s;
+/* The row with the input and the yellow Add button - use add-task-row instead */
+.add-task-input-group {
+    display: flex !important;
+    flex-direction: row-reverse !important; /* Hebrew alignment */
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
-.settings-card-purple .settings-card-btn:active,
-.settings-card-green .settings-card-btn:active,
-.settings-card-blue .settings-card-btn:active {
+
+.add-task-input-group input {
+    flex: 1 !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+    border: 2px solid #E2E8F0 !important;
+    background: #F8FAFC !important;
+    font-size: 0.9rem !important;
+}
+
+.add-task-input-group .add-btn,
+.add-task-input-group .settings-card-btn {
+    width: 70px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+}
+
+/* Container for the input and yellow button */
+.add-task-row {
+    display: flex !important;
+    flex-direction: row-reverse !important; /* Hebrew alignment */
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+}
+
+.add-task-row input,
+.add-task-row .settings-card-input {
+    flex: 1 !important; /* Input takes all space except the button */
+    height: 40px !important;
+    border-radius: 12px !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+    border: 2px solid #E2E8F0 !important;
+    background: #F8FAFC !important;
+    font-size: 0.9rem !important;
+}
+
+.add-task-row .add-btn,
+.add-task-row .settings-card-btn {
+    width: 70px !important; /* Keep it compact */
+    height: 40px !important;
+    padding: 0 !important;
+    font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+}
+.settings-card-btn:active, .action-btn-green:active, .action-btn-yellow:active {
     transform: translateY(3px);
-    box-shadow: 0 1px 0px #D4AF37;
+    box-shadow: 0 2px 0px #E5B959 !important;
 }
+
 
 .settings-card-list {
-    max-height: 120px;
+    flex: 1;
     overflow-y: auto;
-    font-size: 0.75rem;
-    margin-top: 5px;
+    font-size: 0.7rem;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    min-height: 0; /* Allows flex item to shrink below content size */
+    max-height: 120px; /* Limit list height to match child cards better */
 }
 
 .settings-card-list .chore-edit-row {
@@ -313,8 +607,8 @@ header {
     scroll-snap-type: x mandatory;
     gap: 15px;
     padding: 10px 0;
-    min-height: 200px;
     -webkit-overflow-scrolling: touch;
+    align-items: stretch; /* Make all child cards same height */
 }
 
 .settings-child-slider::-webkit-scrollbar {
@@ -326,19 +620,24 @@ header {
     border-radius: 3px;
 }
 
+/* 2. UNIFY THE CHILD EDIT CARDS */
 .settings-child-card {
     flex: 0 0 280px;
     scroll-snap-align: start;
-    background: white;
-    border-radius: 20px;
-    padding: 15px;
-    box-shadow: var(--shadow);
-    border-top: 6px solid;
+    background: var(--hive-cream);
+    border-top: 10px solid var(--bee-coral) !important; /* Uniform coral top for ALL kids */
+    border-radius: 30px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
 .settings-child-card h4 {
-    margin: 0 0 10px;
-    font-size: 1.1rem;
+    color: var(--bee-blue) !important;
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 .settings-child-card .chore-edit-row {
@@ -359,7 +658,45 @@ header {
     padding: 8px 18px;
 }
 
-.compact-h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #0f172a; }
+/* All main section headers in the blue from your palette */
+/* 4. HEADERS IN THE BLUE PALETTE */
+h2, h3, .compact-h3 {
+    color: var(--bee-blue) !important;
+    font-weight: 800;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+}
+.settings-section-title {
+    color: #134686;
+    font-size: 1.8rem;
+    font-weight: 900;
+    position: relative;
+    display: inline-block;
+}
+.settings-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 60%;
+    height: 4px;
+    background: #FAAC68; /* Orange underline */
+    border-radius: 10px;
+}
+h2.page-title {
+    color: #134686;
+    text-shadow: 0 0 10px rgba(250, 172, 104, 0.3); /* Subtle Orange glow */
+}
+h4 {
+    color: var(--bee-blue) !important;
+    font-weight: 800;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+}
+.compact-h3 {
+    margin: 0;
+    font-size: 1rem;
+}
 .form-group-compact { display: flex; gap: 8px; align-items: center; }
 .flex-wrap { flex-wrap: wrap; }
 .time-range-selectors {
@@ -378,6 +715,8 @@ header {
     align-items: center;
     gap: 2px;
     direction: ltr !important;
+    flex-shrink: 1; /* Allow time groups to shrink */
+    min-width: 0;
 }
 
 .time-group select,
@@ -393,11 +732,15 @@ header {
 .mini-select-time {
     border: none;
     background: transparent;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     text-align: center;
     appearance: none;
     cursor: pointer;
+    padding: 2px 4px;
+    min-width: 0;
+    max-width: 50px;
+    box-sizing: border-box;
 }
 .mini-select {
     border: 1px solid #e2e8f0;
@@ -432,41 +775,68 @@ header {
 }
 .compact-chore-list { display: flex; flex-direction: column; gap: 8px; }
 .settings-child-card {
-    background: white;
-    border-radius: 20px;
-    padding: 12px 15px;
+    background: var(--hive-cream);
+    border-top: 10px solid var(--bee-coral) !important; /* Uniform coral top for ALL kids */
+    border-radius: 30px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
     margin-bottom: 15px;
-    box-shadow: var(--shadow);
     position: relative;
 }
 .child-card-info { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .del-chore-btn {
-    background: transparent;
+    background: none;
     border: none;
-    border-radius: 8px;
-    padding: 4px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 28px;
     height: 28px;
-    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    position: relative;
 }
+/* Creating an 'X' using pseudo-elements */
+/* 3. CLEAN UP THE DELETE 'X' */
+.del-chore-btn::before, .del-chore-btn::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 3px;
+    background-color: var(--bee-coral) !important;
+    border-radius: 2px;
+}
+.del-chore-btn::before { transform: rotate(45deg); }
+.del-chore-btn::after { transform: rotate(-45deg); }
 .del-chore-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.2);
 }
 .del-chore-btn img {
-    width: 24px;
-    height: 24px;
+    display: none; /* Hide the image, use CSS X instead */
 }
-.reset-btn-small {
-    background: #eef2ff;
-    color: #4338ca;
+.reset-btn-small,
+.reset-beez-btn {
+    background-color: #FA6868; /* Coral */
+    color: white !important;
+    border-radius: 8px;
+    padding: 2px 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s;
     border: none;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    padding: 3px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.reset-beez-btn:hover {
+    opacity: 0.8;
+}
+/* Friendly Reset Link in the corner */
+.reset-beez-link {
+    color: #5A9CB5; 
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: underline;
     cursor: pointer;
 }
 .week-table-wrapper {
@@ -477,16 +847,18 @@ header {
 .week-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    background: #ffffff;
     border-radius: 25px;
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     table-layout: fixed;
 }
 
-.week-table th {
-    background: #dbeafe;
-    color: #0f172a;
+.week-table th,
+.calendar-header {
+    background-color: #134686;
+    color: white;
+    font-weight: 900;
     font-size: 1.2rem;
     padding: 14px 0;
     text-align: center;
@@ -499,11 +871,13 @@ header {
 }
 
 .week-table th:nth-child(7), .week-day-cell:nth-child(7) {
-    border-left: 2px solid #cbd5e1;
+    border-left: 2px solid #FAAC68; /* Orange divider */
 }
 
-.week-table th.today-col {
-    background: #a5b4fc;
+.week-table th.today-col,
+.calendar-day.active {
+    background-color: #FACE68 !important; /* Yellow for selected day */
+    color: #134686;
 }
 
 .week-day-cell {
@@ -511,7 +885,7 @@ header {
     border-right: 1px solid #e2e8f0;
     vertical-align: top;
     min-height: 150px;
-    background: #f1f5ff;
+    background: #FDF4E3; /* Cream background */
     width: calc(100% / 7);
 }
 
@@ -527,19 +901,85 @@ header {
     margin-bottom: 10px;
     padding: 10px 12px;
     border-radius: 12px;
-    background: #fff;
-    border-left: 4px solid #cbd5e1;
-    box-shadow: 0 5px 12px rgba(15,23,42,0.08);
+    background: #ffffff;
+    border-left: 4px solid #FAAC68; /* Orange accent */
+    box-shadow: 0 5px 12px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
     gap: 2px;
-    color: #0f172a;
+    color: #134686; /* Deep blue text */
+}
+
+.calendar-event-box {
+    background-color: #FDF4E3; /* Cream */
+    border-right: 5px solid #5A9CB5; /* Blue accent */
+    border-radius: 12px;
+    color: #134686;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendar-event {
+    background-color: #FDF4E3 !important;
+    border-right: 6px solid #5A9CB5 !important; /* Blue accent strip */
+    color: #134686 !important;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendar-event-item {
+    background-color: #FDF4E3 !important; /* Clean Cream */
+    border-left: 4px solid #5A9CB5 !important; /* Blue Accent */
+    color: #134686 !important;
+    padding: 5px !important;
+    border-radius: 5px;
 }
 
 .event-chip .event-time {
     font-size: 0.9rem;
-    color: #64748b;
+    color: #134686; /* Deep blue time text */
     text-align: left;
+    font-weight: 600;
+}
+
+/* Target the actual daily boxes and event containers */
+.calendar-day-content, .event-item, .task-slot {
+    background-color: #FDF4E3 !important; /* Our Palette Cream */
+    color: #134686 !important; /* Deep Blue Text */
+    border: 1px solid #5A9CB5 !important; /* Light Blue Border */
+    border-radius: 8px !important;
+}
+
+/* Fix the 'Selected/Today' inner box */
+.calendar-day.selected .event-item {
+    background-color: #FACE68 !important; /* Sunny Yellow */
+    border-color: #134686 !important;
+}
+
+.calendar-event-item {
+    background-color: #FDF4E3 !important; /* Clean Cream */
+    border-left: 4px solid #5A9CB5 !important; /* Blue Accent */
+    color: #134686 !important;
+    padding: 5px !important;
+    border-radius: 5px;
+}
+
+/* Forces the inner event boxes to be readable */
+.fc-daygrid-event, .calendar-item-inner {
+    background-color: #FDF4E3 !important; 
+    border: none !important;
+    border-right: 4px solid #5A9CB5 !important;
+    color: #134686 !important;
+    font-size: 0.8rem !important;
+    padding: 2px 5px !important;
 }
 
 .week-table-wrapper::-webkit-scrollbar {
@@ -551,6 +991,13 @@ header {
     border-radius: 3px;
 }
 .chore-edit-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9; }
+.task-line-item {
+    background: white;
+    border: 1px solid #E6F1F5; /* Very soft version of your blue */
+    border-radius: 20px;
+    margin-bottom: 8px;
+    padding: 5px 15px;
+}
 .event-tag { margin-top: 10px; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
 
 /* Market Manager (The Green Card) */
@@ -574,72 +1021,196 @@ header {
 }
 
 .market-edit-row {
-    background: #fff;
-    border-radius: 15px;
-    padding: 8px 12px;
-    font-size: 0.85rem;
-    box-shadow: inset 0 0 0 1px #e4f3e7;
-    transition: transform 0.15s ease;
+    background: #F1F5F9;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    padding: 10px 15px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 10px;
     direction: rtl;
+    transition: transform 0.15s ease;
 }
 
 .market-edit-row:hover {
     transform: translateY(-1px);
 }
-
-/* Pill for adjusting market beez cost */
-.beez-stepper {
-    background: #ffffff;
-    border: 2px solid #FFD700;
-    border-radius: 50px; /* Round pill shape */
-    padding: 5px 15px;
+.task-bank-item {
+    background-color: #FDF4E3 !important; /* Warm Cream background */
+    border-left: 10px solid #FA6868; /* Use Coral only as a side accent */
+    color: #134686; /* Deep Blue text */
+    margin-bottom: 12px;
+    border-radius: 15px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    padding: 15px;
+    width: 100%;
+}
+/* Fix the icon color inside the line */
+.task-bank-item i {
+    color: #5A9CB5 !important; /* Palette Blue for the icon */
+    font-family: 'Material Symbols Rounded' !important;
+    font-weight: normal;
+    font-style: normal;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    flex-shrink: 0;
+}
+.task-line {
+    display: flex;
+    align-items: center;
+}
+.task-input-line span {
+    color: #134686 !important;
+    font-weight: 800;
+}
+/* Danger Pill for Delete */
+.delete-child-pill {
+    background-color: #FA6868 !important;
+    color: white !important;
+    border-radius: 20px;
+    padding: 2px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+    font-weight: 700;
+}
+
+/* Pill for adjusting market beez cost */
+/* The Beez Stepper (the +/- pill) */
+.beez-stepper,
+.star-stepper {
+    border: 2px solid #FAAC68 !important; /* Orange accent */
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 4px 8px; /* Reduced padding to make it narrower */
+    display: flex;
+    align-items: center;
+    gap: 2px; /* Reduced gap */
+    flex-shrink: 0;
+    min-width: fit-content; /* Only as wide as content */
 }
 
 .beez-stepper button {
     border: none;
     background: none;
-    font-size: 1.2rem;
+    font-size: 0.8rem;
     font-weight: bold;
     cursor: pointer;
     color: #1e293b;
-    padding: 0 4px;
+    padding: 0 4px; /* Slightly more padding */
+    line-height: 1;
+    min-width: 20px; /* Consistent button width */
+}
+.beez-stepper .beez-icons-stack {
+    width: 16px;
+    height: 16px;
+}
+.beez-stepper .beez-icon {
+    width: 16px;
+}
+.beez-stepper .beez-count {
+    font-size: 0.85rem; /* Slightly larger */
+    min-width: 24px; /* Fixed width for number */
+    text-align: center;
+    color: #FAAC68 !important; /* Orange numbers feel like honey */
 }
 
-.beez-count { 
-    color: var(--bee-brown);
-    font-size: 1.2rem;
-    font-weight: 900;
+/* The Bee counters inside the white pills */
+.beez-count,
+.star-count {
+    color: #FAAC68 !important; /* Orange number */
+    font-size: 1.3rem;
+    font-weight: 800;
     min-width: 40px; 
     text-align: center; 
 }
-.market-task-name { font-weight: 600; color: #1e3a25; font-size: 1rem; }
+.market-task-name { 
+    font-weight: 600; 
+    color: #134686; 
+    font-size: 1rem; 
+    flex: 1;
+    margin: 0 10px;
+    text-align: right;
+    min-width: 0; /* Allow text to shrink if needed */
+}
+
+/* The text for the actual chore/task name */
+.chore-name-text {
+    color: #134686 !important;
+    font-weight: 700;
+    font-size: 1rem;
+}
 
 /* General Buttons */
 .delete-bin-btn-small { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 5px 8px; border-radius: 8px; cursor: pointer; }
-.action-btn-green, .action-btn-blue, .action-btn-purple, .settings-card-btn {
+/* Settings Header Actions */
+.settings-header-actions {
+    background-color: #134686; /* Deep Blue anchor */
+    padding: 15px;
+    border-radius: 0 0 30px 30px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+/* Update the buttons to shine against the blue */
+.save-btn { 
+    background-color: #FACE68 !important; 
+    color: #134686; 
+    font-weight: 800;
     border: none;
     border-radius: 15px;
-    background: var(--bee-yellow);
-    color: var(--bee-brown);
-    font-weight: 800;
-    box-shadow: 0 4px 0px #D4AF37; /* 3D "Pressable" effect */
-    transition: all 0.1s;
-    padding: 8px 16px;
+    padding: 10px 25px;
     cursor: pointer;
+    transition: all 0.1s;
 }
-.action-btn-green:active, .action-btn-blue:active, .action-btn-purple:active, .settings-card-btn:active {
+.save-btn:active {
     transform: translateY(3px);
-    box-shadow: 0 1px 0px #D4AF37;
 }
-.back-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+.back-btn { 
+    background-color: #FAAC68 !important; 
+    color: #134686 !important; 
+    font-weight: 800;
+    border: none;
+    border-radius: 15px;
+    padding: 10px 25px;
+    cursor: pointer;
+    transition: all 0.1s;
+    box-shadow: 0 4px 0px #E5954F; /* 3D effect matching save button */
+}
+.back-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0px #E5954F !important;
+}
+.back-to-settings-btn {
+    background-color: #FAAC68 !important; /* Palette Orange */
+    color: #134686 !important;
+    padding: 12px 40px;
+    border-radius: 50px;
+    font-weight: 800;
+    border: none;
+    box-shadow: 0 4px 0px #E5954F;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+.back-to-settings-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0px #E5954F !important;
+}
+
+.add-to-all-btn {
+    background-color: #FAAC68 !important; /* Orange secondary action */
+    color: #134686 !important;
+    border-radius: 12px;
+    border: none;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
 /* Slider that hosts the routine cards */
 .snap-slider {
     display: flex;
@@ -648,6 +1219,8 @@ header {
     gap: 20px;
     padding: 10px;
     width: 100%;
+    height: calc(100vh - 150px); /* Limit height to prevent page scrolling */
+    overflow-y: hidden; /* Prevent vertical scrolling of the slider */
 }
 
 /* Cards for each child inside the slider */
@@ -660,27 +1233,102 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100%; /* Fill the slider height */
+    overflow: hidden; /* Prevent card overflow */
+    max-height: 100%; /* Ensure card doesn't exceed container */
+}
+
+.routine-card {
+    height: 100%; /* Cards stretch to fill the 2x2 grid slots */
+    background: white;
+    border-radius: 25px;
+    box-shadow: 0 10px 0px #FDF4E3; /* Cream 3D base */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 
 /* Card heading styles */
 .routine-child-header {
     text-align: center;
     margin-bottom: 20px;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .routine-child-header h2 {
     font-size: 2.5rem;
-    color: #8B4513;
+    color: var(--text-main);
     margin-bottom: 20px;
     font-weight: 800;
 }
 
 /* Task grid to mirror the visual reference */
+.routine-container {
+    height: 80vh; /* Keeps content within view */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
 .routine-tasks-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    grid-template-rows: repeat(2, 1fr); /* Exactly 4 slots */
+    gap: 20px;
+    flex-grow: 1;
     width: 100%;
+    height: 70vh; /* Fixed height to match evening routine */
+    overflow-y: auto; /* Allow scrolling within the task list if more than 4 tasks */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    padding-bottom: 20px;
+}
+
+/* Force the Morning grid to match the Evening layout */
+.morning-routine-container, #morning-tasks-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+    gap: 15px !important;
+    height: 70vh !important; /* Limits height so button stays visible */
+    overflow-y: auto !important; /* Allow scrolling within task list */
+    overflow-x: hidden !important; /* Prevent horizontal scrolling */
+}
+
+#morning-routine-view .chores-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: 1fr 1fr !important;
+    max-height: 60vh; /* Leaves room for the Back button */
+    gap: 15px;
+}
+
+/* Ensure routine view doesn't scroll - only the task list inside */
+#view-routine {
+    overflow: hidden !important;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure the back button is always at the bottom */
+.back-button-container {
+    position: sticky;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+}
+
+.routine-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    grid-template-rows: repeat(2, 1fr);    /* 2 rows */
+    gap: 20px;
+    height: 70vh; /* Fixed height to keep the Back button on screen */
+    padding-bottom: 20px;
 }
 
 .routine-item {
@@ -695,6 +1343,8 @@ header {
     text-align: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     transition: all 0.2s ease;
+    min-height: 0; /* Allow items to shrink in grid */
+    overflow: hidden; /* Prevent content overflow */
     border: 2px solid transparent;
 }
 
@@ -733,4 +1383,32 @@ header {
 .routine-item.completed .task-check-circle {
     background: #22c55e;
     border-color: #22c55e;
+}
+
+.add-task-header {
+    display: flex !important;
+    flex-direction: row-reverse !important; /* Right-to-left for Hebrew */
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
+
+.add-task-header input {
+    flex: 1 !important; /* Takes up all available space */
+    height: 40px !important;
+    border-radius: 12px !important;
+}
+
+.add-task-header .add-btn {
+    width: 70px !important; /* Compact button */
+    height: 40px !important;
+    white-space: nowrap !important;
+}
+
+.card-content-list {
+    flex-grow: 1;
+    overflow-y: auto !important; /* Allows scrolling inside the card only */
+    margin-top: 10px;
+    padding-right: 5px;
 }
