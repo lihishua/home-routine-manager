@@ -4,20 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Easy Beezy</title>
-    <link rel="stylesheet" href="style.css?v=199">
+    <link rel="stylesheet" href="style.css?v=225">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
-
-    <!-- Splash screen -->
-    <div id="splash-screen">
-        <h1>Easy Beezy</h1>
-        <img src="https://freesvg.org/img/Cartoon-Bee.png" class="splash-bee" alt="🐝">
-        <p id="splash-greeting" class="splash-greeting">It's Morning Time!</p>
-    </div>
 
     <!-- Top bar with settings and clock -->
     <header>
@@ -39,11 +32,11 @@
             </button>
             <button onclick="showView('market')" class="menu-card market-card">
                 <span class="material-symbols-rounded menu-icon">emoji_events</span>
-                <span class="menu-text">שוק מטלות</span>
+                <span class="menu-text"> בנק משימות </span>
             </button>
             <button onclick="showView('week')" class="menu-card week">
                 <span class="material-symbols-rounded menu-icon">calendar_month</span>
-                <span class="menu-text">לו"ז שבועי</span>
+                <span class="menu-text">מה קורה השבוע? </span>
             </button>
         </div>
     </main>
@@ -51,7 +44,7 @@
     <!-- Routine carousel view -->
     <section id="view-routine" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="margin:0;">שגרת יומית</h2>
+            <h2 style="margin:0;"> שגרת בוקר </h2>
             <button onclick="showView('home')" class="back-btn">חזרה</button>
         </div>
         <div id="child-slider" class="snap-slider"></div>
@@ -60,7 +53,7 @@
     <!-- Task market view -->
     <section id="view-market" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="margin:0;">🛒 בנק המטלות</h2>
+            <h2 style="margin:0;"> בנק המטלות </h2>
             <button onclick="showView('home')" class="back-btn">חזרה</button>
         </div>
         <div id="market-list"></div>
@@ -69,7 +62,7 @@
     <!-- Weekly calendar view -->
     <section id="view-week" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="margin:0;">📅 לו"ז שבועי</h2>
+            <h2 style="margin:0;"> מה קורה השבוע? </h2>
             <button onclick="showView('home')" class="back-btn">חזרה</button>
         </div>
         <div id="week-grid"></div>
@@ -85,23 +78,25 @@
             </div>
         </div>
         
-        <!-- Top row: 3 add cards -->
+        <!-- Top row: 2 add cards -->
         <div class="settings-grid-top">
             <!-- Event planner card -->
             <div class="settings-card settings-card-purple add-event-card">
-                <h3>📅 הוסף אירוע</h3>
+                <h3>הוסף אירוע</h3>
                 <input type="hidden" id="edit-event-idx" value="-1">
                 <input type="text" id="event-name" placeholder="מה קורה?" class="settings-card-input">
-                <select id="event-day" class="settings-card-select">
-                    <option value="0">א'</option><option value="1">ב'</option>
-                    <option value="2">ג'</option><option value="3">ד'</option>
-                    <option value="4">ה'</option><option value="5">ו'</option>
-                    <option value="6">ש'</option>
-                </select>
-                <div class="settings-card-time">
-                    <div class="time-group"><select id="start-h" class="mini-select-time"></select>:<select id="start-m" class="mini-select-time"></select></div>
-                    <span class="time-arrow">→</span>
-                    <div class="time-group"><select id="end-h" class="mini-select-time"></select>:<select id="end-m" class="mini-select-time"></select></div>
+                <div class="day-time-row">
+                    <select id="event-day" class="settings-card-select day-selector-narrow">
+                        <option value="0">א'</option><option value="1">ב'</option>
+                        <option value="2">ג'</option><option value="3">ד'</option>
+                        <option value="4">ה'</option><option value="5">ו'</option>
+                        <option value="6">ש'</option>
+                    </select>
+                    <div class="settings-card-time">
+                        <div class="time-group"><select id="start-h" class="mini-select-time"></select>:<select id="start-m" class="mini-select-time"></select></div>
+                        <span class="time-arrow">→</span>
+                        <div class="time-group"><select id="end-h" class="mini-select-time"></select>:<select id="end-m" class="mini-select-time"></select></div>
+                    </div>
                 </div>
                 <select id="event-target" class="settings-card-select"></select>
                 <button onclick="addEvent()" class="settings-card-btn">הוספה</button>

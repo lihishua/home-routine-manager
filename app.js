@@ -1,33 +1,49 @@
 const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 
-// Set splash screen greeting based on time of day
-(function setSplashGreeting() {
-    const hour = new Date().getHours();
-    const greeting = document.getElementById('splash-greeting');
-    if (greeting) {
-        if (hour >= 5 && hour < 12) {
-            greeting.textContent = "בוקר טוב! ☀️";
-        } else if (hour >= 12 && hour < 17) {
-            greeting.textContent = "צהריים טובים! 🌤️";
-        } else if (hour >= 17 && hour < 21) {
-            greeting.textContent = "ערב טוב! 🌙";
-        } else {
-            greeting.textContent = "לילה טוב! 🌟";
-        }
-    }
-})();
+// Splash screen removed
 
 // Ensure required arrays exist
 if (!currentFamily.children) currentFamily.children = [];
 if (!currentFamily.market) currentFamily.market = [];
 if (!currentFamily.events) currentFamily.events = [];
 
+// Remove duplicate children based on name (case-insensitive, trimmed)
+function removeDuplicateChildren() {
+    const seen = new Set();
+    const unique = [];
+    
+    currentFamily.children.forEach(child => {
+        if (!child.name) {
+            // Keep children without names (they'll need to be fixed manually)
+            unique.push(child);
+            return;
+        }
+        
+        const nameKey = child.name.toLowerCase().trim();
+        if (!seen.has(nameKey)) {
+            seen.add(nameKey);
+            unique.push(child);
+        }
+        // If duplicate found, skip it (keeping the first occurrence)
+    });
+    
+    if (unique.length !== currentFamily.children.length) {
+        currentFamily.children = unique;
+        saveData();
+        return true; // Indicates duplicates were removed
+    }
+    return false;
+}
+
+// Clean up duplicates on load
+removeDuplicateChildren();
+
 // Persist the active family configuration to storage.
 function saveData() { localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily)); }
 
-// Beez icon and helpers
-const BEE_IMG = "https://freesvg.org/img/Cartoon-Bee.png";
+// Beez icon and helpers (now using orange icon)
+const BEE_IMG = "orange-icon.svg"; // Using SVG for better quality and scalability
 
 function getBeezIconHtml() {
     return `<span class="beez-icons-stack">
@@ -51,19 +67,34 @@ function renderChildScore(child) {
 
 // Show one of the main app views and re-render related data.
 function showView(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.querySelectorAll('.view').forEach(v => {
+        v.classList.add('hidden');
+        v.style.opacity = '0';
+        v.style.pointerEvents = 'none';
+    });
     
     // Determine if we are going into routine mode
     const isRoutine = (viewId === 'morning' || viewId === 'evening');
     const tid = isRoutine ? 'view-routine' : `view-${viewId}`;
     
     const target = document.getElementById(tid);
-    if (target) target.classList.remove('hidden');
+    if (target) {
+        target.classList.remove('hidden');
+        target.style.opacity = '1';
+        target.style.pointerEvents = 'auto';
+    }
     
     if (viewId === 'week') renderWeek();
     if (viewId === 'settings') renderSettings();
     if (viewId === 'market') renderMarket();
-    if (isRoutine) renderRoutine(viewId); // <--- Add this line!
+    if (isRoutine) {
+        // Update the routine page title based on type
+        const routineTitle = document.querySelector('#view-routine h2');
+        if (routineTitle) {
+            routineTitle.textContent = viewId === 'morning' ? 'שגרת בוקר' : 'שגרת ערב';
+        }
+        renderRoutine(viewId);
+    }
     
     renderHeaderNav();
 }
@@ -71,21 +102,34 @@ function showView(viewId) {
 // Rebuild the header pills that show each child.
 function renderHeaderNav() {
     const nav = document.getElementById('header-kids-nav');
-    nav.innerHTML = currentFamily.children.map(child => {
-        return `<div class="child-nav-pill">
+    if (!nav) return;
+    
+    // Filter out duplicates when rendering (safety measure)
+    const seen = new Set();
+    const uniqueChildren = currentFamily.children.filter(child => {
+        if (!child.name) return true; // Keep children without names
+        const nameKey = child.name.toLowerCase().trim();
+        if (seen.has(nameKey)) {
+            return false; // Skip duplicate
+        }
+        seen.add(nameKey);
+        return true;
+    });
+    
+    nav.innerHTML = uniqueChildren.map((child, index) => {
+        const colorClass = getChildColorByName(child.name);
+        return `<div class="child-nav-pill child-pill-assigned ${colorClass}">
             ${child.name}
         </div>`;
     }).join('');
 }
 
-// Clear every child's earned beez after confirmation.
+// Clear every child's earned beez.
 function resetAllBeez() {
-    if (confirm('האם אתה בטוח שברצונך לאפס את כל הביזים של הילדים?')) {
-        currentFamily.children.forEach(c => c.beez = 0);
+    currentFamily.children.forEach(c => c.beez = 0);
         saveData();
         renderSettings();
         renderHeaderNav();
-    }
 }
 
 // Fill the settings view with child and event controls.
@@ -117,14 +161,17 @@ function renderMarketSection() {
     let html = '';
     marketItems.forEach((item, i) => {
         html += `
-            <div class="market-edit-row">
-                <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>
-                <span class="market-task-name">${item.task || ''}</span>
-                <div class="beez-stepper">
-                    <button onclick="updateMarketBeez(${i}, -1)">-</button>
-                    <span class="beez-count">${item.beez || 1}</span>
-                    ${getBeezIconHtml()}
-                    <button onclick="updateMarketBeez(${i}, 1)">+</button>
+            <div class="chore-edit-row" style="padding:4px 0; font-size:0.75rem; border-bottom:1px solid #e2e8f0;">
+                <span style="flex:1;">
+                    <strong>${item.task || ''}</strong>
+                </span>
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <div class="bee-counter">
+                        <button onclick="updateMarketBeez(${i}, 1)">+</button>
+                        <img src="${BEE_IMG}" alt="beez" style="width:15px;height:15px;">
+                        <button onclick="updateMarketBeez(${i}, -1)">-</button>
+                    </div>
+                    <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>
                 </div>
             </div>`;
     });
@@ -201,7 +248,7 @@ function renderChildList() {
                 deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const eIdx=child.evening.findIndex(t=>t.task===taskText);if(eIdx>=0)child.evening.splice(eIdx,1);saveData();renderSettings();})()`;
             }
             
-            choresHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #f1f5f9">';
+            choresHtml += '<div class="chore-edit-row" style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #f1f5f9">';
             choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>';
             choresHtml += '<span>' + icon + ' ' + taskText + '</span>';
             choresHtml += '</div>';
@@ -213,12 +260,12 @@ function renderChildList() {
         html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
         html += '<div style="display:flex;flex-direction:column;gap:4px">';
         html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
-        html += '<div style="display:flex;align-items:center;gap:6px;">';
-        html += '<span style="font-size:0.85rem;color:#666;display:flex;align-items:center;gap:4px;">' + beez + ' ' + getBeezIconHtml() + '</span>';
-        html += '<button onclick="currentFamily.children[' + ci + '].beez=0;saveData();renderSettings()" class="reset-btn-small">איפוס</button>';
+        html += '<div class="beez-display-row">';
+        html += '<span class="beez-number">' + beez + ' ' + getBeezIconHtml() + '</span>';
+        html += '<span class="reset-beez-text" onclick="currentFamily.children[' + ci + '].beez=0;saveData();renderSettings()">איפוס</span>';
         html += '</div>';
         html += '</div>';
-        html += '<button onclick="if(confirm(\'למחוק?\')){currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()}" class="delete-child-pill">מחיקה</button>';
+        html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()" class="delete-child-pill">מחיקה</button>';
         html += '</div>';
         
         // Add chore input
@@ -245,7 +292,9 @@ function renderChildList() {
     
     // Add the "Add Child" card at the end
     html += '<div class="settings-child-card" style="display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;">';
-    html += '<h4 style="color:#134686;font-size:1.1rem;font-weight:800;margin-bottom:15px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;"><img src="https://t4.ftcdn.net/jpg/05/21/47/85/360_F_521478566_5aVftK2pnp9ftGZVSqaanDN5BmskwafU.jpg" alt="family" style="width: 40px; height: 40px; vertical-align: middle;"> הוסף ילד</h4>';
+    html += '<h3>' +
+        '<i class="material-symbols-rounded" style="font-size:1.2rem;">family_restroom</i> ' +
+        'הוסף ילד</h3>';
     html += '<input type="text" id="new-child-name" placeholder="שם..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;">';
     html += '<select id="copy-from-child" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;background:#F8FAFC;">';
     html += '<option value="">העתק מ...</option>';
@@ -324,6 +373,26 @@ function addChild() {
     const nameInput = document.getElementById('new-child-name');
     const name = nameInput.value.trim();
     if (!name) return;
+    
+    // Check for duplicate names (case-insensitive, trimmed)
+    const nameLower = name.toLowerCase();
+    const duplicateExists = currentFamily.children.some(child => 
+        child.name && child.name.toLowerCase().trim() === nameLower
+    );
+    
+    if (duplicateExists) {
+        // Show error message
+        alert('שם זה כבר קיים! אנא בחר שם אחר.');
+        nameInput.focus();
+        nameInput.style.borderColor = '#FA6868'; // Coral red border
+        nameInput.style.borderWidth = '2px';
+        // Reset border after 2 seconds
+        setTimeout(() => {
+            nameInput.style.borderColor = '';
+            nameInput.style.borderWidth = '';
+        }, 2000);
+        return;
+    }
     
     const copyFromSelect = document.getElementById('copy-from-child');
     const copyFromIndex = copyFromSelect ? copyFromSelect.value : '';
@@ -499,6 +568,81 @@ function hexToRgba(hex, alpha) {
 }
 
 // Draw the weekly grid with events per day using a table layout.
+// Helper function to get child color based on index (fallback)
+function getChildColor(index) {
+    const colorIndex = (index % 10) + 1;
+    return `kid-color-${colorIndex}`;
+}
+
+// Helper function to get color value based on child name
+function getChildColorValueByName(childName) {
+    if (!childName) return '#5A9CB5';
+    const name = childName.toLowerCase().trim();
+    // Try Hebrew names first
+    if (name === 'עידו' || name === 'ido') return '#5A9CB5'; // כחול עמוק
+    if (name === 'לני' || name === 'lani') return '#9C27B0'; // סגול של לני
+    if (name === 'לורי' || name === 'lori') return '#8BC34A'; // ירוק של לורי
+    if (name === 'אמא' || name === 'mom' || name === 'amom') return '#E91E63'; // ורוד/מג'נטה של אמא
+    // Fallback
+    return '#5A9CB5';
+}
+
+// Helper function to get color class based on child name
+function getChildColorByName(childName) {
+    if (!childName) return 'kid-color-1';
+    const name = childName.toLowerCase().trim();
+    // Try Hebrew names first
+    if (name === 'עידו' || name === 'ido') return 'pill-עידו';
+    if (name === 'לני' || name === 'lani') return 'pill-לני';
+    if (name === 'לורי' || name === 'lori') return 'pill-לורי';
+    if (name === 'אמא' || name === 'mom' || name === 'amom') return 'pill-אמא';
+    // Fallback to index-based if name doesn't match
+    return 'kid-color-1';
+}
+
+// Helper function to get event color class based on child name
+function getEventColorByName(childName) {
+    if (!childName) return 'event-ido';
+    const name = childName.toLowerCase().trim();
+    // Try Hebrew names first
+    if (name === 'עידו' || name === 'ido') return 'event-עידו';
+    if (name === 'לני' || name === 'lani') return 'event-לני';
+    if (name === 'לורי' || name === 'lori') return 'event-לורי';
+    if (name === 'אמא' || name === 'mom' || name === 'amom') return 'event-אמא';
+    // Fallback
+    return 'event-ido';
+}
+
+// Helper function to get button color class based on child name
+function getButtonColorByName(childName) {
+    if (!childName) return 'btn-ido';
+    const name = childName.toLowerCase().trim();
+    // Try Hebrew names first
+    if (name === 'עידו' || name === 'ido') return 'btn-עידו';
+    if (name === 'לני' || name === 'lani') return 'btn-לני';
+    if (name === 'לורי' || name === 'lori') return 'btn-לורי';
+    if (name === 'אמא' || name === 'mom' || name === 'amom') return 'btn-אמא';
+    // Fallback
+    return 'btn-ido';
+}
+
+function getChildColorValue(index) {
+    const colors = {
+        1: '#5A9CB5', // Bee Blue
+        2: '#FA6868', // Bee Coral
+        3: '#FACE68', // Bee Yellow
+        4: '#8BC34A', // Leafy Green
+        5: '#9C27B0', // Deep Grape
+        6: '#FF9800', // Honey Orange
+        7: '#00BCD4', // Bright Teal
+        8: '#795548', // Earthy Brown
+        9: '#E91E63', // Strawberry Red
+        10: '#3F51B5' // Royal Blue
+    };
+    const colorIndex = (index % 10) + 1;
+    return colors[colorIndex] || colors[1];
+}
+
 function renderWeek() {
     const grid = document.getElementById('week-grid');
     if (!grid) return;
@@ -511,10 +655,10 @@ function renderWeek() {
 
         const eventsMarkup = eventsForDay.map(ev => {
             const child = currentFamily.children.find(c => c.id === ev.target);
-            const color = child ? child.color : '#cbd5e1';
-            const chipBg = hexToRgba(color, 0.15);
+            const childName = child ? child.name : '';
+            const colorClass = childName ? getEventColorByName(childName) : 'event-ido';
             return `
-                <div class="event-chip" style="background:${chipBg}; border-left-color:${color};">
+                <div class="event-chip calendar-event ${colorClass}">
                     <span>${ev.name}</span>
                     <span class="event-time">${ev.start}-${ev.end}</span>
                 </div>
@@ -564,11 +708,14 @@ function openMarketSelection(index) {
             <h2 style="margin-bottom:10px;">מי ביצע את המטלה?</h2>
             <p style="margin-bottom:20px; font-weight:bold;">${item.task}</p>
             <div style="display:grid; gap:10px;">
-                ${currentFamily.children.map((child, ci) => `
-                    <button onclick="processMarketWin(${index}, ${ci})" class="action-btn-blue" style="background:${child.color}20; border:2px solid ${child.color}; color:#333; padding:15px; font-size:1.2rem;">
+                ${currentFamily.children.map((child, ci) => {
+                    const buttonClass = getButtonColorByName(child.name);
+                    return `
+                    <button onclick="processMarketWin(${index}, ${ci})" class="modal-child-btn ${buttonClass}">
                         ${child.name}
                     </button>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
             <button onclick="document.getElementById('market-overlay').remove()" class="back-btn" style="margin-top:20px; padding:10px 30px;">ביטול</button>
         </div>`;
@@ -591,12 +738,12 @@ function processMarketWin(itemIndex, childIndex) {
     document.getElementById('market-overlay').remove();
     
     try {
-        new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3').play();
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: [child.color, '#FFD700'] });
+        // Cute bell/chime sound
+        new Audio('https://assets.mixkit.co/active_storage/sfx/1041/1041-preview.mp3').play();
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FAAC68', '#FACE68', '#E77F1A'] }); // Orange confetti
     } catch(e) {}
 
     setTimeout(() => {
-        alert(`כל הכבוד ${child.name}! צברת ${finalBeez} ${getBeezText(finalBeez)}!`);
         saveData();
         renderHeaderNav();
     }, 500);
@@ -622,10 +769,13 @@ function renderRoutine(type) {
     const container = document.getElementById('child-slider');
     if (!container) return;
 
-    container.innerHTML = currentFamily.children.map((child, ci) => `
+    container.innerHTML = currentFamily.children.map((child, ci) => {
+        const colorClass = getChildColorByName(child.name);
+        const colorValue = getChildColorValueByName(child.name);
+        return `
         <div class="routine-child-card">
             <div class="routine-child-header">
-                <h2 style="color: ${child.color}">${child.name}</h2>
+                <h2 class="${colorClass}" style="color: #134686">${child.name}</h2>
             </div>
             
             <div class="routine-tasks-list">
@@ -637,7 +787,8 @@ function renderRoutine(type) {
                 `).join('')}
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Mark a routine task as completed and show effects.
@@ -647,16 +798,41 @@ function toggleTask(childIdx, type, taskIdx, element) {
     // Add the sound and confetti if checked
     if (element.classList.contains('completed')) {
         try {
-            new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3').play();
+            // Cute, gentle chime sound
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1041/1041-preview.mp3');
+            audio.volume = 0.6; // Make it softer
+            // Handle promise for play() which may be blocked
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Autoplay was prevented
+                    console.log('Audio play failed:', error);
+                });
+            }
             confetti({
                 particleCount: 40,
                 spread: 50,
                 origin: { y: 0.8 },
-                colors: [currentFamily.children[childIdx].color]
+                colors: ['#FAAC68', '#FACE68', '#E77F1A'] // Orange confetti colors
             });
-        } catch(e) {}
+        } catch(e) {
+            console.log('Sound error:', e);
+        }
     }
 }
 
 initTimeSelectors();
+
+// Show main content immediately (no splash screen)
+const header = document.querySelector('header');
+const main = document.querySelector('main');
+if (header) {
+    header.style.opacity = '1';
+    header.style.pointerEvents = 'auto';
+}
+if (main) {
+    main.style.opacity = '1';
+    main.style.pointerEvents = 'auto';
+}
+
 showView('home');
