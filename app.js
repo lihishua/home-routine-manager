@@ -1,7 +1,41 @@
 const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 
-// Splash screen removed
+// Splash screen with time-based greeting
+function initSplashScreen() {
+    const splash = document.getElementById('splash-screen');
+    const greetingEl = document.getElementById('splash-greeting');
+    
+    if (!splash || !greetingEl) return;
+    
+    // Determine greeting based on time of day
+    const hour = new Date().getHours();
+    let greeting = '';
+    
+    if (hour >= 5 && hour < 12) {
+        greeting = 'בוקר טוב';
+    } else if (hour >= 12 && hour < 18) {
+        greeting = 'יום טוב';
+    } else if (hour >= 18 && hour < 22) {
+        greeting = 'ערב טוב';
+    } else {
+        greeting = 'לילה טוב';
+    }
+    
+    greetingEl.textContent = greeting;
+    
+    // Fade out after 1.5 seconds
+    setTimeout(() => {
+        splash.classList.add('fade-out');
+        // Remove from DOM after animation completes
+        setTimeout(() => {
+            splash.style.display = 'none';
+        }, 500);
+    }, 2000);
+}
+
+// Initialize splash screen on load
+document.addEventListener('DOMContentLoaded', initSplashScreen);
 
 // Ensure required arrays exist
 if (!currentFamily.children) currentFamily.children = [];

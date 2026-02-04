@@ -74,59 +74,65 @@ body {
 }
 
 /* Splash screen */
-#splash-screen {
+.splash-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #5A9CB5 0%, #8FBCCB 100%);
+    background-color: #F7F5EE !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    transition: opacity 0.5s ease-out;
+}
+
+#splash-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.splash-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    z-index: 99999; /* Very high z-index to ensure it's on top */
-    animation: fadeOut 0.5s ease-out 0.5s forwards; /* Show for 0.5s, fade out in 0.5s = 1 second total */
+    max-width: 500px;
+    width: 90%;
+    animation: fadeIn 0.8s ease-out;
 }
 
-/* Splash screen removed - content visible immediately */
-#splash-screen h1,
-.splash-title {
-    font-family: 'Fredoka', sans-serif; /* Use your rounded font */
-    color: #134686; /* Deep Blue */
-    font-size: 4.5rem;
-    font-weight: 900;
-    text-shadow: 3px 3px 0px #FACE68; /* Yellow 3D shadow */
-    letter-spacing: -2px;
-    margin-bottom: 0;
+.hero-image {
+    width: 100%;
+    height: auto;
+    mix-blend-mode: multiply;
+    margin-bottom: 20px;
 }
-#splash-screen img,
-.splash-bee {
-    width: 80px;
-    margin: 20px 0;
-    animation: hoverBee 3s ease-in-out infinite;
+
+.greeting-container {
+    margin-top: 20px;
+    text-align: center;
 }
-#splash-screen p,
-.splash-greeting {
-    margin-top: 30px;
-    background: #FDF4E3; /* Warm Cream */
-    color: #134686; /* Deep Blue text */
-    padding: 15px 40px;
-    border-radius: 50px;
-    font-size: 1.5rem;
-    font-weight: 800;
-    border: 3px solid #FAAC68; /* Orange border highlight */
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+
+.greeting-text,
+#splash-greeting {
+    font-family: 'Fredoka', sans-serif !important;
+    color: #2D4E8A;
+    font-size: 2rem;
+    font-weight: 500;
+    direction: rtl;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    animation: slideUp 0.8s ease-out;
 }
-#splash-screen .tagline {
-    margin-top: 40px;
-    background: white;
-    padding: 10px 30px;
-    border-radius: 50px;
-    color: #F4A460;
-    font-weight: 700;
-    font-size: 1.5rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Animations */
