@@ -42,25 +42,69 @@ removeDuplicateChildren();
 // Persist the active family configuration to storage.
 function saveData() { localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily)); }
 
-// Beez icon and helpers (now using orange icon)
-const BEE_IMG = "orange-icon.svg"; // Using SVG for better quality and scalability
-
-function getBeezIconHtml() {
-    return `<span class="beez-icons-stack">
-        <img src="${BEE_IMG}" class="beez-icon bee-back" alt="beez">
-        <img src="${BEE_IMG}" class="beez-icon bee-front" alt="beez">
-    </span>`;
+// Loomi icon and helpers
+function getLoomiIconHtml() {
+    return `<span class="loomi-icon"></span>`;
 }
 
-function getBeezText(count) {
-    return count === 1 ? "ביז" : "ביזים";
+function getLoomiText(count) {
+    return count === 1 ? "לומי" : "לומים";
+}
+
+// Map task names to Material Symbol icons
+function getTaskIcon(taskName) {
+    const name = (taskName || '').toLowerCase();
+    
+    // Hebrew keyword to icon mapping
+    const iconMap = [
+        // School/Backpack
+        { keywords: ['תיק', 'ביה"ס', 'בית ספר', 'ילקוט'], icon: 'backpack' },
+        // Food preparation
+        { keywords: ['קופסת אוכל', 'אוכל', 'סנדוויץ', 'כריך'], icon: 'lunch_dining' },
+        // Water
+        { keywords: ['בקבוק', 'מים', 'שתייה'], icon: 'water_drop' },
+        // Teeth brushing
+        { keywords: ['שיניים', 'צחצוח', 'לצחצח'], icon: 'dentistry' },
+        // Washing face
+        { keywords: ['פנים', 'לשטוף', 'רחצה'], icon: 'wash' },
+        // Breakfast
+        { keywords: ['ארוחת בוקר', 'בוקר', 'לאכול'], icon: 'breakfast_dining' },
+        // Getting dressed
+        { keywords: ['להתלבש', 'בגדים', 'ללבוש'], icon: 'checkroom' },
+        // Bedtime
+        { keywords: ['לילה טוב', 'שינה', 'לישון'], icon: 'bedtime' },
+        // Shower/Bath
+        { keywords: ['מקלחת', 'אמבטיה', 'להתרחץ'], icon: 'shower' },
+        // Hair
+        { keywords: ['שיער', 'להסתרק', 'מברשת'], icon: 'face' },
+        // Homework
+        { keywords: ['שיעורי בית', 'לימודים', 'ללמוד'], icon: 'menu_book' },
+        // Cleaning room
+        { keywords: ['חדר', 'לסדר', 'ניקיון'], icon: 'cleaning_services' },
+        // Shoes
+        { keywords: ['נעליים', 'לנעול'], icon: 'steps' },
+        // Hug
+        { keywords: ['חיבוק'], icon: 'favorite' },
+    ];
+    
+    // Find matching icon
+    for (const mapping of iconMap) {
+        for (const keyword of mapping.keywords) {
+            if (name.includes(keyword)) {
+                return `<i class="material-symbols-rounded chore-icon">${mapping.icon}</i>`;
+            }
+        }
+    }
+    
+    // Default icon
+    return `<i class="material-symbols-rounded chore-icon">task_alt</i>`;
 }
 
 function renderChildScore(child) {
     return `
-        <span class="beez-display">
-            ${getBeezIconHtml()}
-            <span class="beez-number">${child.beez}</span>
+        <span class="loomi-display">
+            ${getLoomiIconHtml()}
+            <span class="loomi-number">${child.loomis}</span>
         </span>
     `;
 }
@@ -124,9 +168,9 @@ function renderHeaderNav() {
     }).join('');
 }
 
-// Clear every child's earned beez.
-function resetAllBeez() {
-    currentFamily.children.forEach(c => c.beez = 0);
+// Clear every child's earned loomis.
+function resetAllLoomis() {
+    currentFamily.children.forEach(c => c.loomis = 0);
         saveData();
         renderSettings();
         renderHeaderNav();
@@ -160,18 +204,18 @@ function renderMarketSection() {
 
     let html = '';
     marketItems.forEach((item, i) => {
+        const loomisCount = item.loomis || 1;
         html += `
-            <div class="chore-edit-row" style="padding:4px 0; font-size:0.75rem; border-bottom:1px solid #e2e8f0;">
-                <span style="flex:1;">
-                    <strong>${item.task || ''}</strong>
-                </span>
-                <div style="display:flex;align-items:center;gap:5px;">
-                    <div class="bee-counter">
-                        <button onclick="updateMarketBeez(${i}, 1)">+</button>
-                        <img src="${BEE_IMG}" alt="beez" style="width:15px;height:15px;">
-                        <button onclick="updateMarketBeez(${i}, -1)">-</button>
+            <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">
+                <span><strong>${item.task || ''}</strong></span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="loomi-counter">
+                        <button onclick="updateMarketLoomis(${i}, 1)">+</button>
+                        <span style="font-weight:700;color:#134686;min-width:20px;text-align:center;">${loomisCount}</span>
+                        <span class="loomi-icon-small"></span>
+                        <button onclick="updateMarketLoomis(${i}, -1)">-</button>
                     </div>
-                    <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>
+                    <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
                 </div>
             </div>`;
     });
@@ -194,7 +238,7 @@ function renderChildList() {
     children.forEach((c, ci) => {
         const color = c.color || '#ccc';
         const name = c.name || 'ללא שם';
-        const beez = c.beez || 0;
+        const loomis = c.loomis || 0;
         
         // Build chores list - combine tasks that appear in both morning and evening
         let choresHtml = '';
@@ -248,21 +292,21 @@ function renderChildList() {
                 deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const eIdx=child.evening.findIndex(t=>t.task===taskText);if(eIdx>=0)child.evening.splice(eIdx,1);saveData();renderSettings();})()`;
             }
             
-            choresHtml += '<div class="chore-edit-row" style="display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #f1f5f9">';
-            choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחיקה"></button>';
-            choresHtml += '<span>' + icon + ' ' + taskText + '</span>';
+            choresHtml += '<div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">';
+            choresHtml += '<span style="display:flex;align-items:center;gap:8px;">' + icon + ' ' + taskText + '</span>';
+            choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>';
             choresHtml += '</div>';
         });
 
         html += '<div class="settings-child-card">';
         
-        // Header with name, beez count beneath name, delete button
+        // Header with name, loomis count beneath name, delete button
         html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
         html += '<div style="display:flex;flex-direction:column;gap:4px">';
         html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
-        html += '<div class="beez-display-row">';
-        html += '<span class="beez-number">' + beez + ' ' + getBeezIconHtml() + '</span>';
-        html += '<span class="reset-beez-text" onclick="currentFamily.children[' + ci + '].beez=0;saveData();renderSettings()">איפוס</span>';
+        html += '<div class="loomi-display-row">';
+        html += '<span class="loomi-number">' + loomis + ' ' + getLoomiIconHtml() + '</span>';
+        html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">איפוס</span>';
         html += '</div>';
         html += '</div>';
         html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()" class="delete-child-pill">מחיקה</button>';
@@ -277,9 +321,9 @@ function renderChildList() {
         html += '<option value="both">🌤️ שניהם</option>';
         html += '</select>';
         html += '</div>';
-        html += '<div style="display:flex;gap:5px;margin-bottom:8px">';
-        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn" style="flex:1;font-size:0.8rem;padding:6px">הוספה</button>';
-        html += '<button onclick="addChoreToAll(' + ci + ')" class="add-to-all-btn" style="flex:1;font-size:0.8rem">הוסף לכולם</button>';
+        html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:stretch;">';
+        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">הוספה</button>';
+        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="flex:1;">הוסף לכולם</button>';
         html += '</div>';
         
         // Chores list
@@ -308,9 +352,10 @@ function renderChildList() {
     childList.innerHTML = html;
 }
 
-// Adjust the beez cost for a market item and refresh settings.
-function updateMarketBeez(index, change) {
-    currentFamily.market[index].beez = Math.max(1, currentFamily.market[index].beez + change);
+// Adjust the loomis cost for a market item and refresh settings.
+function updateMarketLoomis(index, change) {
+    const currentLoomis = currentFamily.market[index].loomis || 1;
+    currentFamily.market[index].loomis = Math.max(1, currentLoomis + change);
     saveData();
     renderSettings();
 }
@@ -321,7 +366,7 @@ function addMarketItem() {
     const taskValue = taskInput ? taskInput.value.trim() : '';
     
     if (taskValue) {
-        currentFamily.market.push({ id: Date.now(), task: taskValue, beez: 1 });
+        currentFamily.market.push({ id: Date.now(), task: taskValue, loomis: 1 });
         taskInput.value = '';
         saveData();
         renderMarketSection(); // Directly render the market section
@@ -407,7 +452,7 @@ function addChild() {
         color: color,
         morning: [],
         evening: [],
-        beez: 0
+        loomis: 0
     };
     
     // Copy chores from selected child if specified
@@ -450,13 +495,14 @@ function renderEventsList() {
 
     list.innerHTML = events.map((ev, i) => {
         const child = currentFamily.children.find(c => c.id === ev.target);
+        const repeatText = ev.repeat !== false ? ' 🔁' : ''; // Show repeat icon if repeatable
         return `
-            <div class="chore-edit-row" style="padding:4px 0; font-size:0.75rem; border-bottom:1px solid #e2e8f0;">
-                <span style="flex:1;">
+            <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">
+                <span>
                     ${DAYS[ev.day]}' - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
-                    ${child ? `- ${child.name}` : ''}
+                    ${child ? `- ${child.name}` : ''}${repeatText}
                 </span>
-                <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();"><img src="https://thumbs.dreamstime.com/b/computer-generated-illustration-recycle-bin-icon-isolated-white-background-suitable-logo-delete-icon-button-175612353.jpg" alt="מחק ילד"></button>
+                <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
             </div>`;
     }).join('');
 }
@@ -654,12 +700,14 @@ function renderWeek() {
         if (!eventsForDay.length) return `<td class="week-day-cell empty" data-day="${day}"></td>`;
 
         const eventsMarkup = eventsForDay.map(ev => {
+            // Check if event is for everyone (family)
+            const isForEveryone = ev.target === 'family' || !ev.target;
             const child = currentFamily.children.find(c => c.id === ev.target);
             const childName = child ? child.name : '';
-            const colorClass = childName ? getEventColorByName(childName) : 'event-ido';
+            const colorClass = isForEveryone ? 'event-everyone' : getEventColorByName(childName);
             return `
                 <div class="event-chip calendar-event ${colorClass}">
-                    <span>${ev.name}</span>
+                    <span class="event-title">${ev.name}</span>
                     <span class="event-time">${ev.start}-${ev.end}</span>
                 </div>
             `;
@@ -687,11 +735,14 @@ function renderMarket() {
         return;
     }
     container.innerHTML = currentFamily.market.map((item, i) => `
-        <div class="task-bank-item" style="cursor: pointer; justify-content: space-between;" onclick="openMarketSelection(${i})">
-            <i class="material-symbols-rounded" style="font-size: 2rem;">emoji_events</i>
+        <div class="task-bank-item" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 70px;" onclick="openMarketSelection(${i})">
+            <i class="material-symbols-rounded" style="font-size: 2rem; display: flex; align-items: center;">emoji_events</i>
             <div style="flex: 1; text-align: right; margin-right: 15px;">
-                <div style="font-weight:800; font-size:1.2rem; margin-bottom: 5px; color: #134686;">${item.task}</div>
-                <div style="font-weight:bold; font-size:0.9rem; color: #134686; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">${item.beez} ${getBeezIconHtml()} ${getBeezText(item.beez)}</div>
+                <span style="font-weight:800; font-size:1.2rem; color: #134686;">${item.task}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                ${getLoomiIconHtml()}
+                <span style="font-weight:bold; font-size:0.9rem; color: #134686;">${item.loomis || 1}</span>
             </div>
         </div>
     `).join('');
@@ -722,7 +773,7 @@ function openMarketSelection(index) {
     document.body.appendChild(overlay);
 }
 
-// Grant beez to a child and celebrate the win.
+// Grant loomis to a child and celebrate the win.
 function processMarketWin(itemIndex, childIndex) {
     const item = currentFamily.market[itemIndex];
     const child = currentFamily.children[childIndex];
@@ -731,15 +782,17 @@ function processMarketWin(itemIndex, childIndex) {
     if (child.age <= 5) multiplier = 2;
     if (child.age >= 18) multiplier = 0;
     
-    const finalBeez = item.beez * multiplier;
-    if (!child.beez) child.beez = 0;
-    child.beez += finalBeez;
+    const finalLoomis = item.loomis * multiplier;
+    if (!child.loomis) child.loomis = 0;
+    child.loomis += finalLoomis;
 
     document.getElementById('market-overlay').remove();
     
     try {
-        // Cute bell/chime sound
-        new Audio('https://assets.mixkit.co/active_storage/sfx/1041/1041-preview.mp3').play();
+        // Short cute pop sound - same as routine check
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+        audio.volume = 0.5;
+        audio.play();
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FAAC68', '#FACE68', '#E77F1A'] }); // Orange confetti
     } catch(e) {}
 
@@ -781,7 +834,7 @@ function renderRoutine(type) {
             <div class="routine-tasks-list">
                 ${child[type].map((task, ti) => `
                     <div class="routine-item" onclick="toggleTask(${ci}, '${type}', ${ti}, this)">
-                        <span class="task-icon">${task.icon || '✨'}</span>
+                        <span class="task-icon">${getTaskIcon(task.task)}</span>
                         <span class="task-text">${task.task}</span>
                     </div>
                 `).join('')}
@@ -798,9 +851,9 @@ function toggleTask(childIdx, type, taskIdx, element) {
     // Add the sound and confetti if checked
     if (element.classList.contains('completed')) {
         try {
-            // Cute, gentle chime sound
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1041/1041-preview.mp3');
-            audio.volume = 0.6; // Make it softer
+            // Short cute pop sound
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+            audio.volume = 0.5;
             // Handle promise for play() which may be blocked
             const playPromise = audio.play();
             if (playPromise !== undefined) {

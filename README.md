@@ -1,4 +1,4 @@
-# 🏠 Home Routine Manager (Seder Yom)
+# 🍊 LOOMI - Home Routine Manager
 
 A dedicated home kiosk app designed for a touchscreen display. 
 Focuses on helping children manage morning/evening routines and family collaboration.
@@ -6,7 +6,7 @@ Focuses on helping children manage morning/evening routines and family collabora
 ## 🚀 Vision
 1. **Dynamic Dashboard:** Switches context based on Morning, Evening, or All-Day chores.
 2. **Kid-Centric:** Swipeable interface where each child has their own color-coded space.
-3. **The Market:** A shared area for family chores where children "claim" tasks to earn rewards.
+3. **The Market:** A shared area for family chores where children "claim" tasks to earn Loomis.
 4. **Accessibility:** Large touch targets, Hebrew RTL support, and Voice Feedback for pre-readers.
 
 ## 📂 File Map

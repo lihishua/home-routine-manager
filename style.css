@@ -1,8 +1,8 @@
-/* Global color tokens - Easy Beezy Theme */
+/* Global color tokens - LOOMI Theme */
 :root { 
-    --bee-blue: #5A9CB5;      /* Main Headers & Background depth */
-    --bee-yellow: #FACE68;    /* Action Buttons (Add/Save) */
-    --bee-coral: #FA6868;     /* The Uniform Child Color & Delete 'X' */
+    --loomi-blue: #5A9CB5;      /* Main Headers & Background depth */
+    --loomi-yellow: #FACE68;    /* Action Buttons (Add/Save) */
+    --loomi-coral: #FA6868;     /* The Uniform Child Color & Delete 'X' */
     --hive-cream: #FDF4E3;    /* The Card Color (Warm & Cozy) */
     --text-dark: #134686;     /* Deep Blue for clear text */
     --bg-darker: #E6F1F5;     /* Darker, richer blue-grey background */
@@ -16,14 +16,14 @@
     --bg-light: #ffffff;
     --hive-cream: #FDF4E3;
     --text-main: var(--text-dark);
-    --bee-brown: var(--text-dark);
-    --bee-gold: var(--bee-yellow);
+    --loomi-brown: var(--text-dark);
+    --loomi-gold: var(--loomi-yellow);
     --honey-warm: var(--white);
-    --accent-sage: var(--bee-yellow);
-    --bee-red: var(--bee-coral);
-    --action-red: var(--bee-coral);
-    --accent-coral: var(--bee-coral);
-    --honey: var(--bee-coral);
+    --accent-sage: var(--loomi-yellow);
+    --loomi-red: var(--loomi-coral);
+    --action-red: var(--loomi-coral);
+    --accent-coral: var(--loomi-coral);
+    --honey: var(--loomi-coral);
     --child-blue: #BBDEFB;
     --child-pink: #F8BBD0;
     --child-green: #C8E6C9;
@@ -146,19 +146,31 @@ body {
     }
 }
 
-/* Loom icon (spool of thread) - legacy */
-.loom-icon {
-    width: 22px;
-    height: 22px;
-    transition: transform 0.2s;
+/* Loomi icon using background-image */
+.loomi-icon {
+    width: 32px;
+    height: 32px;
+    background-image: url('loomi-icon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
     vertical-align: middle;
 }
-.loom-icon:hover {
-    transform: scale(1.15);
+
+.loomi-icon-small {
+    width: 15px;
+    height: 15px;
+    background-image: url('loomi-icon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-/* The Beez Icon */
-.beez-icons-stack {
+/* The Loomi Icon Stack (legacy) */
+.loomi-icon-imgs-stack, .loomi-icons-stack {
     position: relative;
     display: inline-block;
     width: 32px;
@@ -166,7 +178,7 @@ body {
     vertical-align: middle;
     margin: 0 4px;
 }
-.beez-icon {
+.loomi-icon-img {
     width: 32px;
     height: auto;
     position: absolute;
@@ -175,36 +187,48 @@ body {
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
     transition: transform 0.2s;
 }
-.bee-back {
+
+/* Loomi icon - duplicate rule (keeping for compatibility) */
+.loomi-icon {
+    width: 32px;
+    height: 32px;
+    background-image: url('loomi-icon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+    vertical-align: middle;
+}
+.loomi-back {
     transform: translate(2px, 2px) scale(0.9);
     opacity: 0.7;
     z-index: 1;
 }
-.bee-front {
+.loomi-front {
     z-index: 2;
 }
-.beez-icons-stack:hover .bee-front {
+.loomi-icon-imgs-stack:hover .loomi-front {
     transform: scale(1.1);
 }
 
-/* Beez display without pill */
-.beez-display {
+/* Loomi display without pill */
+.loomi-display {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-weight: 800;
     color: var(--text-main);
 }
-.beez-number {
+.loomi-number {
     font-size: 0.9rem;
     font-weight: 800;
     color: var(--text-main);
 }
 
 /* The Beez Counter Pill */
-.beez-pill {
+.loomi-pill {
     background: linear-gradient(to bottom, #ffffff, #fffdf0); /* Subtle honey tint */
-    border: 2px solid var(--bee-yellow); /* Gold border */
+    border: 2px solid var(--loomi-yellow); /* Gold border */
     padding: 6px 14px;
     border-radius: 25px;
     display: inline-flex;
@@ -332,6 +356,25 @@ header #clock {
 .event-עידו { border-right: 6px solid var(--color-עידו) !important; color: var(--color-עידו) !important; }
 .event-לני { border-right: 6px solid var(--color-לני) !important; color: var(--color-לני) !important; }
 .event-לורי { border-right: 6px solid var(--color-לורי) !important; color: var(--color-לורי) !important; }
+
+/* אירוע ששייך לכולם - כמו יום הולדת */
+.event-everyone {
+    background-color: #fff9eb !important; /* רקע קרם חם יותר */
+    border: 2px dashed #134686 !important; /* מסגרת מקווקוות בכחול כהה */
+    border-right: 10px solid #134686 !important; /* פס כחול כהה בולט */
+    box-shadow: 0 4px 10px rgba(19, 70, 134, 0.2);
+}
+
+/* כותרת אירוע - כל האירועים */
+.event-title {
+    color: #134686;
+    font-weight: 700;
+}
+
+/* טקסט חגיגי לאירוע משפחתי */
+.event-everyone .event-title {
+    font-weight: 900;
+}
 
 /* כפתור במודאל "מי ביצע את המטלה?" */
 .modal-child-btn {
@@ -600,7 +643,7 @@ header #clock {
 
 .settings-card-input:focus, .settings-card-select:focus {
     outline: none;
-    border-color: var(--bee-yellow);
+    border-color: var(--loomi-yellow);
     background: #ffffff;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
@@ -641,8 +684,8 @@ header #clock {
 }
 
 /* The "Add" Buttons - make them look like candy */
-/* The Yellow "Add" Buttons */
-.settings-card-btn, .action-btn-green, .action-btn-yellow {
+/* The Yellow "Add" Buttons - add-to-all-btn included to ensure same size */
+.settings-card-btn, .action-btn-green, .action-btn-yellow, .add-to-all-btn {
     background-color: #FACE68 !important; /* Soft Honey */
     color: #134686 !important; /* Dark Blue text for high-end contrast */
     border-radius: 15px;
@@ -737,9 +780,13 @@ header #clock {
     margin: 0 !important;
     border-radius: 12px !important;
 }
-.settings-card-btn:active, .action-btn-green:active, .action-btn-yellow:active {
+.settings-card-btn:active, .action-btn-green:active, .action-btn-yellow:active, .add-to-all-btn:active {
     transform: translateY(3px);
     box-shadow: 0 2px 0px #E5B959 !important;
+}
+
+.add-to-all-btn:active {
+    box-shadow: 0 2px 0px #E5954F !important; /* Orange shadow on press */
 }
 
 
@@ -788,7 +835,7 @@ header #clock {
     margin-right: 10px;
 }
 
-.task-info .bee-points {
+.task-info .loomi-points {
     font-size: 0.85rem;
     color: #5A9CB5;
     font-weight: 400;
@@ -810,7 +857,7 @@ header #clock {
 }
 
 /* כפתורי הבונוס (הדבורה עם ה-+/-) - נעשה אותם קטנים ועדינים יותר */
-.bee-counter {
+.loomi-counter {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -821,7 +868,7 @@ header #clock {
     transform: scale(0.8); /* מקטין את כל היחידה כדי שלא תהיה "שמנה" */
 }
 
-.bee-counter button {
+.loomi-counter button {
     background: none;
     border: none;
     cursor: pointer;
@@ -831,11 +878,11 @@ header #clock {
     font-weight: 700;
 }
 
-.bee-counter button:hover {
+.loomi-counter button:hover {
     opacity: 0.7;
 }
 
-.bee-counter img {
+.loomi-counter img {
     width: 15px;
     height: 15px;
 }
@@ -865,14 +912,14 @@ header #clock {
     flex: 0 0 280px;
     scroll-snap-align: start;
     background: var(--hive-cream);
-    border-top: 10px solid var(--bee-coral) !important; /* Uniform coral top for ALL kids */
+    border-top: 10px solid var(--loomi-coral) !important; /* Uniform coral top for ALL kids */
     border-radius: 30px;
     padding: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
 .settings-child-card h4 {
-    color: var(--bee-blue) !important;
+    color: var(--loomi-blue) !important;
     font-size: 1.4rem;
     margin-bottom: 15px;
     text-align: center;
@@ -959,7 +1006,7 @@ h2.page-title {
     text-shadow: 0 0 10px rgba(250, 172, 104, 0.3); /* Subtle Orange glow */
 }
 h4 {
-    color: var(--bee-blue) !important;
+    color: var(--loomi-blue) !important;
     font-weight: 800;
     margin-bottom: 15px;
     letter-spacing: -0.5px;
@@ -1034,7 +1081,7 @@ h4 {
     display: grid;
     place-items: center;
 }
-.beez-adjuster {
+.loomi-adjuster {
     min-width: 32px;
     justify-content: center;
 }
@@ -1048,7 +1095,7 @@ h4 {
 .compact-chore-list { display: flex; flex-direction: column; gap: 8px; }
 .settings-child-card {
     background: var(--hive-cream);
-    border-top: 10px solid var(--bee-coral) !important; /* Uniform coral top for ALL kids */
+    border-top: 10px solid var(--loomi-coral) !important; /* Uniform coral top for ALL kids */
     border-radius: 30px;
     padding: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
@@ -1075,7 +1122,7 @@ h4 {
     position: absolute;
     width: 14px;
     height: 3px;
-    background-color: var(--bee-coral) !important;
+    background-color: var(--loomi-coral) !important;
     border-radius: 2px;
 }
 .del-chore-btn::before { transform: rotate(45deg); }
@@ -1087,7 +1134,7 @@ h4 {
     display: none; /* Hide the image, use CSS X instead */
 }
 .reset-btn-small,
-.reset-beez-btn {
+.reset-loomi-btn {
     background-color: #FA6868; /* Coral */
     color: white !important;
     border-radius: 8px;
@@ -1100,11 +1147,11 @@ h4 {
     cursor: pointer;
     white-space: nowrap;
 }
-.reset-beez-btn:hover {
+.reset-loomi-btn:hover {
     opacity: 0.8;
 }
 /* Friendly Reset Link in the corner */
-.reset-beez-link {
+.reset-loomi-link {
     color: #5A9CB5; 
     font-weight: 700;
     font-size: 0.9rem;
@@ -1114,7 +1161,7 @@ h4 {
 
 
 /* The 'Reset' word next to the number */
-.reset-beez-text {
+.reset-loomi-text {
     color: #FA6868 !important; /* Coral Red */
     font-size: 0.75rem !important; /* Tiny but readable */
     font-weight: 600;
@@ -1128,17 +1175,17 @@ h4 {
     vertical-align: middle;
 }
 
-.reset-beez-text:hover {
+.reset-loomi-text:hover {
     color: #134686 !important; /* Turns blue when hovering for feedback */
 }
 
-.beez-display-row {
+.loomi-display-row {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-.beez-number {
+.loomi-number {
     font-size: 0.85rem;
     color: #666;
     display: flex;
@@ -1251,10 +1298,11 @@ h4 {
 }
 
 .event-chip .event-time {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #134686; /* Deep blue time text */
     text-align: left;
-    font-weight: 600;
+    font-weight: 400; /* Normal weight so time fits on one line */
+    white-space: nowrap;
 }
 
 /* Target the actual daily boxes and event containers */
@@ -1385,7 +1433,7 @@ h4 {
 
 /* Pill for adjusting market beez cost */
 /* The Beez Stepper (the +/- pill) */
-.beez-stepper,
+.loomi-stepper,
 .star-stepper {
     border: 2px solid #FAAC68 !important; /* Orange accent */
     background: #ffffff;
@@ -1399,7 +1447,7 @@ h4 {
     min-width: fit-content; /* Only as wide as content */
 }
 
-.beez-stepper button {
+.loomi-stepper button {
     border: none;
     background: none;
     font-size: 0.8rem;
@@ -1410,14 +1458,14 @@ h4 {
     line-height: 1;
     min-width: 20px; /* Consistent button width */
 }
-.beez-stepper .beez-icons-stack {
+.loomi-stepper .loomi-icon-imgs-stack {
     width: 16px;
     height: 16px;
 }
-.beez-stepper .beez-icon {
+.loomi-stepper .loomi-icon-img {
     width: 16px;
 }
-.beez-stepper .beez-count {
+.loomi-stepper .loomi-count {
     font-size: 0.85rem; /* Slightly larger */
     min-width: 24px; /* Fixed width for number */
     text-align: center;
@@ -1425,7 +1473,7 @@ h4 {
 }
 
 /* The Bee counters inside the white pills */
-.beez-count,
+.loomi-count,
 .star-count {
     color: #FAAC68 !important; /* Orange number */
     font-size: 1.3rem;
@@ -1509,15 +1557,35 @@ h4 {
     box-shadow: 0 2px 0px #E5954F !important;
 }
 
+/* Override just the colors for add-to-all-btn (size comes from shared rule above) */
 .add-to-all-btn {
-    background-color: #FAAC68 !important; /* Orange secondary action */
-    color: #134686 !important;
-    border-radius: 12px;
-    border: none;
-    padding: 8px 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
+    background-color: #FAAC68 !important; /* Orange instead of yellow */
+    box-shadow: 0 4px 0px #E5954F !important; /* Orange shadow */
+    margin-bottom: 0 !important; /* No margin when in flex row with other button */
+}
+
+/* Buttons in the same row - force identical sizing */
+.add-btn-row {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    line-height: 1.4 !important;
+    box-shadow: 0 6px 0px #E5B959 !important; /* Thicker 3D shadow */
+}
+
+/* Orange variant - only change colors */
+.add-btn-orange {
+    background-color: #FAAC68 !important;
+    box-shadow: 0 6px 0px #E5954F !important; /* Thicker 3D shadow */
+}
+.add-btn-orange:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0px #E5954F !important;
+}
+.add-btn-row:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0px #E5B959 !important;
 }
 /* Slider that hosts the routine cards */
 .snap-slider {
@@ -1674,6 +1742,15 @@ h4 {
 .routine-item .task-icon {
     font-size: 2rem;
     margin-bottom: 5px;
+}
+
+/* Chore icons - simple line style */
+.chore-icon {
+    font-family: 'Material Symbols Rounded' !important;
+    font-weight: 300 !important; /* Lighter weight for line-drawing look */
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24 !important;
+    color: #5A9CB5 !important; /* Loomi blue */
+    font-size: 2.5rem !important;
 }
 
 .routine-item.completed {

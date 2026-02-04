@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Easy Beezy</title>
+    <title>LOOMI</title>
     <link rel="stylesheet" href="style.css?v=225">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
@@ -71,7 +71,6 @@
     <!-- Settings hub for events and routines -->
     <section id="view-settings" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2>ניהול הבית</h2>
             <div style="display:flex; gap:10px;">
                 <button onclick="location.reload()" class="save-btn">שמור</button>
                 <button onclick="showView('home')" class="back-btn">חזרה</button>
@@ -98,7 +97,13 @@
                         <div class="time-group"><select id="end-h" class="mini-select-time"></select>:<select id="end-m" class="mini-select-time"></select></div>
                     </div>
                 </div>
-                <select id="event-target" class="settings-card-select"></select>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <select id="event-target" class="settings-card-select" style="flex:1;min-width:120px;"></select>
+                    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                        <input type="checkbox" id="event-repeat" checked style="width:18px;height:18px;cursor:pointer;">
+                        <label for="event-repeat" style="font-size:0.85rem;color:#134686;cursor:pointer;user-select:none;white-space:nowrap;"> כל שבוע </label>
+                    </div>
+                </div>
                 <button onclick="addEvent()" class="settings-card-btn">הוספה</button>
                 <div id="settings-event-list" class="settings-card-list"></div>
             </div>
