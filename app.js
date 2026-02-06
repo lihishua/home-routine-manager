@@ -388,17 +388,17 @@ function renderMarketSection() {
     marketItems.forEach((item, i) => {
         const loomisCount = item.loomis || 1;
         html += `
-            <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">
-                <span><strong>${item.task || ''}</strong></span>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="loomi-counter">
-                        <button onclick="updateMarketLoomis(${i}, 1)">+</button>
-                        <span style="font-weight:700;color:#134686;min-width:20px;text-align:center;">${loomisCount}</span>
-                        <span class="loomi-icon-small"></span>
-                        <button onclick="updateMarketLoomis(${i}, -1)">-</button>
+            <div class="task-edit-row">
+                <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();">✕</button>
+                <div class="task-loomi-controls">
+                    <button class="loomi-btn minus" onclick="updateMarketLoomis(${i}, -1)">-</button>
+                    <div class="loomi-display-inline">
+                        <img src="loomi-icon.png" class="loomi-icon-medium" alt="">
+                        <span class="loomi-count">${loomisCount}</span>
                     </div>
-                    <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
+                    <button class="loomi-btn plus" onclick="updateMarketLoomis(${i}, 1)">+</button>
                 </div>
+                <span class="task-name"><strong>${item.task || ''}</strong></span>
             </div>`;
     });
 
@@ -1073,14 +1073,10 @@ function renderMarket() {
         return marketSortOrder === 'high' ? bLoomis - aLoomis : aLoomis - bLoomis;
     });
     
-    const sortIcon = marketSortOrder === 'high' ? 'arrow_downward' : 'arrow_upward';
-    const sortText = marketSortOrder === 'high' ? 'מהגבוה לנמוך' : 'מהנמוך לגבוה';
-    
     let html = `
         <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-            <button onclick="toggleMarketSort()" class="sort-btn">
-                <i class="material-symbols-rounded" style="font-size:1rem;">${sortIcon}</i>
-                <span>${sortText}</span>
+            <button onclick="toggleMarketSort()" class="sort-btn-icon">
+                <i class="material-symbols-rounded">swap_vert</i>
             </button>
         </div>
     `;

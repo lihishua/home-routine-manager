@@ -109,26 +109,30 @@
                     <button type="button" id="btn-once" onclick="setEventMode('once')">תאריך ספציפי</button>
                 </div>
                 
-                <input type="text" id="event-name" placeholder="מה קורה?" class="settings-card-input">
-                <div class="day-time-row">
-                    <div id="date-input-container">
-                        <select id="event-day" class="settings-card-select day-selector-narrow">
-                            <option value="0">א'</option><option value="1">ב'</option>
-                            <option value="2">ג'</option><option value="3">ד'</option>
-                            <option value="4">ה'</option><option value="5">ו'</option>
-                            <option value="6">ש'</option>
-                        </select>
-                        <input type="date" id="event-date" class="settings-card-input date-input" style="display:none;">
-                    </div>
-                    <div class="settings-card-time">
-                        <div class="time-group"><select id="start-h" class="mini-select-time"></select>:<select id="start-m" class="mini-select-time"></select></div>
-                        <span class="time-arrow">→</span>
-                        <div class="time-group"><select id="end-h" class="mini-select-time"></select>:<select id="end-m" class="mini-select-time"></select></div>
-                    </div>
+                <!-- Row 1: Event name + Kid selector -->
+                <div class="event-row">
+                    <input type="text" id="event-name" placeholder="מה קורה?" class="settings-card-input" style="flex:1;">
+                    <select id="event-target" class="settings-card-select event-kid-select"></select>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                    <select id="event-target" class="settings-card-select" style="flex:1;"></select>
+                
+                <!-- Row 2: Date/Day picker -->
+                <div class="event-row" id="date-input-container">
+                    <select id="event-day" class="settings-card-select event-day-select">
+                        <option value="0">יום א'</option><option value="1">יום ב'</option>
+                        <option value="2">יום ג'</option><option value="3">יום ד'</option>
+                        <option value="4">יום ה'</option><option value="5">יום ו'</option>
+                        <option value="6">שבת</option>
+                    </select>
+                    <input type="date" id="event-date" class="settings-card-input event-date-select" style="display:none;">
                 </div>
+                
+                <!-- Row 3: Time picker -->
+                <div class="event-row event-time-row">
+                    <div class="time-group"><select id="start-h" class="mini-select-time"></select>:<select id="start-m" class="mini-select-time"></select></div>
+                    <span class="time-arrow">→</span>
+                    <div class="time-group"><select id="end-h" class="mini-select-time"></select>:<select id="end-m" class="mini-select-time"></select></div>
+                </div>
+                
                 <button onclick="addEvent()" class="settings-card-btn" id="btn-add-event">הוספה</button>
                 <button onclick="updateEvent()" class="settings-card-btn hidden" id="btn-update-event">עדכון</button>
                 <div id="settings-event-list" class="settings-card-list"></div>

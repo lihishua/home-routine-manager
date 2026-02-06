@@ -590,14 +590,13 @@ header #clock {
     border-radius: 30px !important;
     border: none !important;
     border-top: 6px solid #FAAC68 !important; /* Orange top border like add-task yellow border */
-    box-shadow: 0 10px 0px rgba(0,0,0,0.05) !important; /* Shadow below like other cards */
+    box-shadow: none !important; /* No shadow */
     transition: transform 0.2s ease;
 }
 
 .add-event-card:active {
     /* Subtle 'click' effect */
-    transform: translateY(4px);
-    box-shadow: 0 6px 0px rgba(0,0,0,0.05) !important;
+    transform: translateY(2px);
 }
 
 .add-event-card input, .add-event-card select {
@@ -715,6 +714,34 @@ header #clock {
     width: 100%;
     margin-bottom: 6px;
     direction: rtl; /* RTL layout: day/date on right, time on left */
+}
+
+/* New event card layout */
+.event-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.event-kid-select {
+    width: 80px !important;
+    flex-shrink: 0;
+}
+
+.event-day-select {
+    width: 100% !important;
+}
+
+.event-date-select {
+    width: 100% !important;
+}
+
+.event-time-row {
+    justify-content: center;
+    direction: ltr;
 }
 
 .day-selector-narrow {
@@ -946,6 +973,87 @@ header #clock {
     height: 15px;
 }
 
+/* Task edit row - new layout */
+.task-edit-row {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 8px;
+}
+
+.task-edit-row .del-chore-btn {
+    color: #FA6868;
+    font-size: 1.1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.task-edit-row .task-name {
+    flex: 1;
+    text-align: right;
+    color: #134686;
+    font-size: 0.85rem;
+}
+
+.task-loomi-controls {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 4px;
+}
+
+.loomi-btn {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #FACE68;
+    border-radius: 5px;
+    background: white;
+    color: #134686;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loomi-btn:hover {
+    background: #FFF9EB;
+}
+
+.loomi-btn.plus {
+    border-color: #8BC34A;
+}
+
+.loomi-btn.minus {
+    border-color: #FA6868;
+}
+
+.loomi-display-inline {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.loomi-icon-medium {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.loomi-count {
+    font-weight: 700;
+    color: #FAAC68;
+    font-size: 0.65rem;
+    min-width: 12px;
+    text-align: center;
+}
+
 /* Child cards horizontal slider in settings */
 .settings-child-slider {
     display: flex;
@@ -1111,14 +1219,14 @@ h4 {
     border: 2px solid #E2E8F0;
     background: #F8FAFC !important;
     border-radius: 8px;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: normal !important;
     text-align: center;
     appearance: none;
     cursor: pointer;
-    padding: 4px 2px;
-    min-width: 34px !important;
-    width: 36px;
+    padding: 6px 8px;
+    min-width: 45px !important;
+    width: 50px;
     box-sizing: border-box;
 }
 .mini-select {
@@ -1510,6 +1618,30 @@ h4 {
 .sort-btn i {
     font-family: 'Material Symbols Rounded' !important;
 }
+
+/* Icon-only sort button */
+.sort-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #FDF4E3;
+    border: 2px solid #FAAC68;
+    border-radius: 50%;
+    color: #134686;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sort-btn-icon:hover {
+    background: #FAAC68;
+    color: white;
+}
+.sort-btn-icon i {
+    font-family: 'Material Symbols Rounded' !important;
+    font-size: 1.2rem;
+}
+
 /* Fix the icon color inside the line */
 .task-bank-item i {
     color: #5A9CB5 !important; /* Palette Blue for the icon */
@@ -1581,13 +1713,20 @@ h4 {
 }
 
 /* The Bee counters inside the white pills */
-.loomi-count,
 .star-count {
     color: #FAAC68 !important; /* Orange number */
     font-size: 1.3rem;
     font-weight: 800;
     min-width: 40px; 
     text-align: center; 
+}
+
+/* Task row loomi count - smaller */
+.task-edit-row .loomi-count {
+    font-size: 0.7rem !important;
+    font-weight: 700;
+    color: #FAAC68;
+    min-width: 14px;
 }
 .market-task-name { 
     font-weight: 600; 
