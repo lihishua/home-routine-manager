@@ -62,6 +62,13 @@
     direction: rtl; 
 }
 
+/* Ensure Material Symbols icons always render correctly */
+.material-symbols-rounded,
+i.material-symbols-rounded,
+span.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded' !important;
+}
+
 /* Center the main document layout */
 body {
     /* Use a deeper version of your blue for the background to make cards POP */
@@ -609,6 +616,51 @@ header #clock {
 .add-event-card i {
     color: #5A9CB5;
 }
+
+/* Event type toggle (weekly/once) */
+.type-toggle {
+    display: flex;
+    background: #f0f0f0;
+    border-radius: 25px;
+    padding: 4px;
+    margin-bottom: 12px;
+}
+
+.type-toggle button {
+    flex: 1;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    color: #134686;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.type-toggle button.active {
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-weight: bold;
+}
+
+#date-input-container {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.date-input {
+    width: 85px !important;
+    flex-shrink: 0;
+    padding: 4px 2px !important;
+    font-size: 0.65rem !important;
+    border: 2px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    background: #F8FAFC !important;
+}
+
 /* Example for the middle "Add Task" card */
 .settings-card.add-task,
 .add-task-card,
@@ -658,9 +710,11 @@ header #clock {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 6px;
     width: 100%;
     margin-bottom: 6px;
+    direction: rtl; /* RTL layout: day/date on right, time on left */
 }
 
 .day-selector-narrow {
@@ -676,17 +730,16 @@ header #clock {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start; /* Align to the left */
-    flex: 1; /* Take remaining space */
-    max-width: 100%;
+    justify-content: flex-start;
+    flex-shrink: 0;
     direction: ltr !important;
+    unicode-bidi: isolate; /* Isolate from parent RTL */
     font-size: 0.75rem;
-    background: transparent; /* No rectangle background */
-    padding: 6px 8px;
+    background: transparent;
+    padding: 0;
     border-radius: 8px;
     box-sizing: border-box;
-    min-width: 0; /* Allow flex container to shrink */
-    gap: 4px; /* Small gap between elements */
+    gap: 2px;
 }
 
 /* The "Add" Buttons - make them look like candy */
@@ -800,10 +853,10 @@ header #clock {
     flex: 1;
     overflow-y: auto;
     font-size: 0.7rem;
-    margin-top: 0; /* Remove top margin */
+    margin-top: 0;
     margin-bottom: 2px;
-    min-height: 0; /* Allows flex item to shrink below content size */
-    max-height: 140px; /* Increased height to show more events */
+    min-height: 0;
+    /* No max-height - let it fill to the bottom of the card */
 }
 
 .settings-card-list .chore-edit-row {
@@ -951,7 +1004,9 @@ header #clock {
     opacity: 1 !important;
 }
 
-.settings-child-card h3 i {
+.settings-child-card h3 i,
+.settings-child-card h3 .material-symbols-rounded {
+    font-family: 'Material Symbols Rounded' !important;
     color: #5A9CB5; /* Palette Blue */
     margin-left: 10px;
 }
@@ -1037,10 +1092,9 @@ h4 {
     display: flex;
     flex-direction: row !important;
     align-items: center;
-    gap: 2px;
+    gap: 1px;
     direction: ltr !important;
-    flex-shrink: 1; /* Allow time groups to shrink */
-    min-width: 0;
+    flex-shrink: 0;
 }
 
 .time-group select,
@@ -1054,17 +1108,17 @@ h4 {
 }
 
 .mini-select-time {
-    border: 2px solid #E2E8F0; /* Match day selector border */
-    background: #F8FAFC !important; /* Match day selector background color */
-    border-radius: 8px; /* Match day selector border radius */
-    font-size: 0.8rem;
-    font-weight: normal !important; /* Remove bold from time */
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC !important;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: normal !important;
     text-align: center;
     appearance: none;
     cursor: pointer;
-    padding: 4px 6px; /* Add padding like day selector */
-    min-width: 0;
-    max-width: 50px;
+    padding: 4px 2px;
+    min-width: 34px !important;
+    width: 36px;
     box-sizing: border-box;
 }
 .mini-select {
@@ -1168,9 +1222,9 @@ h4 {
 
 /* The 'Reset' word next to the number */
 .reset-loomi-text {
-    color: #FA6868 !important; /* Coral Red */
+    color: #134686 !important; /* Dark blue */
     font-size: 0.75rem !important; /* Tiny but readable */
-    font-weight: 600;
+    font-weight: 400; /* Not bold */
     text-decoration: underline; /* Makes it look clickable */
     cursor: pointer;
     background: none !important;
@@ -1198,6 +1252,30 @@ h4 {
     align-items: center;
     gap: 4px;
 }
+.peek-week-btn {
+    background: #FACE68;
+    color: #134686;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 25px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 15px;
+    box-shadow: 0 4px 0 #E5B959;
+    transition: all 0.2s;
+}
+
+.peek-week-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #E5B959;
+}
+
+.peek-week-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #E5B959;
+}
+
 .week-table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -1407,6 +1485,30 @@ h4 {
     align-items: center;
     padding: 15px;
     width: 100%;
+}
+
+/* Sort button for chores bank */
+.sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #FDF4E3;
+    border: 2px solid #FAAC68;
+    border-radius: 20px;
+    padding: 6px 14px;
+    color: #134686;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sort-btn:hover {
+    background: #FAAC68;
+    color: white;
+}
+.sort-btn i {
+    font-family: 'Material Symbols Rounded' !important;
 }
 /* Fix the icon color inside the line */
 .task-bank-item i {

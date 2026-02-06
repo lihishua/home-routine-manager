@@ -1,12 +1,20 @@
 const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
+let weekOffset = 0; // 0 = current week, 1 = next week
 
-// Splash screen with time-based greeting
+// Splash screen with time-based greeting (only once per session)
 function initSplashScreen() {
     const splash = document.getElementById('splash-screen');
     const greetingEl = document.getElementById('splash-greeting');
     
     if (!splash || !greetingEl) return;
+    
+    // Only show splash once per session
+    if (sessionStorage.getItem('splashShown')) {
+        splash.style.display = 'none';
+        return;
+    }
+    sessionStorage.setItem('splashShown', 'true');
     
     // Determine greeting based on time of day
     const hour = new Date().getHours();
@@ -400,7 +408,8 @@ function addMarketItem() {
     const taskValue = taskInput ? taskInput.value.trim() : '';
     
     if (taskValue) {
-        currentFamily.market.push({ id: Date.now(), task: taskValue, loomis: 1 });
+        // Add to beginning of list so new items appear at the top
+        currentFamily.market.unshift({ id: Date.now(), task: taskValue, loomis: 1 });
         taskInput.value = '';
         saveData();
         renderMarketSection(); // Directly render the market section
@@ -529,11 +538,21 @@ function renderEventsList() {
 
     list.innerHTML = events.map((ev, i) => {
         const child = currentFamily.children.find(c => c.id === ev.target);
-        const repeatText = ev.repeat !== false ? ' 🔁' : ''; // Show repeat icon if repeatable
+        const repeatText = ev.repeat !== false ? ' 🔁' : '';
+        
+        // Show date for one-time events, day for weekly events
+        let dateDisplay;
+        if (ev.repeat === false && ev.date) {
+            const d = new Date(ev.date);
+            dateDisplay = `${d.getDate()}/${d.getMonth() + 1}`;
+        } else {
+            dateDisplay = DAYS[ev.day] + "'";
+        }
+        
         return `
             <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">
                 <span>
-                    ${DAYS[ev.day]}' - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
+                    ${dateDisplay} - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
                     ${child ? `- ${child.name}` : ''}${repeatText}
                 </span>
                 <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
@@ -541,10 +560,32 @@ function renderEventsList() {
     }).join('');
 }
 
+// Toggle event mode between weekly and one-time
+let eventMode = 'weekly'; // 'weekly' or 'once'
+
+function setEventMode(mode) {
+    eventMode = mode;
+    const btnWeekly = document.getElementById('btn-weekly');
+    const btnOnce = document.getElementById('btn-once');
+    const daySelect = document.getElementById('event-day');
+    const dateInput = document.getElementById('event-date');
+    
+    if (mode === 'weekly') {
+        btnWeekly.classList.add('active');
+        btnOnce.classList.remove('active');
+        daySelect.style.display = '';
+        dateInput.style.display = 'none';
+    } else {
+        btnWeekly.classList.remove('active');
+        btnOnce.classList.add('active');
+        daySelect.style.display = 'none';
+        dateInput.style.display = '';
+    }
+}
+
 // Save a new event from the settings form.
 function addEvent() {
     const n = document.getElementById('event-name').value;
-    const d = document.getElementById('event-day').value;
     const sh = document.getElementById('start-h').value;
     const sm = document.getElementById('start-m').value;
     const eh = document.getElementById('end-h').value;
@@ -552,8 +593,29 @@ function addEvent() {
     const t = document.getElementById('event-target').value;
     
     if(n) { 
-        const repeat = document.getElementById('event-repeat')?.checked;
-        currentFamily.events.push({ name: n, day: parseInt(d), start: `${sh}:${sm}`, end: `${eh}:${em}`, target: t, repeat });
+        const isWeekly = eventMode === 'weekly';
+        const event = {
+            name: n,
+            start: `${sh}:${sm}`,
+            end: `${eh}:${em}`,
+            target: t,
+            repeat: isWeekly
+        };
+        
+        if (isWeekly) {
+            event.day = parseInt(document.getElementById('event-day').value);
+        } else {
+            const dateVal = document.getElementById('event-date').value;
+            if (!dateVal) {
+                alert('נא לבחור תאריך');
+                return;
+            }
+            const date = new Date(dateVal);
+            event.day = date.getDay(); // Get day of week from date
+            event.date = dateVal; // Store the actual date
+        }
+        
+        currentFamily.events.push(event);
         saveData();
         resetEventForm();
         renderSettings(); 
@@ -619,7 +681,7 @@ function resetEventForm() {
     const endM = document.getElementById('end-m');
     const target = document.getElementById('event-target');
     const editIdx = document.getElementById('edit-event-idx');
-    const repeatEl = document.getElementById('event-repeat');
+    const dateInput = document.getElementById('event-date');
     const btnAdd = document.getElementById('btn-add-event');
     const btnUpdate = document.getElementById('btn-update-event');
     
@@ -629,9 +691,12 @@ function resetEventForm() {
     if (endM) endM.value = '00';
     if (target) target.value = 'family';
     if (editIdx) editIdx.value = '-1';
-    if (repeatEl) repeatEl.checked = true;
+    if (dateInput) dateInput.value = '';
     if (btnAdd) btnAdd.classList.remove('hidden');
     if (btnUpdate) btnUpdate.classList.add('hidden');
+    
+    // Reset to weekly mode
+    setEventMode('weekly');
 }
 
 // Draw the weekly grid with events per day.
@@ -723,14 +788,56 @@ function getChildColorValue(index) {
     return colors[colorIndex] || colors[1];
 }
 
+function toggleWeek() {
+    weekOffset = weekOffset === 0 ? 1 : 0;
+    renderWeek();
+}
+
+// Get the start date (Sunday) of a week with given offset
+function getWeekStart(offset = 0) {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - dayOfWeek + (offset * 7));
+    sunday.setHours(0, 0, 0, 0);
+    return sunday;
+}
+
 function renderWeek() {
     const grid = document.getElementById('week-grid');
     if (!grid) return;
     const today = new Date().getDay();
+    const isNextWeek = weekOffset === 1;
+    
+    // Get the week's date range for filtering one-time events
+    const weekStart = getWeekStart(weekOffset);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
 
-    const headerRow = DAYS.map((day, i) => `<th class="${i === today ? 'today-col' : ''}">${day}</th>`).join('');
+    // Only highlight today when viewing current week
+    const headerRow = DAYS.map((day, i) => `<th class="${!isNextWeek && i === today ? 'today-col' : ''}">${day}</th>`).join('');
+    
     const bodyRow = DAYS.map((day, i) => {
-        const eventsForDay = currentFamily.events.filter(ev => ev.day === i);
+        // Filter events for this day
+        const eventsForDay = currentFamily.events.filter(ev => {
+            // Weekly events (repeat !== false): show on matching day
+            if (ev.repeat !== false) {
+                return ev.day === i;
+            }
+            
+            // One-time events: check if date falls in this week AND on this day
+            if (ev.date) {
+                const eventDate = new Date(ev.date);
+                eventDate.setHours(12, 0, 0, 0); // Normalize time
+                const isInWeek = eventDate >= weekStart && eventDate <= weekEnd;
+                const isCorrectDay = eventDate.getDay() === i;
+                return isInWeek && isCorrectDay;
+            }
+            
+            return false;
+        });
+        
         if (!eventsForDay.length) return `<td class="week-day-cell empty" data-day="${day}"></td>`;
 
         const eventsMarkup = eventsForDay.map(ev => {
@@ -750,6 +857,8 @@ function renderWeek() {
         return `<td class="week-day-cell" data-day="${day}">${eventsMarkup}</td>`;
     }).join('');
 
+    const buttonText = isNextWeek ? 'חזרה' : 'הצצה לשבוע הבא';
+
     grid.innerHTML = `
         <div class="week-table-wrapper">
             <table class="week-table">
@@ -757,7 +866,26 @@ function renderWeek() {
                 <tbody><tr>${bodyRow}</tr></tbody>
             </table>
         </div>
+        <button onclick="toggleWeek()" class="peek-week-btn">${buttonText}</button>
     `;
+    
+    // Update the regular back button behavior when viewing next week
+    const backBtn = document.querySelector('#view-week .back-btn');
+    if (backBtn) {
+        if (isNextWeek) {
+            backBtn.onclick = function() { toggleWeek(); };
+        } else {
+            backBtn.onclick = function() { showView('home'); };
+        }
+    }
+}
+
+// Market sort state: 'high' = high to low, 'low' = low to high
+let marketSortOrder = 'high';
+
+function toggleMarketSort() {
+    marketSortOrder = marketSortOrder === 'high' ? 'low' : 'high';
+    renderMarket();
 }
 
 // Show all market items for purchase selection.
@@ -768,8 +896,29 @@ function renderMarket() {
         container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">השוק ריק כרגע... 🛒</div>`;
         return;
     }
-    container.innerHTML = currentFamily.market.map((item, i) => `
-        <div class="task-bank-item" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 70px;" onclick="openMarketSelection(${i})">
+    
+    // Create sorted copy with original indices
+    const sortedItems = currentFamily.market.map((item, i) => ({ ...item, originalIndex: i }));
+    sortedItems.sort((a, b) => {
+        const aLoomis = a.loomis || 1;
+        const bLoomis = b.loomis || 1;
+        return marketSortOrder === 'high' ? bLoomis - aLoomis : aLoomis - bLoomis;
+    });
+    
+    const sortIcon = marketSortOrder === 'high' ? 'arrow_downward' : 'arrow_upward';
+    const sortText = marketSortOrder === 'high' ? 'מהגבוה לנמוך' : 'מהנמוך לגבוה';
+    
+    let html = `
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <button onclick="toggleMarketSort()" class="sort-btn">
+                <i class="material-symbols-rounded" style="font-size:1rem;">${sortIcon}</i>
+                <span>${sortText}</span>
+            </button>
+        </div>
+    `;
+    
+    html += sortedItems.map(item => `
+        <div class="task-bank-item" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 70px;" onclick="openMarketSelection(${item.originalIndex})">
             <i class="material-symbols-rounded" style="font-size: 2rem; display: flex; align-items: center;">emoji_events</i>
             <div style="flex: 1; text-align: right; margin-right: 15px;">
                 <span style="font-weight:800; font-size:1.2rem; color: #134686;">${item.task}</span>
@@ -780,6 +929,8 @@ function renderMarket() {
             </div>
         </div>
     `).join('');
+    
+    container.innerHTML = html;
 }
 
 // Overlay the market purchase flow for one item.
