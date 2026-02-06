@@ -2096,6 +2096,14 @@ h4 {
     color: #5A9CB5;
 }
 
+.card-subtitle {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+    display: block;
+    margin-top: 4px;
+}
+
 /* Child page header */
 .child-page-header {
     display: flex;

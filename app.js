@@ -261,7 +261,7 @@ function renderChildPage(childIndex) {
         <div class="child-page-grid">
             <!-- Virtual Bank Card -->
             <div class="child-page-card bank-card ${colorClass}">
-                <h3><span class="material-symbols-rounded">savings</span> הבנק שלי</h3>
+                <h3><span class="material-symbols-rounded">savings</span> בנק<br><span class="card-subtitle">(כמה כסף יש לי אצל אמא ואבא)</span></h3>
                 <div class="bank-display">
                     <span class="bank-amount">₪${child.bank || 0}</span>
                 </div>
