@@ -204,7 +204,8 @@ function renderHeaderNav() {
     
     nav.innerHTML = uniqueChildren.map((child, index) => {
         const colorClass = getChildColorByName(child.name);
-        return `<div class="child-nav-pill child-pill-assigned ${colorClass}">
+        const childIndex = currentFamily.children.findIndex(c => c.id === child.id);
+        return `<div class="child-nav-pill child-pill-assigned ${colorClass}" onclick="openChildPage(${childIndex})" style="cursor:pointer;">
             ${child.name}
         </div>`;
     }).join('');
@@ -216,6 +217,145 @@ function resetAllLoomis() {
         saveData();
         renderSettings();
         renderHeaderNav();
+    }
+
+// Track currently open child page
+let currentChildPageIndex = -1;
+
+// Open a child's personal page
+function openChildPage(childIndex) {
+    currentChildPageIndex = childIndex;
+    showView('child-page');
+    renderChildPage(childIndex);
+}
+
+// Render the child's personal page
+function renderChildPage(childIndex) {
+    const child = currentFamily.children[childIndex];
+    if (!child) return;
+    
+    // Ensure child has the new data fields
+    if (child.bank === undefined) child.bank = 0;
+    if (!child.memos) child.memos = [];
+    
+    const titleEl = document.getElementById('child-page-title');
+    const contentEl = document.getElementById('child-page-content');
+    const headerEl = document.getElementById('child-page-header');
+    if (!contentEl) return;
+    
+    const colorClass = getChildColorByName(child.name);
+    
+    // Update header with title, loomis, and back button
+    if (headerEl) {
+        headerEl.innerHTML = `
+            <h2 style="margin:0;">העמוד של ${child.name}</h2>
+            <div class="header-loomis">
+                <span class="header-loomis-count">${child.loomis || 0}</span>
+                <img src="loomi-icon.png" class="header-loomis-icon" alt="loomis">
+            </div>
+            <button onclick="showView('home')" class="back-btn">חזרה</button>
+        `;
+    }
+    
+    contentEl.innerHTML = `
+        <div class="child-page-grid">
+            <!-- Virtual Bank Card -->
+            <div class="child-page-card bank-card ${colorClass}">
+                <h3><span class="material-symbols-rounded">savings</span> הבנק שלי</h3>
+                <div class="bank-display">
+                    <span class="bank-amount">₪${child.bank || 0}</span>
+                </div>
+                <div class="bank-controls">
+                    <button onclick="updateChildBank(${childIndex}, -10)" class="bank-btn minus">-10</button>
+                    <button onclick="updateChildBank(${childIndex}, -1)" class="bank-btn minus">-1</button>
+                    <button onclick="updateChildBank(${childIndex}, 1)" class="bank-btn plus">+1</button>
+                    <button onclick="updateChildBank(${childIndex}, 10)" class="bank-btn plus">+10</button>
+                </div>
+            </div>
+            
+            <!-- Memos Card -->
+            <div class="child-page-card memos-card ${colorClass}">
+                <h3><span class="material-symbols-rounded">sticky_note_2</span> תזכורות</h3>
+                <div class="memo-input-row">
+                    <input type="text" id="new-memo-text" placeholder="מה לזכור?" class="memo-input">
+                    <input type="date" id="new-memo-date" class="memo-date-input">
+                    <button onclick="addMemo(${childIndex})" class="memo-add-btn">+</button>
+                </div>
+                <div class="memos-list">
+                    ${renderMemosList(child, childIndex)}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Render the list of memos for a child
+function renderMemosList(child, childIndex) {
+    if (!child.memos || child.memos.length === 0) {
+        return '<div class="no-memos">אין תזכורות עדיין</div>';
+    }
+    
+    return child.memos.map((memo, i) => {
+        const dateStr = memo.date ? new Date(memo.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' }) : '';
+        const hasDate = memo.date ? `<span class="memo-date">📅 ${dateStr}</span>` : '';
+        return `
+            <div class="memo-item">
+                <div class="memo-content">
+                    <span class="memo-text">${memo.text}</span>
+                    ${hasDate}
+                </div>
+                <button onclick="deleteMemo(${childIndex}, ${i})" class="memo-delete-btn">✕</button>
+            </div>
+        `;
+    }).join('');
+}
+
+// Update child's virtual bank
+function updateChildBank(childIndex, amount) {
+    const child = currentFamily.children[childIndex];
+    if (!child) return;
+    
+    if (child.bank === undefined) child.bank = 0;
+    child.bank += amount;
+    if (child.bank < 0) child.bank = 0; // Don't go negative
+    
+    saveData();
+    renderChildPage(childIndex);
+}
+
+// Add a new memo to a child
+function addMemo(childIndex) {
+    const textInput = document.getElementById('new-memo-text');
+    const dateInput = document.getElementById('new-memo-date');
+    
+    const text = textInput ? textInput.value.trim() : '';
+    const date = dateInput ? dateInput.value : '';
+    
+    if (!text) return;
+    
+    const child = currentFamily.children[childIndex];
+    if (!child) return;
+    
+    if (!child.memos) child.memos = [];
+    
+    child.memos.unshift({
+        id: Date.now(),
+        text: text,
+        date: date || null
+    });
+    
+    saveData();
+    renderChildPage(childIndex);
+}
+
+// Delete a memo from a child
+function deleteMemo(childIndex, memoIndex) {
+    const child = currentFamily.children[childIndex];
+    if (!child || !child.memos) return;
+    
+    child.memos.splice(memoIndex, 1);
+    saveData();
+    renderChildPage(childIndex);
 }
 
 // Fill the settings view with child and event controls.
@@ -838,7 +978,26 @@ function renderWeek() {
             return false;
         });
         
-        if (!eventsForDay.length) return `<td class="week-day-cell empty" data-day="${day}"></td>`;
+        // Collect memos with dates for this day from all children
+        const memosForDay = [];
+        currentFamily.children.forEach(child => {
+            if (!child.memos) return;
+            child.memos.forEach(memo => {
+                if (memo.date) {
+                    const memoDate = new Date(memo.date);
+                    memoDate.setHours(12, 0, 0, 0);
+                    const isInWeek = memoDate >= weekStart && memoDate <= weekEnd;
+                    const isCorrectDay = memoDate.getDay() === i;
+                    if (isInWeek && isCorrectDay) {
+                        memosForDay.push({ ...memo, childName: child.name });
+                    }
+                }
+            });
+        });
+        
+        if (!eventsForDay.length && !memosForDay.length) {
+            return `<td class="week-day-cell empty" data-day="${day}"></td>`;
+        }
 
         const eventsMarkup = eventsForDay.map(ev => {
             // Check if event is for everyone (family)
@@ -853,8 +1012,17 @@ function renderWeek() {
                 </div>
             `;
         }).join('');
+        
+        const memosMarkup = memosForDay.map(memo => {
+            const colorClass = getEventColorByName(memo.childName);
+            return `
+                <div class="event-chip calendar-event calendar-memo ${colorClass}">
+                    <span class="event-title"><span class="material-symbols-rounded memo-icon">sticky_note_2</span>${memo.text}</span>
+                </div>
+            `;
+        }).join('');
 
-        return `<td class="week-day-cell" data-day="${day}">${eventsMarkup}</td>`;
+        return `<td class="week-day-cell" data-day="${day}">${eventsMarkup}${memosMarkup}</td>`;
     }).join('');
 
     const buttonText = isNextWeek ? 'חזרה' : 'הצצה לשבוע הבא';

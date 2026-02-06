@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOOMI</title>
-    <link rel="stylesheet" href="style.css?v=225">
+    <link rel="stylesheet" href="style.css?v=226">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
@@ -78,6 +78,16 @@
         <div id="week-grid"></div>
     </section>
 
+    <!-- Child personal page view -->
+    <section id="view-child-page" class="view hidden">
+        <div id="child-page-header" class="child-page-header">
+            <h2 style="margin:0;">העמוד שלי</h2>
+            <div class="header-loomis"></div>
+            <button onclick="showView('home')" class="back-btn">חזרה</button>
+        </div>
+        <div id="child-page-content"></div>
+    </section>
+
     <!-- Settings hub for events and routines -->
     <section id="view-settings" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -142,6 +152,6 @@
     </section>
 
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=126"></script>
+    <script src="app.js?v=127"></script>
 </body>
 </html>

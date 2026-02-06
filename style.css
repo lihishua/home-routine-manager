@@ -1922,3 +1922,242 @@ h4 {
     margin-top: 10px;
     padding-right: 5px;
 }
+
+/* ========================================
+   CHILD PERSONAL PAGE STYLES
+   ======================================== */
+
+.child-page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.child-page-card {
+    background: #FDF4E3;
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0 8px 0px rgba(0,0,0,0.05);
+    border-top: 6px solid #5A9CB5;
+}
+
+.child-page-card h3 {
+    color: #134686;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.child-page-card h3 .material-symbols-rounded {
+    font-size: 1.5rem;
+    color: #5A9CB5;
+}
+
+/* Child page header */
+.child-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* Header loomis display */
+.header-loomis {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    direction: ltr;
+}
+
+.header-loomis-icon {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+}
+
+.header-loomis-count {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #134686;
+}
+
+/* Bank Card */
+.bank-card {
+    border-top-color: #8BC34A;
+}
+
+.bank-display {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 20px;
+    margin-bottom: 15px;
+}
+
+.bank-amount {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #134686;
+}
+
+.bank-controls {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bank-btn {
+    width: 50px;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bank-btn.plus {
+    background: #8BC34A;
+    color: white;
+    box-shadow: 0 3px 0 #6B9B3A;
+}
+
+.bank-btn.plus:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #6B9B3A;
+}
+
+.bank-btn.minus {
+    background: #FA6868;
+    color: white;
+    box-shadow: 0 3px 0 #D85858;
+}
+
+.bank-btn.minus:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #D85858;
+}
+
+/* Memos Card */
+.memos-card {
+    border-top-color: #FA6868;
+}
+
+.memo-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    direction: rtl;
+}
+
+.memo-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.memo-date-input {
+    width: 110px;
+    padding: 8px 6px;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.75rem;
+}
+
+.memo-add-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: #FACE68;
+    color: #134686;
+    font-size: 1.5rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #E5B95A;
+    transition: all 0.2s;
+}
+
+.memo-add-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #E5B95A;
+}
+
+.memos-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.memo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border-right: 4px solid #5A9CB5;
+}
+
+.memo-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.memo-text {
+    color: #134686;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.memo-date {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.memo-delete-btn {
+    background: none;
+    border: none;
+    color: #FA6868;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.no-memos {
+    text-align: center;
+    color: #94a3b8;
+    padding: 20px;
+    font-size: 0.9rem;
+}
+
+/* Calendar memo chip - same as regular events, just with icon */
+.calendar-memo .event-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendar-memo .memo-icon {
+    font-family: 'Material Symbols Rounded' !important;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Color variants for child page cards */
+.child-page-card.event-ido { border-top-color: #5A9CB5; }
+.child-page-card.event-lani { border-top-color: #9C27B0; }
+.child-page-card.event-lori { border-top-color: #8BC34A; }
+.child-page-card.event-mom { border-top-color: #E91E63; }
