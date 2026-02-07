@@ -397,7 +397,7 @@ function renderMarketSection() {
     const marketItems = currentFamily.market || [];
 
     if (marketItems.length === 0) {
-        listContainer.innerHTML = '<div style="color:#64748b; font-size:0.8rem; text-align:center; padding:10px;">אין משימות</div>';
+        listContainer.innerHTML = '<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">אין משימות</div>';
         return;
     }
 
@@ -427,11 +427,6 @@ function renderChildList() {
     if (!childList) return;
     
     const children = currentFamily.children || [];
-    
-    if (children.length === 0) {
-        childList.innerHTML = '<div style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">אין חברים - הוסף חבר חדש</div>';
-        return;
-    }
 
     let html = '';
     children.forEach((c, ci) => {
@@ -508,7 +503,7 @@ function renderChildList() {
         html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">איפוס</span>';
         html += '</div>';
         html += '</div>';
-        html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings()" class="delete-child-pill">מחיקה</button>';
+        html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings();renderHeaderNav()" class="delete-child-pill">מחיקה</button>';
         html += '</div>';
         
         // Add chore input
@@ -539,12 +534,14 @@ function renderChildList() {
         '<i class="material-symbols-rounded" style="font-size:1.2rem;">family_restroom</i> ' +
         'הוסף ילד</h3>';
     html += '<input type="text" id="new-child-name" placeholder="שם..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;">';
-    html += '<select id="copy-from-child" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;background:#F8FAFC;">';
-    html += '<option value="">העתק מ...</option>';
-    children.forEach((c, ci) => {
-        html += '<option value="' + ci + '">' + (c.name || 'ללא שם') + '</option>';
-    });
-    html += '</select>';
+    if (children.length > 0) {
+        html += '<select id="copy-from-child" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;background:#F8FAFC;">';
+        html += '<option value="">העתק מ...</option>';
+        children.forEach((c, ci) => {
+            html += '<option value="' + ci + '">' + (c.name || 'ללא שם') + '</option>';
+        });
+        html += '</select>';
+    }
     html += '<button onclick="addChild()" class="settings-card-btn" style="width:100%;padding:10px;font-size:0.9rem;">הוספה</button>';
     html += '</div>';
     
@@ -689,7 +686,7 @@ function renderEventsList() {
     const events = currentFamily.events || [];
 
     if (events.length === 0) {
-        list.innerHTML = `<div style="color:#64748b; font-size:0.75rem; text-align:center;">אין אירועים</div>`;
+        list.innerHTML = `<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">אין אירועים</div>`;
         return;
     }
 

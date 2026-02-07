@@ -1767,9 +1767,11 @@ h4 {
     padding: 10px 25px;
     cursor: pointer;
     transition: all 0.1s;
+    box-shadow: 0 4px 0px #E5B959; /* 3D effect */
 }
 .save-btn:active {
     transform: translateY(3px);
+    box-shadow: 0 2px 0px #E5B959 !important;
 }
 
 .back-btn { 
