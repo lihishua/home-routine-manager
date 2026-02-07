@@ -263,13 +263,18 @@ function renderChildPage(childIndex) {
             <div class="child-page-card bank-card ${colorClass}">
                 <h3><span class="material-symbols-rounded">savings</span> בנק<br><span class="card-subtitle">(כמה כסף יש לי אצל אמא ואבא)</span></h3>
                 <div class="bank-display">
-                    <span class="bank-amount">₪${child.bank || 0}</span>
+                    <span class="bank-currency">₪</span>
+                    <input type="number" class="bank-amount-input" value="${child.bank || 0}" 
+                           onchange="setChildBank(${childIndex}, this.value)" 
+                           onclick="this.select()">
                 </div>
                 <div class="bank-controls">
-                    <button onclick="updateChildBank(${childIndex}, -10)" class="bank-btn minus">-10</button>
-                    <button onclick="updateChildBank(${childIndex}, -1)" class="bank-btn minus">-1</button>
-                    <button onclick="updateChildBank(${childIndex}, 1)" class="bank-btn plus">+1</button>
+                    <button onclick="updateChildBank(${childIndex}, 100)" class="bank-btn plus">+100</button>
                     <button onclick="updateChildBank(${childIndex}, 10)" class="bank-btn plus">+10</button>
+                    <button onclick="updateChildBank(${childIndex}, 1)" class="bank-btn plus">+1</button>
+                    <button onclick="updateChildBank(${childIndex}, -1)" class="bank-btn minus">-1</button>
+                    <button onclick="updateChildBank(${childIndex}, -10)" class="bank-btn minus">-10</button>
+                    <button onclick="updateChildBank(${childIndex}, -100)" class="bank-btn minus">-100</button>
                 </div>
             </div>
             
@@ -310,7 +315,7 @@ function renderMemosList(child, childIndex) {
     }).join('');
 }
 
-// Update child's virtual bank
+// Update child's virtual bank (add/subtract)
 function updateChildBank(childIndex, amount) {
     const child = currentFamily.children[childIndex];
     if (!child) return;
@@ -318,6 +323,18 @@ function updateChildBank(childIndex, amount) {
     if (child.bank === undefined) child.bank = 0;
     child.bank += amount;
     if (child.bank < 0) child.bank = 0; // Don't go negative
+    
+    saveData();
+    renderChildPage(childIndex);
+}
+
+// Set child's bank to a specific value (manual edit)
+function setChildBank(childIndex, value) {
+    const child = currentFamily.children[childIndex];
+    if (!child) return;
+    
+    const newValue = parseInt(value) || 0;
+    child.bank = Math.max(0, newValue); // Don't go negative
     
     saveData();
     renderChildPage(childIndex);
