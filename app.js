@@ -50,6 +50,34 @@ if (!currentFamily.children) currentFamily.children = [];
 if (!currentFamily.market) currentFamily.market = [];
 if (!currentFamily.events) currentFamily.events = [];
 
+// Default collectLoomis to true if not set
+if (currentFamily.collectLoomis === undefined) currentFamily.collectLoomis = true;
+
+// Toggle Loomis collection on/off
+function toggleCollectLoomis() {
+    currentFamily.collectLoomis = !currentFamily.collectLoomis;
+    saveData();
+    updateLoomisToggleUI();
+    renderSettings();
+}
+
+// Update the toggle button UI
+function updateLoomisToggleUI() {
+    const btn = document.getElementById('loomis-toggle-btn');
+    if (btn) {
+        if (currentFamily.collectLoomis) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
+}
+
+// Helper: check if Loomis collection is enabled
+function isLoomisEnabled() {
+    return currentFamily.collectLoomis !== false;
+}
+
 // Remove duplicate children based on name (case-insensitive, trimmed)
 function removeDuplicateChildren() {
     const seen = new Set();
@@ -245,14 +273,17 @@ function renderChildPage(childIndex) {
     
     const colorClass = getChildColorByName(child.name);
     
-    // Update header with title, loomis, and back button
+    // Update header with title, loomis (if enabled), and back button
     if (headerEl) {
-        headerEl.innerHTML = `
-            <h2 style="margin:0;">העמוד של ${child.name}</h2>
+        const loomisHtml = isLoomisEnabled() ? `
             <div class="header-loomis">
                 <span class="header-loomis-count">${child.loomis || 0}</span>
                 <img src="loomi-icon.png" class="header-loomis-icon" alt="loomis">
             </div>
+        ` : '';
+        headerEl.innerHTML = `
+            <h2 style="margin:0;">העמוד של ${child.name}</h2>
+            ${loomisHtml}
             <button onclick="showView('home')" class="back-btn">חזרה</button>
         `;
     }
@@ -267,7 +298,7 @@ function renderChildPage(childIndex) {
                     <input type="number" class="bank-amount-input" value="${child.bank || 0}" 
                            onchange="setChildBank(${childIndex}, this.value)" 
                            onclick="this.select()">
-                </div>
+                    </div>
                 <div class="bank-controls">
                     <button onclick="updateChildBank(${childIndex}, 100)" class="bank-btn plus">+100</button>
                     <button onclick="updateChildBank(${childIndex}, 10)" class="bank-btn plus">+10</button>
@@ -276,8 +307,8 @@ function renderChildPage(childIndex) {
                     <button onclick="updateChildBank(${childIndex}, -10)" class="bank-btn minus">-10</button>
                     <button onclick="updateChildBank(${childIndex}, -100)" class="bank-btn minus">-100</button>
                 </div>
-            </div>
-            
+                </div>
+
             <!-- Memos Card -->
             <div class="child-page-card memos-card ${colorClass}">
                 <h3><span class="material-symbols-rounded">sticky_note_2</span> תזכורות</h3>
@@ -343,7 +374,7 @@ function renderMemosList(child, childIndex) {
                     ${memo.date ? `<span class="memo-date-side">${dateStr}</span>` : ''}
                     <span class="memo-text">${memo.text}</span>
                     <button onclick="deleteMemo(${childIndex}, ${index})" class="del-chore-btn"></button>
-                </div>
+            </div>
             `;
         }).join('');
     } else if (overdueMemos.length === 0) {
@@ -365,7 +396,7 @@ function renderMemosList(child, childIndex) {
                                 <input type="date" id="update-memo-date-${index}" class="memo-date-update" 
                                        onchange="updateMemoDate(${childIndex}, ${index}, this.value)">
                                 <span class="date-placeholder">בחר תאריך חדש</span>
-                            </div>
+                        </div>
                             <button onclick="deleteMemo(${childIndex}, ${index})" class="del-chore-btn"></button>
                         </div>
                     </div>
@@ -457,6 +488,7 @@ function renderSettings() {
         if (typeof resetEventForm === 'function') resetEventForm();
     }
 
+    updateLoomisToggleUI();
     renderEventsList();
     renderMarketSection();
     renderChildList();
@@ -473,20 +505,24 @@ function renderMarketSection() {
         return;
     }
 
+    const showLoomis = isLoomisEnabled();
     let html = '';
     marketItems.forEach((item, i) => {
         const loomisCount = item.loomis || 1;
+        const loomisControls = showLoomis ? `
+            <div class="task-loomi-controls">
+                <button class="loomi-btn minus" onclick="updateMarketLoomis(${i}, -1)">-</button>
+                <div class="loomi-display-inline">
+                    <img src="loomi-icon.png" class="loomi-icon-medium" alt="">
+                    <span class="loomi-count">${loomisCount}</span>
+            </div>
+                <button class="loomi-btn plus" onclick="updateMarketLoomis(${i}, 1)">+</button>
+        </div>
+        ` : '';
         html += `
             <div class="task-edit-row">
                 <button class="del-chore-btn" onclick="currentFamily.market.splice(${i},1); saveData(); renderSettings();">✕</button>
-                <div class="task-loomi-controls">
-                    <button class="loomi-btn minus" onclick="updateMarketLoomis(${i}, -1)">-</button>
-                    <div class="loomi-display-inline">
-                        <img src="loomi-icon.png" class="loomi-icon-medium" alt="">
-                        <span class="loomi-count">${loomisCount}</span>
-                    </div>
-                    <button class="loomi-btn plus" onclick="updateMarketLoomis(${i}, 1)">+</button>
-                </div>
+                ${loomisControls}
                 <span class="task-name"><strong>${item.task || ''}</strong></span>
             </div>`;
     });
@@ -566,14 +602,16 @@ function renderChildList() {
 
         html += '<div class="settings-child-card">';
         
-        // Header with name, loomis count beneath name, delete button
+        // Header with name, loomis count beneath name (if enabled), delete button
         html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
         html += '<div style="display:flex;flex-direction:column;gap:4px">';
         html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
-        html += '<div class="loomi-display-row">';
-        html += '<span class="loomi-number">' + loomis + ' ' + getLoomiIconHtml() + '</span>';
-        html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">איפוס</span>';
-        html += '</div>';
+        if (isLoomisEnabled()) {
+            html += '<div class="loomi-display-row">';
+            html += '<span class="loomi-number">' + loomis + ' ' + getLoomiIconHtml() + '</span>';
+            html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">איפוס</span>';
+            html += '</div>';
+        }
         html += '</div>';
         html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings();renderHeaderNav()" class="delete-child-pill">מחיקה</button>';
         html += '</div>';
@@ -1202,38 +1240,50 @@ function renderMarket() {
     const container = document.getElementById('market-list');
     if (!container) return;
     if (currentFamily.market.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">השוק ריק כרגע... 🛒</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">הבנק ריק כרגע... </div>`;
         return;
     }
     
+    const showLoomis = isLoomisEnabled();
+    
     // Create sorted copy with original indices
     const sortedItems = currentFamily.market.map((item, i) => ({ ...item, originalIndex: i }));
-    sortedItems.sort((a, b) => {
-        const aLoomis = a.loomis || 1;
-        const bLoomis = b.loomis || 1;
-        return marketSortOrder === 'high' ? bLoomis - aLoomis : aLoomis - bLoomis;
-    });
+    if (showLoomis) {
+        sortedItems.sort((a, b) => {
+            const aLoomis = a.loomis || 1;
+            const bLoomis = b.loomis || 1;
+            return marketSortOrder === 'high' ? bLoomis - aLoomis : aLoomis - bLoomis;
+        });
+    }
     
-    let html = `
-        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-            <button onclick="toggleMarketSort()" class="sort-btn-icon">
-                <i class="material-symbols-rounded">swap_vert</i>
-            </button>
-        </div>
-    `;
-    
-    html += sortedItems.map(item => `
-        <div class="task-bank-item" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 70px;" onclick="openMarketSelection(${item.originalIndex})">
-            <i class="material-symbols-rounded" style="font-size: 2rem; display: flex; align-items: center;">emoji_events</i>
-            <div style="flex: 1; text-align: right; margin-right: 15px;">
-                <span style="font-weight:800; font-size:1.2rem; color: #134686;">${item.task}</span>
+    let html = '';
+    if (showLoomis) {
+        html += `
+            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                <button onclick="toggleMarketSort()" class="sort-btn-icon">
+                    <i class="material-symbols-rounded">swap_vert</i>
+                </button>
             </div>
+        `;
+    }
+    
+    html += sortedItems.map(item => {
+        const loomisDisplay = showLoomis ? `
             <div style="display: flex; align-items: center; gap: 8px;">
                 ${getLoomiIconHtml()}
                 <span style="font-weight:bold; font-size:0.9rem; color: #134686;">${item.loomis || 1}</span>
-            </div>
         </div>
-    `).join('');
+        ` : '';
+        return `
+            <div class="task-bank-item" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 70px;" onclick="openMarketSelection(${item.originalIndex})">
+                <i class="material-symbols-rounded" style="font-size: 2rem; display: flex; align-items: center;">emoji_events</i>
+                <div style="flex: 1; text-align: right; margin-right: 15px;">
+                    <span style="font-weight:800; font-size:1.2rem; color: #134686;">${item.task}</span>
+                </div>
+                ${loomisDisplay}
+            </div>
+        `;
+    }).join('');
     
     container.innerHTML = html;
 }
@@ -1263,18 +1313,21 @@ function openMarketSelection(index) {
     document.body.appendChild(overlay);
 }
 
-// Grant loomis to a child and celebrate the win.
+// Grant loomis to a child (if enabled) and celebrate the win.
 function processMarketWin(itemIndex, childIndex) {
     const item = currentFamily.market[itemIndex];
     const child = currentFamily.children[childIndex];
     
+    // Only award loomis if collection is enabled
+    if (isLoomisEnabled()) {
     let multiplier = 1;
     if (child.age <= 5) multiplier = 2;
     if (child.age >= 18) multiplier = 0;
     
-    const finalLoomis = item.loomis * multiplier;
-    if (!child.loomis) child.loomis = 0;
-    child.loomis += finalLoomis;
+        const finalLoomis = item.loomis * multiplier;
+        if (!child.loomis) child.loomis = 0;
+        child.loomis += finalLoomis;
+    }
 
     document.getElementById('market-overlay').remove();
     

@@ -15,7 +15,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=237">
+    <link rel="stylesheet" href="style.css?v=239">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
@@ -103,6 +103,12 @@
     <section id="view-settings" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <button onclick="showView('home')" class="save-btn">שמור וסגור</button>
+            <div class="loomis-toggle-container">
+                <span class="loomis-toggle-label">איסוף לומים</span>
+                <button id="loomis-toggle-btn" class="loomis-toggle-btn" onclick="toggleCollectLoomis()">
+                    <span class="toggle-slider"></span>
+                </button>
+            </div>
         </div>
         
         <!-- Top row: 2 add cards -->
@@ -164,6 +170,6 @@
     </section>
 
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=135"></script>
+    <script src="app.js?v=136"></script>
 </body>
 </html>

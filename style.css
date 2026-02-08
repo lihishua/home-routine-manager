@@ -1852,6 +1852,50 @@ h4 {
     transform: translateY(3px);
     box-shadow: 0 2px 0px #64748b;
 }
+
+/* Loomis toggle */
+.loomis-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.loomis-toggle-label {
+    color: #134686;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.loomis-toggle-btn {
+    width: 50px;
+    height: 26px;
+    background-color: #94a3b8;
+    border: none;
+    border-radius: 13px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.loomis-toggle-btn.active {
+    background-color: #8BC34A;
+}
+
+.loomis-toggle-btn .toggle-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.loomis-toggle-btn.active .toggle-slider {
+    transform: translateX(24px);
+}
 .back-to-settings-btn {
     background-color: #FAAC68 !important; /* Palette Orange */
     color: #134686 !important;
