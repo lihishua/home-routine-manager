@@ -983,43 +983,25 @@ function getChildColor(index) {
     return `kid-color-${colorIndex}`;
 }
 
-// Helper function to get color value based on child name
+// Helper function to get color value based on child index
 function getChildColorValueByName(childName) {
-    if (!childName) return '#5A9CB5';
-    const name = childName.toLowerCase().trim();
-    // Try Hebrew names first
-    if (name === 'עידו' || name === 'ido') return '#5A9CB5'; // כחול עמוק
-    if (name === 'לני' || name === 'lani') return '#9C27B0'; // סגול של לני
-    if (name === 'לורי' || name === 'lori') return '#8BC34A'; // ירוק של לורי
-    if (name === 'אמא' || name === 'mom' || name === 'amom') return '#E91E63'; // ורוד/מג'נטה של אמא
-    // Fallback
-    return '#5A9CB5';
+    const childIndex = currentFamily.children.findIndex(c => c.name === childName);
+    return getChildColorValue(childIndex >= 0 ? childIndex : 0);
 }
 
 // Helper function to get color class based on child name
 function getChildColorByName(childName) {
     if (!childName) return 'kid-color-1';
-    const name = childName.toLowerCase().trim();
-    // Try Hebrew names first
-    if (name === 'עידו' || name === 'ido') return 'pill-עידו';
-    if (name === 'לני' || name === 'lani') return 'pill-לני';
-    if (name === 'לורי' || name === 'lori') return 'pill-לורי';
-    if (name === 'אמא' || name === 'mom' || name === 'amom') return 'pill-אמא';
-    // Fallback to index-based if name doesn't match
-    return 'kid-color-1';
+    const childIndex = currentFamily.children.findIndex(c => c.name === childName);
+    return getChildColor(childIndex >= 0 ? childIndex : 0);
 }
 
 // Helper function to get event color class based on child name
 function getEventColorByName(childName) {
-    if (!childName) return 'event-ido';
-    const name = childName.toLowerCase().trim();
-    // Try Hebrew names first
-    if (name === 'עידו' || name === 'ido') return 'event-עידו';
-    if (name === 'לני' || name === 'lani') return 'event-לני';
-    if (name === 'לורי' || name === 'lori') return 'event-לורי';
-    if (name === 'אמא' || name === 'mom' || name === 'amom') return 'event-אמא';
-    // Fallback
-    return 'event-ido';
+    if (!childName) return 'event-color-1';
+    const childIndex = currentFamily.children.findIndex(c => c.name === childName);
+    const colorIndex = ((childIndex >= 0 ? childIndex : 0) % 10) + 1;
+    return `event-color-${colorIndex}`;
 }
 
 // Helper function to get button color class based on child name

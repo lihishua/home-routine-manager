@@ -41,15 +41,6 @@
     --kid-10: #3F51B5; /* Royal Blue */
     
     /* צבעים שזיהיתי מהתמונות שלך */
-    --color-ido: #5A9CB5;    /* כחול עמוק */
-    --color-lani: #9C27B0;   /* סגול של לני */
-    --color-lori: #8BC34A;   /* ירוק של לורי */
-    --color-mom: #E91E63;    /* ורוד/מג'נטה של אמא */
-    --color-amom: #E91E63;   /* ורוד/מג'נטה של אמא (עם א') */
-    --color-אמא: #E91E63;   /* ורוד/מג'נטה של אמא (עברית) */
-    --color-עידו: #5A9CB5;  /* כחול עמוק (עברית) */
-    --color-לני: #9C27B0;   /* סגול של לני (עברית) */
-    --color-לורי: #8BC34A;  /* ירוק של לורי (עברית) */
 }
 
 /* Reset baseline styles */
@@ -109,10 +100,58 @@ body {
     animation: fadeIn 0.8s ease-out;
 }
 
+.splash-logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 0;
+    margin-bottom: 40px;
+}
+
+.splash-word {
+    width: 280%;
+    max-width: 900px;
+    height: auto;
+    z-index: 1;
+    position: relative;
+    transform: scale(1.3); 
+}
+
+.splash-icon {
+    width: 240px;
+    height: auto;
+    border-radius: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    margin-top: -240px; 
+    z-index: 2;
+    position: relative;
+    animation: heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.05); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.05); }
+    70% { transform: scale(1); }
+}
+
+@media (max-width: 600px) {
+    .splash-word {
+        width: 320%; 
+        transform: scale(1.1);
+    }
+    
+    .splash-icon {
+        width: 160px;
+        margin-top: -140px; 
+    }
+}
+
 .hero-image {
     width: 100%;
     height: auto;
-    mix-blend-mode: multiply;
     margin-bottom: 20px;
 }
 
@@ -124,11 +163,11 @@ body {
 .greeting-text,
 #splash-greeting {
     font-family: 'Fredoka', sans-serif !important;
-    color: #2D4E8A;
+    color: #134686;
     font-size: 2rem;
-    font-weight: 500;
+    font-weight: 700;
     direction: rtl;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     animation: slideUp 0.8s ease-out;
 }
 
@@ -359,16 +398,17 @@ header #clock {
 .kid-color-9 { border-color: var(--kid-9) !important; color: var(--kid-9) !important; }
 .kid-color-10 { border-color: var(--kid-10) !important; color: var(--kid-10) !important; }
 
-/* מחלקות דינמיות שיחולו על ה-Event Chip */
-.event-ido { border-right: 6px solid var(--color-ido) !important; color: var(--color-ido) !important; }
-.event-lani { border-right: 6px solid var(--color-lani) !important; color: var(--color-lani) !important; }
-.event-lori { border-right: 6px solid var(--color-lori) !important; color: var(--color-lori) !important; }
-.event-mom { border-right: 6px solid var(--color-mom) !important; color: var(--color-mom) !important; }
-.event-amom { border-right: 6px solid var(--color-mom) !important; color: var(--color-mom) !important; }
-.event-אמא { border-right: 6px solid var(--color-אמא) !important; color: var(--color-אמא) !important; }
-.event-עידו { border-right: 6px solid var(--color-עידו) !important; color: var(--color-עידו) !important; }
-.event-לני { border-right: 6px solid var(--color-לני) !important; color: var(--color-לני) !important; }
-.event-לורי { border-right: 6px solid var(--color-לורי) !important; color: var(--color-לורי) !important; }
+/* Dynamic event color classes */
+.event-color-1 { border-right: 6px solid #5A9CB5 !important; }
+.event-color-2 { border-right: 6px solid #FA6868 !important; }
+.event-color-3 { border-right: 6px solid #FACE68 !important; }
+.event-color-4 { border-right: 6px solid #8BC34A !important; }
+.event-color-5 { border-right: 6px solid #9C27B0 !important; }
+.event-color-6 { border-right: 6px solid #FF9800 !important; }
+.event-color-7 { border-right: 6px solid #00BCD4 !important; }
+.event-color-8 { border-right: 6px solid #795548 !important; }
+.event-color-9 { border-right: 6px solid #E91E63 !important; }
+.event-color-10 { border-right: 6px solid #607D8B !important; }
 
 /* אירוע ששייך לכולם - כמו יום הולדת */
 .event-everyone {
@@ -408,27 +448,11 @@ header #clock {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* שיוך צבע לכפתור לפי הילד */
-.btn-ido { border-color: var(--color-ido) !important; }
-.btn-lani { border-color: var(--color-lani) !important; }
-.btn-lori { border-color: var(--color-lori) !important; }
-.btn-mom { border-color: var(--color-mom) !important; }
-.btn-amom { border-color: var(--color-mom) !important; }
 .btn-אמא { border-color: var(--color-אמא) !important; }
 .btn-עידו { border-color: var(--color-עידו) !important; }
 .btn-לני { border-color: var(--color-לני) !important; }
 .btn-לורי { border-color: var(--color-לורי) !important; }
 
-/* שיוך צבע ל-header pill לפי הילד */
-.pill-ido { border-color: var(--color-ido) !important; }
-.pill-lani { border-color: var(--color-lani) !important; }
-.pill-lori { border-color: var(--color-lori) !important; }
-.pill-mom { border-color: var(--color-mom) !important; }
-.pill-amom { border-color: var(--color-mom) !important; }
-.pill-אמא { border-color: var(--color-אמא) !important; }
-.pill-עידו { border-color: var(--color-עידו) !important; }
-.pill-לני { border-color: var(--color-לני) !important; }
-.pill-לורי { border-color: var(--color-לורי) !important; }
 
 /* Market selection buttons - match header pill styling */
 .market-selection-btn {
@@ -2525,7 +2549,13 @@ h4 {
 }
 
 /* Color variants for child page cards */
-.child-page-card.event-ido { border-top-color: #5A9CB5; }
-.child-page-card.event-lani { border-top-color: #9C27B0; }
-.child-page-card.event-lori { border-top-color: #8BC34A; }
-.child-page-card.event-mom { border-top-color: #E91E63; }
+.child-page-card.kid-color-1 { border-top-color: #5A9CB5; }
+.child-page-card.kid-color-2 { border-top-color: #FA6868; }
+.child-page-card.kid-color-3 { border-top-color: #FACE68; }
+.child-page-card.kid-color-4 { border-top-color: #8BC34A; }
+.child-page-card.kid-color-5 { border-top-color: #9C27B0; }
+.child-page-card.kid-color-6 { border-top-color: #FF9800; }
+.child-page-card.kid-color-7 { border-top-color: #00BCD4; }
+.child-page-card.kid-color-8 { border-top-color: #795548; }
+.child-page-card.kid-color-9 { border-top-color: #E91E63; }
+.child-page-card.kid-color-10 { border-top-color: #607D8B; }

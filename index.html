@@ -6,7 +6,7 @@
     <title>LOOMI</title>
     
     <!-- iOS Web App -->
-    <link rel="apple-touch-icon" href="splash-page.png">
+    <link rel="apple-touch-icon" href="loomi-home-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -15,9 +15,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=239">
+    <link rel="stylesheet" href="style.css?v=251">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
@@ -26,7 +27,10 @@
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-container">
         <div class="splash-card">
-            <img src="splash-page.png" class="hero-image" alt="LOOMI">
+            <div class="splash-logo-container">
+                <img src="loomi-word.png" class="splash-word" alt="LOOMI">
+                <img src="loomi-home.png" class="splash-icon" alt="LOOMI Icon">
+            </div>
             <div class="greeting-container">
                 <span id="splash-greeting" class="greeting-text"></span>
             </div>
@@ -170,6 +174,6 @@
     </section>
 
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=136"></script>
+    <script src="app.js?v=137"></script>
 </body>
 </html>
