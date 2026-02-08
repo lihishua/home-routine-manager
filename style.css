@@ -1497,6 +1497,52 @@ h4 {
     white-space: nowrap;
 }
 
+/* Side-by-side collision events */
+.event-collision-group {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.event-collision-group .event-chip {
+    flex: 1;
+    margin-bottom: 0;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.event-collision-group .event-chip .event-title {
+    font-size: 0.7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-collision-group .event-chip .event-time {
+    font-size: 0.65rem;
+}
+
+/* Hover: expand the card to show full text */
+.event-collision-group .event-chip:hover {
+    z-index: 100;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    flex: none;
+    width: auto;
+    min-width: max-content;
+}
+
+.event-collision-group .event-chip:hover .event-title {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.event-collision-group .event-chip:hover .event-time {
+    font-size: 0.8rem;
+}
+
 /* Target the actual daily boxes and event containers */
 .calendar-day-content, .event-item, .task-slot {
     background-color: #FDF4E3 !important; /* Our Palette Cream */
@@ -1788,6 +1834,23 @@ h4 {
 .back-btn:active {
     transform: translateY(3px);
     box-shadow: 0 2px 0px #E5954F !important;
+}
+
+.settings-btn {
+    background-color: white;
+    color: #475569;
+    font-weight: 800;
+    border: none;
+    border-radius: 15px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.1s;
+    box-shadow: 0 4px 0px #64748b;
+    font-size: 0.9rem;
+}
+.settings-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0px #64748b;
 }
 .back-to-settings-btn {
     background-color: #FAAC68 !important; /* Palette Orange */
@@ -2282,12 +2345,31 @@ h4 {
 .memo-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     padding: 10px 12px;
     background: white;
     border-radius: 12px;
     margin-bottom: 8px;
     border-right: 4px solid #5A9CB5;
+}
+
+.memo-date-side {
+    font-size: 0.8rem;
+    color: #5A9CB5;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.memo-text {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.memo-item .del-chore-btn {
+    flex-shrink: 0;
+    margin-right: auto;
 }
 
 .memo-content {
@@ -2322,6 +2404,66 @@ h4 {
     color: #94a3b8;
     padding: 20px;
     font-size: 0.9rem;
+}
+
+/* Overdue memos section */
+.overdue-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 2px dashed #FA6868;
+}
+
+.overdue-header {
+    color: #FA6868;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.memo-item.overdue {
+    background: #FFF5F5;
+    border-right-color: #FA6868;
+}
+
+.overdue-date {
+    color: #FA6868 !important;
+}
+
+.overdue-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-picker-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.memo-date-update {
+    width: 110px;
+    padding: 4px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: transparent;
+    background: white;
+}
+
+.memo-date-update::-webkit-calendar-picker-indicator {
+    opacity: 1;
+}
+
+.date-placeholder {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.7rem;
+    pointer-events: none;
 }
 
 /* Calendar memo chip - same as regular events, just with icon */

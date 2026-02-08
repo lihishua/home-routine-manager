@@ -300,19 +300,81 @@ function renderMemosList(child, childIndex) {
         return '<div class="no-memos">אין תזכורות עדיין</div>';
     }
     
-    return child.memos.map((memo, i) => {
-        const dateStr = memo.date ? new Date(memo.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' }) : '';
-        const hasDate = memo.date ? `<span class="memo-date">📅 ${dateStr}</span>` : '';
-        return `
-            <div class="memo-item">
-                <div class="memo-content">
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Separate active and overdue memos
+    const activeMemos = [];
+    const overdueMemos = [];
+    
+    child.memos.forEach((memo, i) => {
+        if (memo.date) {
+            const memoDate = new Date(memo.date);
+            memoDate.setHours(0, 0, 0, 0);
+            if (memoDate < today) {
+                overdueMemos.push({ memo, index: i });
+            } else {
+                activeMemos.push({ memo, index: i });
+            }
+        } else {
+            activeMemos.push({ memo, index: i });
+        }
+    });
+    
+    // Sort memos by date (dated memos first, then by date ascending; undated at end)
+    activeMemos.sort((a, b) => {
+        if (!a.memo.date && !b.memo.date) return 0;
+        if (!a.memo.date) return 1;
+        if (!b.memo.date) return -1;
+        return new Date(a.memo.date) - new Date(b.memo.date);
+    });
+    
+    // Sort overdue memos by date (earliest/most overdue first)
+    overdueMemos.sort((a, b) => new Date(a.memo.date) - new Date(b.memo.date));
+    
+    let html = '';
+    
+    // Render active memos
+    if (activeMemos.length > 0) {
+        html += activeMemos.map(({ memo, index }) => {
+            const dateStr = memo.date ? new Date(memo.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' }) : '';
+            return `
+                <div class="memo-item">
+                    ${memo.date ? `<span class="memo-date-side">${dateStr}</span>` : ''}
                     <span class="memo-text">${memo.text}</span>
-                    ${hasDate}
+                    <button onclick="deleteMemo(${childIndex}, ${index})" class="del-chore-btn"></button>
                 </div>
-                <button onclick="deleteMemo(${childIndex}, ${i})" class="memo-delete-btn">✕</button>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
+    } else if (overdueMemos.length === 0) {
+        html += '<div class="no-memos">אין תזכורות עדיין</div>';
+    }
+    
+    // Render overdue memos section
+    if (overdueMemos.length > 0) {
+        html += `<div class="overdue-section">
+            <div class="overdue-header">עבר התאריך</div>
+            ${overdueMemos.map(({ memo, index }) => {
+                const dateStr = new Date(memo.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+                return `
+                    <div class="memo-item overdue">
+                        <span class="memo-date-side overdue-date">${dateStr}</span>
+                        <span class="memo-text">${memo.text}</span>
+                        <div class="overdue-actions">
+                            <div class="date-picker-wrapper">
+                                <input type="date" id="update-memo-date-${index}" class="memo-date-update" 
+                                       onchange="updateMemoDate(${childIndex}, ${index}, this.value)">
+                                <span class="date-placeholder">בחר תאריך חדש</span>
+                            </div>
+                            <button onclick="deleteMemo(${childIndex}, ${index})" class="del-chore-btn"></button>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>`;
+    }
+    
+    return html;
 }
 
 // Update child's virtual bank (add/subtract)
@@ -371,6 +433,16 @@ function deleteMemo(childIndex, memoIndex) {
     if (!child || !child.memos) return;
     
     child.memos.splice(memoIndex, 1);
+    saveData();
+    renderChildPage(childIndex);
+}
+
+// Update a memo's date
+function updateMemoDate(childIndex, memoIndex, newDate) {
+    const child = currentFamily.children[childIndex];
+    if (!child || !child.memos || !child.memos[memoIndex]) return;
+    
+    child.memos[memoIndex].date = newDate;
     saveData();
     renderChildPage(childIndex);
 }
@@ -972,9 +1044,51 @@ function renderWeek() {
     // Only highlight today when viewing current week
     const headerRow = DAYS.map((day, i) => `<th class="${!isNextWeek && i === today ? 'today-col' : ''}">${day}</th>`).join('');
     
+    // Helper: convert time string to minutes for comparison
+    const timeToMinutes = (time) => {
+        if (!time) return 0;
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    };
+    
+    // Helper: check if two events overlap
+    const eventsOverlap = (ev1, ev2) => {
+        const start1 = timeToMinutes(ev1.start);
+        const end1 = timeToMinutes(ev1.end);
+        const start2 = timeToMinutes(ev2.start);
+        const end2 = timeToMinutes(ev2.end);
+        return start1 < end2 && start2 < end1;
+    };
+    
+    // Helper: group overlapping events
+    const groupOverlappingEvents = (events) => {
+        if (events.length === 0) return [];
+        
+        const groups = [];
+        const used = new Set();
+        
+        for (let i = 0; i < events.length; i++) {
+            if (used.has(i)) continue;
+            
+            const group = [events[i]];
+            used.add(i);
+            
+            for (let j = i + 1; j < events.length; j++) {
+                if (used.has(j)) continue;
+                // Check if this event overlaps with any in the group
+                if (group.some(ev => eventsOverlap(ev, events[j]))) {
+                    group.push(events[j]);
+                    used.add(j);
+                }
+            }
+            groups.push(group);
+        }
+        return groups;
+    };
+
     const bodyRow = DAYS.map((day, i) => {
         // Filter events for this day
-        const eventsForDay = currentFamily.events.filter(ev => {
+        let eventsForDay = currentFamily.events.filter(ev => {
             // Weekly events (repeat !== false): show on matching day
             if (ev.repeat !== false) {
                 return ev.day === i;
@@ -991,6 +1105,9 @@ function renderWeek() {
             
             return false;
         });
+        
+        // Sort events by start time
+        eventsForDay.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
         
         // Collect memos with dates for this day from all children
         const memosForDay = [];
@@ -1013,18 +1130,28 @@ function renderWeek() {
             return `<td class="week-day-cell empty" data-day="${day}"></td>`;
         }
 
-        const eventsMarkup = eventsForDay.map(ev => {
-            // Check if event is for everyone (family)
-            const isForEveryone = ev.target === 'family' || !ev.target;
-            const child = currentFamily.children.find(c => c.id === ev.target);
-            const childName = child ? child.name : '';
-            const colorClass = isForEveryone ? 'event-everyone' : getEventColorByName(childName);
-            return `
-                <div class="event-chip calendar-event ${colorClass}">
-                    <span class="event-title">${ev.name}</span>
-                    <span class="event-time">${ev.start}-${ev.end}</span>
-                </div>
-            `;
+        // Group overlapping events
+        const eventGroups = groupOverlappingEvents(eventsForDay);
+        
+        const eventsMarkup = eventGroups.map(group => {
+            const isCollision = group.length > 1;
+            const groupHtml = group.map(ev => {
+                const isForEveryone = ev.target === 'family' || !ev.target;
+                const child = currentFamily.children.find(c => c.id === ev.target);
+                const childName = child ? child.name : '';
+                const colorClass = isForEveryone ? 'event-everyone' : getEventColorByName(childName);
+                return `
+                    <div class="event-chip calendar-event ${colorClass} ${isCollision ? 'event-collision' : ''}">
+                        <span class="event-title">${ev.name}</span>
+                        <span class="event-time">${ev.start}-${ev.end}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            if (isCollision) {
+                return `<div class="event-collision-group">${groupHtml}</div>`;
+            }
+            return groupHtml;
         }).join('');
         
         const memosMarkup = memosForDay.map(memo => {
