@@ -24,9 +24,6 @@
     --action-red: var(--loomi-coral);
     --accent-coral: var(--loomi-coral);
     --honey: var(--loomi-coral);
-    --child-blue: #BBDEFB;
-    --child-pink: #F8BBD0;
-    --child-green: #C8E6C9;
     
     /* The 10 Kid Colors - Rich & Harmonious */
     --kid-1: #5A9CB5; /* Your Bee Blue */
@@ -39,8 +36,6 @@
     --kid-8: #795548; /* Earthy Brown */
     --kid-9: #E91E63; /* Strawberry Red */
     --kid-10: #3F51B5; /* Royal Blue */
-    
-    /* צבעים שזיהיתי מהתמונות שלך */
 }
 
 /* Reset baseline styles */
@@ -78,7 +73,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #F7F5EE !important;
+    background-color: #f9f6f0 !important;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -121,20 +116,9 @@ body {
 .splash-icon {
     width: 240px;
     height: auto;
-    border-radius: 40px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     margin-top: -240px; 
     z-index: 2;
     position: relative;
-    animation: heartbeat 2s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-    0% { transform: scale(1); }
-    14% { transform: scale(1.05); }
-    28% { transform: scale(1); }
-    42% { transform: scale(1.05); }
-    70% { transform: scale(1); }
 }
 
 @media (max-width: 600px) {
@@ -155,21 +139,6 @@ body {
     margin-bottom: 20px;
 }
 
-.greeting-container {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.greeting-text,
-#splash-greeting {
-    font-family: 'Fredoka', sans-serif !important;
-    color: #134686;
-    font-size: 2rem;
-    font-weight: 700;
-    direction: rtl;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    animation: slideUp 0.8s ease-out;
-}
 
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(10px); }

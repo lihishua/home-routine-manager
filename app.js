@@ -2,12 +2,11 @@ const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 let weekOffset = 0; // 0 = current week, 1 = next week
 
-// Splash screen with time-based greeting (only once per session)
+// Splash screen (only once per session)
 function initSplashScreen() {
     const splash = document.getElementById('splash-screen');
-    const greetingEl = document.getElementById('splash-greeting');
     
-    if (!splash || !greetingEl) return;
+    if (!splash) return;
     
     // Only show splash once per session
     if (sessionStorage.getItem('splashShown')) {
@@ -16,23 +15,7 @@ function initSplashScreen() {
     }
     sessionStorage.setItem('splashShown', 'true');
     
-    // Determine greeting based on time of day
-    const hour = new Date().getHours();
-    let greeting = '';
-    
-    if (hour >= 5 && hour < 12) {
-        greeting = 'בוקר טוב';
-    } else if (hour >= 12 && hour < 18) {
-        greeting = 'יום טוב';
-    } else if (hour >= 18 && hour < 22) {
-        greeting = 'ערב טוב';
-    } else {
-        greeting = 'לילה טוב';
-    }
-    
-    greetingEl.textContent = greeting;
-    
-    // Fade out after 1.5 seconds
+    // Fade out after 2 seconds
     setTimeout(() => {
         splash.classList.add('fade-out');
         // Remove from DOM after animation completes
