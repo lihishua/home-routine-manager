@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=273">
+    <link rel="stylesheet" href="style.css?v=275">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -66,6 +66,7 @@
         // 1. MONITOR AUTH STATUS
         onAuthStateChanged(auth, (user) => {
             const authOverlay = document.getElementById('auth-container');
+            const loadingScreen = document.getElementById('loading-screen');
             if (user) {
                 currentUser = user;
                 window.currentFirebaseUser = user;
@@ -75,10 +76,18 @@
                 checkDailyReset(user.uid);
                 // Load user data from Firestore
                 loadUserData(user.uid);
-                // Show the main app content
-                if (window.showAppContent) window.showAppContent();
+                // Show loading screen for a moment, then fade into the app
+                setTimeout(() => {
+                    if (loadingScreen) {
+                        loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
+                    }
+                    if (window.showAppContent) window.showAppContent();
+                }, 1200);
             } else {
                 window.currentFirebaseUser = null;
+                if (loadingScreen) loadingScreen.style.display = 'none';
                 if (authOverlay) authOverlay.style.display = 'flex';
             }
         });
@@ -196,8 +205,13 @@
 </head>
 <body>
 
-    <!-- Login Screen -->
-    <div id="auth-container" class="auth-overlay">
+    <!-- Loading Screen (shown while Firebase checks auth) -->
+    <div id="loading-screen" class="auth-overlay">
+        <img src="loomi-word.png" class="auth-logo" alt="LOOMI" style="opacity: 0.7;">
+    </div>
+
+    <!-- Login Screen (hidden by default, shown only if not logged in) -->
+    <div id="auth-container" class="auth-overlay" style="display:none;">
         <div class="auth-content">
             <img src="loomi-word.png" class="auth-logo" alt="LOOMI">
             <div class="auth-box">
@@ -214,9 +228,8 @@
         </div>
     </div>
 
-    <!-- Top bar with settings and clock -->
+    <!-- Top bar with kids nav and clock -->
     <header>
-        <button onclick="showView('settings')" class="settings-btn">הגדרות</button>
         <div id="header-kids-nav" class="beez-summary"></div>
         <div id="clock" style="font-weight:bold; font-size:1.1rem; color: #ffffff;">00:00</div>
     </header>
@@ -241,6 +254,7 @@
                 <span class="menu-text">מה קורה השבוע? </span>
             </button>
         </div>
+        <button onclick="showView('settings')" class="settings-btn home-settings-btn">ניהול והגדרות</button>
     </main>
 
     <!-- Routine carousel view -->
@@ -362,6 +376,6 @@
     </section>
 
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=145"></script>
+    <script src="app.js?v=147"></script>
 </body>
 </html>

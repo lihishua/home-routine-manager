@@ -1854,6 +1854,11 @@ h4 {
     transform: translateY(3px);
     box-shadow: 0 2px 0px #64748b;
 }
+.home-settings-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1rem;
+}
 
 /* Loomis toggle */
 .loomis-toggle-container {
