@@ -55,6 +55,16 @@ span.material-symbols-rounded {
     font-family: 'Material Symbols Rounded' !important;
 }
 
+/* Global button interactions for touch devices */
+button {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+button:active {
+    transform: scale(0.95); /* Adds a tactile "click" feel on touchscreens */
+}
+
 /* Center the main document layout */
 body {
     /* Use a deeper version of your blue for the background to make cards POP */
@@ -105,32 +115,23 @@ body {
 }
 
 .splash-word {
-    width: 280%;
-    max-width: 900px;
-    height: auto;
+    width: 280% !important; /* Massive presence */
+    transform: scale(1.4);
     z-index: 1;
-    position: relative;
-    transform: scale(1.3); 
 }
 
 .splash-icon {
-    width: 240px;
-    height: auto;
-    margin-top: -240px; 
+    width: 220px;
+    /* This heavy negative margin pulls the roof UP into the letters */
+    margin-top: -240px !important; 
     z-index: 2;
-    position: relative;
+    mix-blend-mode: multiply; /* Removes any remaining white/cream edges */
 }
 
-@media (max-width: 600px) {
-    .splash-word {
-        width: 320%; 
-        transform: scale(1.1);
-    }
-    
-    .splash-icon {
-        width: 160px;
-        margin-top: -140px; 
-    }
+/* Keep splash images within phone screen bounds */
+.splash-word, .splash-icon {
+    max-width: 90vw;
+    height: auto;
 }
 
 .hero-image {
@@ -519,18 +520,74 @@ header #clock {
 .menu-text { font-size: 1.4rem; font-weight: 800; }
 
 /* Settings Grid Layout */
-#view-settings { max-width: 900px; }
+#view-settings { max-width: 900px; position: relative; }
 
 /* The three main management cards at the top */
+/* Logout button at top of settings page, aligned under header's הגדרות button */
+.settings-top-bar {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    z-index: 10;
+}
+.logout-btn-small {
+    background-color: #e74c3c;
+    color: white;
+    font-weight: 800;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.1s;
+    box-shadow: 0 4px 0px #c0392b;
+    font-size: 0.9rem;
+}
+.logout-btn-small:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0px #c0392b;
+}
+
 /* Container for the 3 main cards */
+/* Two-column layout for settings */
+.settings-two-columns {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 10px;
+    margin-bottom: 30px;
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.settings-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.settings-column-header {
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+
 .settings-grid-top {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
-    align-items: flex-start; /* Prevents cards from stretching to match neighbors */
-    padding: 0;
+    align-items: stretch; /* Make cards same height */
+    padding: 0 10px;
     margin-bottom: 30px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .settings-container {
@@ -1050,12 +1107,14 @@ header #clock {
 /* Child cards horizontal slider in settings */
 .settings-child-slider {
     display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 15px;
-    padding: 10px 0;
-    -webkit-overflow-scrolling: touch;
-    align-items: stretch; /* Make all child cards same height */
+    padding: 10px;
+    align-items: stretch;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .settings-child-slider::-webkit-scrollbar {
@@ -1834,7 +1893,7 @@ h4 {
     color: #475569;
     font-weight: 800;
     border: none;
-    border-radius: 15px;
+    border-radius: 50px;
     padding: 8px 18px;
     cursor: pointer;
     transition: all 0.1s;
@@ -2528,3 +2587,233 @@ h4 {
 .child-page-card.kid-color-8 { border-top-color: #795548; }
 .child-page-card.kid-color-9 { border-top-color: #E91E63; }
 .child-page-card.kid-color-10 { border-top-color: #607D8B; }
+
+/* VERSATILE LAYOUT: Stacks columns on mobile, side-by-side on iPad */
+@media (max-width: 768px) {
+    .routine-container {
+        flex-direction: column !important; /* Forces vertical stacking */
+        align-items: center;
+        gap: 30px;
+        padding: 20px;
+    }
+
+    .column {
+        width: 100%; /* Makes columns fill the phone width */
+        max-width: 350px;
+    }
+
+    /* Make the calendar touch-friendly */
+    .calendar-grid {
+        grid-template-columns: repeat(7, 1fr);
+        font-size: 14px;
+    }
+}
+
+/* Bottom Nav only shows on Mobile */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #ddd;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 100;
+}
+
+/* Responsive Layout Logic */
+@media (max-width: 600px) {
+    .mobile-nav {
+        display: flex;
+    }
+    
+    /* Add padding to the bottom of the body so content isn't hidden by nav */
+    body {
+        padding-bottom: 70px;
+    }
+    
+    /* Stack the main routine sections vertically */
+    .routine-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .column {
+        width: 95%; /* Almost full width on phone */
+    }
+
+    /* Shrink the huge logo just enough to fit the screen */
+    .splash-word {
+        width: 150% !important; 
+        max-width: 320px;
+    }
+
+    /* Adjust the icon position for the smaller screen */
+    .splash-icon {
+        width: 140px;
+        margin-top: -100px;
+    }
+
+    /* Fix the calendar grid so it doesn't overflow */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        font-size: 12px; /* Smaller numbers for phone */
+    }
+    
+    /* Settings page responsive fixes */
+    .settings-two-columns {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .settings-column {
+        width: 100%;
+        align-items: center;
+    }
+    
+    .settings-column-header {
+        height: auto;
+        margin-bottom: 10px;
+    }
+    
+    .settings-grid-top {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .settings-card {
+        width: 95% !important;
+        max-width: 350px !important;
+        height: auto !important;
+        min-height: 300px !important;
+    }
+    
+    .settings-child-slider {
+        flex-direction: column;
+        align-items: center;
+        overflow-x: visible;
+    }
+    
+    .settings-child-card {
+        width: 95% !important;
+        max-width: 350px !important;
+        flex: none !important;
+    }
+}
+
+/* Auth Overlay */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 200px; /* Push down to sit below the LOOMI logo */
+    z-index: 100000;
+}
+
+.auth-box {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    max-width: 350px;
+    width: 90%;
+}
+
+.auth-box h2 {
+    color: #134686;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+}
+
+/* Mobile-friendly input styles */
+input[type="email"], input[type="password"] {
+    -webkit-appearance: none; /* Fixes iOS inner shadow */
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 16px; /* Prevents iPhone from auto-zooming when typing */
+}
+
+.auth-box input {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: 'Assistant', sans-serif;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    -webkit-appearance: none;
+}
+
+.auth-box input:focus {
+    outline: none;
+    border-color: #5A9CB5;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.auth-buttons button {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Assistant', sans-serif;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-buttons button:first-child {
+    background: #5A9CB5;
+    color: white;
+}
+
+.auth-buttons button:last-child {
+    background: #134686;
+    color: white;
+}
+
+.auth-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#auth-error {
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.forgot-link {
+    font-size: 0.85rem;
+    color: #555;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.forgot-link:hover {
+    color: #134686;
+}

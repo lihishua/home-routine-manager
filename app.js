@@ -1,32 +1,11 @@
 const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
+window.currentFamily = currentFamily; // Make globally accessible for Firebase
+let currentRoutineType = null; // Track which routine view is active (morning/evening)
 let weekOffset = 0; // 0 = current week, 1 = next week
 
-// Splash screen (only once per session)
-function initSplashScreen() {
-    const splash = document.getElementById('splash-screen');
-    
-    if (!splash) return;
-    
-    // Only show splash once per session
-    if (sessionStorage.getItem('splashShown')) {
-        splash.style.display = 'none';
-        return;
-    }
-    sessionStorage.setItem('splashShown', 'true');
-    
-    // Fade out after 2 seconds
-    setTimeout(() => {
-        splash.classList.add('fade-out');
-        // Remove from DOM after animation completes
-        setTimeout(() => {
-            splash.style.display = 'none';
-        }, 500);
-    }, 2000);
-}
-
-// Initialize splash screen on load
-document.addEventListener('DOMContentLoaded', initSplashScreen);
+// Splash screen is now controlled by Firebase auth
+// It stays visible as login background until user is authenticated
 
 // Ensure required arrays exist
 if (!currentFamily.children) currentFamily.children = [];
@@ -93,7 +72,26 @@ function removeDuplicateChildren() {
 removeDuplicateChildren();
 
 // Persist the active family configuration to storage.
-function saveData() { localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily)); }
+function saveData() { 
+    localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily));
+    window.currentFamily = currentFamily; // Keep global in sync
+    // Also save to Firebase if logged in
+    if (window.saveToFirebase) {
+        window.saveToFirebase();
+    }
+}
+
+// Global render function for Firebase real-time sync
+window.renderAll = function() {
+    currentFamily = window.currentFamily; // Update local from global
+    if (typeof renderHeaderNav === 'function') renderHeaderNav();
+    if (typeof renderWeek === 'function') renderWeek();
+    if (typeof renderMemos === 'function') renderMemos();
+    // Re-render routine view if active (for Firebase sync)
+    if (currentRoutineType && typeof renderRoutine === 'function') {
+        renderRoutine(currentRoutineType);
+    }
+};
 
 // Loomi icon and helpers
 function getLoomiIconHtml() {
@@ -190,7 +188,10 @@ function showView(viewId) {
         if (routineTitle) {
             routineTitle.textContent = viewId === 'morning' ? 'שגרת בוקר' : 'שגרת ערב';
         }
+        currentRoutineType = viewId; // Track current routine type for Firebase sync
         renderRoutine(viewId);
+    } else {
+        currentRoutineType = null; // Not in routine view
     }
     
     renderHeaderNav();
@@ -1340,12 +1341,16 @@ function renderRoutine(type) {
             </div>
             
             <div class="routine-tasks-list">
-                ${child[type].map((task, ti) => `
-                    <div class="routine-item" onclick="toggleTask(${ci}, '${type}', ${ti}, this)">
+                ${child[type].map((task, ti) => {
+                    const taskId = `task-${ci}-${type}-${ti}`;
+                    const isCompleted = task.completed ? 'completed' : '';
+                    return `
+                    <div class="routine-item ${isCompleted}" id="${taskId}" onclick="toggleTask(${ci}, '${type}', ${ti}, this)">
                         <span class="task-icon">${getTaskIcon(task.task)}</span>
                         <span class="task-text">${task.task}</span>
                     </div>
-                `).join('')}
+                `;
+                }).join('')}
             </div>
         </div>
         `;
@@ -1356,8 +1361,15 @@ function renderRoutine(type) {
 function toggleTask(childIdx, type, taskIdx, element) {
     element.classList.toggle('completed');
     
+    // Save the completion state to data
+    const isCompleted = element.classList.contains('completed');
+    if (currentFamily.children[childIdx] && currentFamily.children[childIdx][type][taskIdx]) {
+        currentFamily.children[childIdx][type][taskIdx].completed = isCompleted;
+        saveData(); // This will sync to Firebase
+    }
+    
     // Add the sound and confetti if checked
-    if (element.classList.contains('completed')) {
+    if (isCompleted) {
         try {
             // Short cute pop sound
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
@@ -1379,21 +1391,29 @@ function toggleTask(childIdx, type, taskIdx, element) {
         } catch(e) {
             console.log('Sound error:', e);
         }
+        
+        // Award Loomis if enabled
+        if (isLoomisEnabled()) {
+            currentFamily.children[childIdx].loomis = (currentFamily.children[childIdx].loomis || 0) + 1;
+            saveData();
+        }
     }
 }
 
 initTimeSelectors();
 
-// Show main content immediately (no splash screen)
-const header = document.querySelector('header');
-const main = document.querySelector('main');
-if (header) {
-    header.style.opacity = '1';
-    header.style.pointerEvents = 'auto';
-}
-if (main) {
-    main.style.opacity = '1';
-    main.style.pointerEvents = 'auto';
-}
-
-showView('home');
+// Wait for Firebase auth to determine what to show
+// The main content visibility is controlled by Firebase onAuthStateChanged in index.html
+window.showAppContent = function() {
+    const header = document.querySelector('header');
+    const main = document.querySelector('main');
+    if (header) {
+        header.style.opacity = '1';
+        header.style.pointerEvents = 'auto';
+    }
+    if (main) {
+        main.style.opacity = '1';
+        main.style.pointerEvents = 'auto';
+    }
+    showView('home');
+};
