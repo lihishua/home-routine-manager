@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Loomi | ניהול משימות הבית והלו״ז המשפחתי</title>
-    <meta name="description" content="Loomi: ממשק נוח וחווייתי לשילוב הילדים בשגרת הבית והמשימות. לעידוד מעורבות, עצמאות, ואחריות.">
+    <meta name="description" content="Loomi: אפליקציה נוחה וחווייתית לשילוב הילדים בשגרת הבית והמשימות. לעידוד מעורבות, עצמאות, ואחריות.">
     
-    <meta property="og:title" content="Loomi -  ממשק נוח וחווייתי לניהול משימות הבית והלו״ז המשפחתי">
-    <meta property="og:description" content="לילדים שותפים, מעורבים, עצמאיים, ואחראיים..">
+    <meta property="og:title" content="Loomi - ניהול משימות הבית">
+    <meta property="og:description" content="אפליקציה קלילה וחווייתית לשילוב הילדים בשגרת הבית והמשימות.">
     <meta property="og:image" content="https://loomi-home.com/apple-touch-icon.png">
+    <meta property="og:type" content="website">
     
     <!-- Favicons & Web App -->
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -25,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=271">
+    <link rel="stylesheet" href="style.css?v=272">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -289,9 +290,6 @@
 
     <!-- Settings hub for events and routines -->
     <section id="view-settings" class="view hidden">
-        <div class="settings-top-bar">
-            <button onclick="handleLogout()" class="logout-btn-small">התנתק</button>
-        </div>
         <!-- Two-column layout: Left = Loomis + Tasks, Right = Save + Events -->
         <div class="settings-two-columns">
             <!-- RIGHT column (first in RTL): Save button + Events card -->
@@ -366,6 +364,9 @@
             <div style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">טוען...</div>
         </div>
         
+        <div class="settings-bottom-bar">
+            <button onclick="handleLogout()" class="logout-btn-small">התנתק</button>
+        </div>
     </section>
 
     <script src="data.js?v=125"></script>

@@ -523,12 +523,11 @@ header #clock {
 #view-settings { max-width: 900px; position: relative; }
 
 /* The three main management cards at the top */
-/* Logout button at top of settings page, aligned under header's הגדרות button */
-.settings-top-bar {
-    position: fixed;
-    top: 60px;
-    right: 20px;
-    z-index: 10;
+/* Logout button at bottom of settings page */
+.settings-bottom-bar {
+    text-align: center;
+    margin-top: 30px;
+    padding-bottom: 40px;
 }
 .logout-btn-small {
     background-color: #e74c3c;
