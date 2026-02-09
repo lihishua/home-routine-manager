@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=272">
+    <link rel="stylesheet" href="style.css?v=273">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -66,16 +66,11 @@
         // 1. MONITOR AUTH STATUS
         onAuthStateChanged(auth, (user) => {
             const authOverlay = document.getElementById('auth-container');
-            const splash = document.getElementById('splash-screen');
             if (user) {
                 currentUser = user;
                 window.currentFirebaseUser = user;
-                // Hide both auth overlay AND splash screen after login
+                window.isGuestMode = false;
                 if (authOverlay) authOverlay.style.display = 'none';
-                if (splash) {
-                    splash.classList.add('fade-out');
-                    setTimeout(() => { splash.style.display = 'none'; }, 500);
-                }
                 // Check for daily reset
                 checkDailyReset(user.uid);
                 // Load user data from Firestore
@@ -84,14 +79,18 @@
                 if (window.showAppContent) window.showAppContent();
             } else {
                 window.currentFirebaseUser = null;
-                // Show auth overlay AND splash screen as login page
                 if (authOverlay) authOverlay.style.display = 'flex';
-                if (splash) {
-                    splash.style.display = 'flex';
-                    splash.classList.remove('fade-out');
-                }
             }
         });
+
+        // GUEST MODE - enter app without registering, data stays local only
+        window.handleGuestMode = () => {
+            const authOverlay = document.getElementById('auth-container');
+            if (authOverlay) authOverlay.style.display = 'none';
+            window.isGuestMode = true;
+            window.currentFirebaseUser = null;
+            if (window.showAppContent) window.showAppContent();
+        };
 
         // 2. LOAD USER DATA FROM FIRESTORE
         async function loadUserData(uid) {
@@ -172,7 +171,7 @@
 
         // 5. SAVE DATA TO CLOUD
         window.saveToFirebase = async () => {
-            if (!window.currentFirebaseUser) return;
+            if (!window.currentFirebaseUser || window.isGuestMode) return;
             const docRef = doc(db, "users", window.currentFirebaseUser.uid);
             await setDoc(docRef, {
                 familyConfig: window.currentFamily
@@ -197,28 +196,21 @@
 </head>
 <body>
 
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="splash-container">
-        <div class="splash-card">
-            <div class="splash-logo-container">
-                <img src="loomi-word.png" class="splash-word" alt="LOOMI">
-                <img src="app-icon.png" class="splash-icon" alt="LOOMI Icon">
-            </div>
-        </div>
-    </div>
-
-    <!-- Auth Screen -->
+    <!-- Login Screen -->
     <div id="auth-container" class="auth-overlay">
-        <div class="auth-box">
-            <h2>Welcome to LOOMI</h2>
-            <input type="email" id="email" placeholder="Email" oninput="document.getElementById('auth-error').innerText=''">
-            <input type="password" id="password" placeholder="Password" oninput="document.getElementById('auth-error').innerText=''">
-            <div class="auth-buttons">
-                <button onclick="handleSignUp()">Sign Up</button>
-                <button onclick="handleLogin()">Login</button>
+        <div class="auth-content">
+            <img src="loomi-word.png" class="auth-logo" alt="LOOMI">
+            <div class="auth-box">
+                <input type="email" id="email" placeholder="Email" oninput="document.getElementById('auth-error').innerText=''">
+                <input type="password" id="password" placeholder="Password" oninput="document.getElementById('auth-error').innerText=''">
+                <div class="auth-buttons">
+                    <button onclick="handleLogin()">Login</button>
+                    <button onclick="handleSignUp()">Sign Up</button>
+                </div>
+                <p class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</p>
+                <p id="auth-error" style="color: red;"></p>
             </div>
-            <p class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</p>
-            <p id="auth-error" style="color: red;"></p>
+            <p class="guest-link" onclick="handleGuestMode()">כניסה כאורח</p>
         </div>
     </div>
 
@@ -370,6 +362,6 @@
     </section>
 
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=144"></script>
+    <script src="app.js?v=145"></script>
 </body>
 </html>
