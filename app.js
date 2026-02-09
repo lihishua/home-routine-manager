@@ -890,6 +890,7 @@ function editEvent(index) {
     if (dayEl) dayEl.value = ev.day;
     if (startH) startH.value = ev.start.split(':')[0];
     if (startM) startM.value = ev.start.split(':')[1];
+    updateEndHourOptions(); // Filter end hours based on loaded start hour
     if (endH) endH.value = ev.end.split(':')[0];
     if (endM) endM.value = ev.end.split(':')[1];
     if (targetEl) targetEl.value = ev.target;
@@ -933,9 +934,10 @@ function resetEventForm() {
     const btnAdd = document.getElementById('btn-add-event');
     const btnUpdate = document.getElementById('btn-update-event');
     
-    if (startH) startH.value = '08';
+    if (startH) startH.value = '00';
     if (startM) startM.value = '00';
-    if (endH) endH.value = '08';
+    resetEndHourOptions();
+    if (endH) endH.value = '00';
     if (endM) endM.value = '00';
     if (target) target.value = 'family';
     if (editIdx) editIdx.value = '-1';
@@ -1313,10 +1315,44 @@ function processMarketWin(itemIndex, childIndex) {
 
 // Populate hour/minute selectors used in event forms.
 function initTimeSelectors() {
-    const h = Array.from({length: 13}, (_, i) => (8 + i).toString().padStart(2, '0')).map(x => `<option value="${x}">${x}</option>`).join('');
+    const allHours = Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0')).map(x => `<option value="${x}">${x}</option>`).join('');
     const m = ["00", "15", "30", "45"].map(x => `<option value="${x}">${x}</option>`).join('');
-    ['start-h', 'end-h'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = h; });
+    ['start-h', 'end-h'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = allHours; });
     ['start-m', 'end-m'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = m; });
+    
+    // When start hour changes, filter end hour to only show from start hour onwards
+    const startH = document.getElementById('start-h');
+    if (startH) {
+        startH.addEventListener('change', updateEndHourOptions);
+    }
+}
+
+function updateEndHourOptions() {
+    const startH = document.getElementById('start-h');
+    const endH = document.getElementById('end-h');
+    if (!startH || !endH) return;
+    
+    const startVal = parseInt(startH.value);
+    const currentEndVal = endH.value;
+    
+    // Rebuild end hour options from start hour to 23
+    endH.innerHTML = Array.from({length: 24 - startVal}, (_, i) => (startVal + i).toString().padStart(2, '0'))
+        .map(x => `<option value="${x}">${x}</option>`).join('');
+    
+    // Keep previous end hour selection if still valid, otherwise default to start hour
+    if (parseInt(currentEndVal) >= startVal) {
+        endH.value = currentEndVal;
+    } else {
+        endH.value = startVal.toString().padStart(2, '0');
+    }
+}
+
+// Reset end hour options back to full range (called after adding/editing an event)
+function resetEndHourOptions() {
+    const endH = document.getElementById('end-h');
+    if (!endH) return;
+    endH.innerHTML = Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0'))
+        .map(x => `<option value="${x}">${x}</option>`).join('');
 }
 
 // Update the main clock display every second.
@@ -1415,5 +1451,5 @@ window.showAppContent = function() {
         main.style.opacity = '1';
         main.style.pointerEvents = 'auto';
     }
-    showView('home');
+showView('home');
 };
