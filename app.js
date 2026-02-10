@@ -1541,3 +1541,10 @@ window.showAppContent = function() {
     if (typeof applyLanguage === 'function') applyLanguage();
 showView('home');
 };
+
+window.showPolicy = (type) => {
+    const content = type === 'privacy' 
+        ? "LOOMI collects your email for login and saves your routine data securely in Google Firebase. We do not share your data."
+        : "LOOMI is a tool for personal and family use. Users are responsible for their own account security and passwords.";
+    alert(content);
+};
