@@ -1129,7 +1129,7 @@ function renderWeek() {
                 const childName = child ? child.name : '';
                 const colorClass = isForEveryone ? 'event-everyone' : getEventColorByName(childName);
                 return `
-                    <div class="event-chip calendar-event ${colorClass} ${isCollision ? 'event-collision' : ''}">
+                    <div class="event-chip calendar-event ${colorClass} ${isCollision ? 'event-collision' : ''}" onclick="this.classList.toggle('expanded')">
                         <span class="event-title">${ev.name}</span>
                         <span class="event-time">${ev.start}-${ev.end}</span>
                     </div>
@@ -1145,7 +1145,7 @@ function renderWeek() {
         const memosMarkup = memosForDay.map(memo => {
             const colorClass = getEventColorByName(memo.childName);
             return `
-                <div class="event-chip calendar-event calendar-memo ${colorClass}">
+                <div class="event-chip calendar-event calendar-memo ${colorClass}" onclick="this.classList.toggle('expanded')">
                     <span class="event-title"><span class="material-symbols-rounded memo-icon">sticky_note_2</span>${memo.text}</span>
                 </div>
             `;
