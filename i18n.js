@@ -54,6 +54,8 @@ const TRANSLATIONS = {
         everyone: 'כולם',
         add: 'הוספה',
         update: 'עדכון',
+        edit: 'עריכה',
+        cancel: 'ביטול',
         noEvents: 'אין אירועים',
         addTask: 'הוסף משימה',
         whatToDo: 'מה שעושים?',
@@ -157,6 +159,8 @@ const TRANSLATIONS = {
         everyone: 'Everyone',
         add: 'Add',
         update: 'Update',
+        edit: 'Edit',
+        cancel: 'Cancel',
         noEvents: 'No events',
         addTask: 'Add Task',
         whatToDo: 'What to do?',
@@ -345,14 +349,11 @@ function applyLanguage() {
     const btnUpdateEvent = document.getElementById('btn-update-event');
     if (btnUpdateEvent) btnUpdateEvent.textContent = t('update');
     
-    // Day selector options
-    const daySelect = document.getElementById('event-day');
-    if (daySelect) {
-        const daysFull = getDaysFull();
-        Array.from(daySelect.options).forEach((opt, i) => {
-            opt.textContent = daysFull[i];
-        });
-    }
+    const btnCancelEdit = document.getElementById('btn-cancel-edit');
+    if (btnCancelEdit) btnCancelEdit.textContent = t('cancel');
+    
+    // Refresh day checkboxes with translated day names
+    if (typeof renderDayCheckboxes === 'function') renderDayCheckboxes();
     
     // Loomis toggle (in settings, not the lang toggle on login page)
     const loomisLabel = document.querySelector('.loomis-toggle-container .loomis-toggle-label');

@@ -738,6 +738,98 @@ header #clock {
     width: 100% !important;
 }
 
+/* Multi-day checkbox pills */
+.day-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+}
+
+.day-checkbox-label {
+    cursor: pointer;
+    display: inline-block;
+}
+
+.day-checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.day-checkbox-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 400;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.day-checkbox-label input[type="checkbox"]:checked + .day-checkbox-pill {
+    background: #134686;
+    color: white;
+    border-color: #134686;
+    box-shadow: 0 2px 6px rgba(19, 70, 134, 0.3);
+}
+
+/* Event list row with edit/delete buttons */
+.event-list-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f5f9;
+    direction: ltr;
+}
+
+.event-list-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    order: 0;
+}
+
+.event-list-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    order: 1;
+}
+
+.edit-event-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    color: #5A9CB5;
+}
+
+.edit-event-btn:hover {
+    background: #f1f5f9;
+}
+
+/* Cancel edit button */
+.cancel-btn {
+    background-color: #e2e8f0 !important;
+    color: #64748b !important;
+    box-shadow: 0 4px 0px #cbd5e1 !important;
+}
+
+.cancel-btn:active {
+    box-shadow: 0 2px 0px #cbd5e1 !important;
+}
+
 .event-time-row {
     justify-content: center;
     direction: ltr;

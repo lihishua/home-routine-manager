@@ -87,6 +87,7 @@ window.renderAll = function() {
     if (typeof renderHeaderNav === 'function') renderHeaderNav();
     if (typeof renderWeek === 'function') renderWeek();
     if (typeof renderMemos === 'function') renderMemos();
+    if (typeof renderDayCheckboxes === 'function') renderDayCheckboxes();
     // Re-render routine view if active (for Firebase sync)
     if (currentRoutineType && typeof renderRoutine === 'function') {
         renderRoutine(currentRoutineType);
@@ -159,7 +160,7 @@ function showView(viewId) {
     }
     
     if (viewId === 'week') renderWeek();
-    if (viewId === 'settings') renderSettings();
+    if (viewId === 'settings') { sortEvents(); renderSettings(); }
     if (viewId === 'market') renderMarket();
     if (isRoutine) {
         // Update the routine page title based on type
@@ -754,6 +755,19 @@ function addChild() {
     renderHeaderNav();
 }
 
+// Sort events array in-place: weekly by day (Sun first), then one-time by date
+function sortEvents() {
+    if (!currentFamily.events) return;
+    currentFamily.events.sort((a, b) => {
+        const aWeekly = a.repeat !== false;
+        const bWeekly = b.repeat !== false;
+        if (aWeekly && !bWeekly) return -1;
+        if (!aWeekly && bWeekly) return 1;
+        if (aWeekly && bWeekly) return a.day - b.day;
+        return (a.date || '').localeCompare(b.date || '');
+    });
+}
+
 // Rebuild the list of scheduled events in settings.
 function renderEventsList() {
     const list = document.getElementById('settings-event-list');
@@ -780,12 +794,15 @@ function renderEventsList() {
         }
         
         return `
-            <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-                <span>
+            <div class="chore-edit-row event-list-row">
+                <span class="event-list-info">
                     ${dateDisplay} - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
                     ${child ? `- ${child.name}` : ''}${repeatText}
                 </span>
-                <button class="del-chore-btn" onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
+                <span class="event-list-actions">
+                    <button onclick="editEvent(${i})" style="color:#5A9CB5;font-size:1.2rem;background:none;border:none;cursor:pointer;" title="${t('edit')}">✎</button>
+                    <button onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
+                </span>
             </div>`;
     }).join('');
 }
@@ -793,23 +810,48 @@ function renderEventsList() {
 // Toggle event mode between weekly and one-time
 let eventMode = 'weekly'; // 'weekly' or 'once'
 
+// Render the day checkboxes for multi-day selection
+function renderDayCheckboxes() {
+    const container = document.getElementById('event-day-checkboxes');
+    if (!container) return;
+    const daysShort = getDays();
+    container.innerHTML = daysShort.map((dayLetter, i) => `
+        <label class="day-checkbox-label">
+            <input type="checkbox" class="day-checkbox" value="${i}">
+            <span class="day-checkbox-pill">${dayLetter}</span>
+        </label>
+    `).join('');
+}
+
+function getSelectedDays() {
+    const checkboxes = document.querySelectorAll('.day-checkbox:checked');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+function setSelectedDays(days) {
+    const checkboxes = document.querySelectorAll('.day-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = days.includes(parseInt(cb.value));
+    });
+}
+
 function setEventMode(mode) {
     eventMode = mode;
     const btnWeekly = document.getElementById('btn-weekly');
     const btnOnce = document.getElementById('btn-once');
-    const daySelect = document.getElementById('event-day');
+    const dayCheckboxes = document.getElementById('event-day-checkboxes');
     const dateInput = document.getElementById('event-date');
     
     if (mode === 'weekly') {
         btnWeekly.classList.add('active');
         btnOnce.classList.remove('active');
-        daySelect.style.display = '';
-        dateInput.style.display = 'none';
+        if (dayCheckboxes) dayCheckboxes.style.display = '';
+        if (dateInput) dateInput.style.display = 'none';
     } else {
         btnWeekly.classList.remove('active');
         btnOnce.classList.add('active');
-        daySelect.style.display = 'none';
-        dateInput.style.display = '';
+        if (dayCheckboxes) dayCheckboxes.style.display = 'none';
+        if (dateInput) dateInput.style.display = '';
     }
 }
 
@@ -820,32 +862,46 @@ function addEvent() {
     const sm = document.getElementById('start-m').value;
     const eh = document.getElementById('end-h').value;
     const em = document.getElementById('end-m').value;
-    const t = document.getElementById('event-target').value;
+    const tgt = document.getElementById('event-target').value;
     
     if(n) { 
         const isWeekly = eventMode === 'weekly';
-        const event = {
-            name: n,
-            start: `${sh}:${sm}`,
-            end: `${eh}:${em}`,
-            target: t,
-            repeat: isWeekly
-        };
         
         if (isWeekly) {
-            event.day = parseInt(document.getElementById('event-day').value);
+            const selectedDays = getSelectedDays();
+            if (selectedDays.length === 0) {
+                alert(getLang() === 'he' ? 'בחר לפחות יום אחד' : 'Select at least one day');
+                return;
+            }
+            // Create one event per selected day (add to top)
+            selectedDays.reverse().forEach(day => {
+                currentFamily.events.unshift({
+                    name: n,
+                    start: `${sh}:${sm}`,
+                    end: `${eh}:${em}`,
+                    target: tgt,
+                    repeat: true,
+                    day: day
+                });
+            });
         } else {
             const dateVal = document.getElementById('event-date').value;
             if (!dateVal) {
-                alert(t('pleaseSelectDate'));
+                alert(getLang() === 'he' ? 'בחר תאריך' : 'Please select a date');
                 return;
             }
             const date = new Date(dateVal);
-            event.day = date.getDay(); // Get day of week from date
-            event.date = dateVal; // Store the actual date
+            currentFamily.events.unshift({
+                name: n,
+                start: `${sh}:${sm}`,
+                end: `${eh}:${em}`,
+                target: tgt,
+                repeat: false,
+                day: date.getDay(),
+                date: dateVal
+            });
         }
         
-        currentFamily.events.push(event);
         saveData();
         resetEventForm();
         renderSettings(); 
@@ -857,29 +913,41 @@ function editEvent(index) {
     if (!ev) return;
     
     const nameEl = document.getElementById('event-name');
-    const dayEl = document.getElementById('event-day');
     const startH = document.getElementById('start-h');
     const startM = document.getElementById('start-m');
     const endH = document.getElementById('end-h');
     const endM = document.getElementById('end-m');
     const targetEl = document.getElementById('event-target');
-    const repeatEl = document.getElementById('event-repeat');
     const editIdx = document.getElementById('edit-event-idx');
     const btnAdd = document.getElementById('btn-add-event');
     const btnUpdate = document.getElementById('btn-update-event');
+    const btnCancel = document.getElementById('btn-cancel-edit');
+    
+    // Set the mode (weekly or once)
+    if (ev.repeat === false) {
+        setEventMode('once');
+        const dateInput = document.getElementById('event-date');
+        if (dateInput) dateInput.value = ev.date || '';
+    } else {
+        setEventMode('weekly');
+        setSelectedDays([ev.day]);
+    }
     
     if (nameEl) nameEl.value = ev.name;
-    if (dayEl) dayEl.value = ev.day;
     if (startH) startH.value = ev.start.split(':')[0];
     if (startM) startM.value = ev.start.split(':')[1];
-    updateEndHourOptions(); // Filter end hours based on loaded start hour
+    updateEndHourOptions();
     if (endH) endH.value = ev.end.split(':')[0];
     if (endM) endM.value = ev.end.split(':')[1];
     if (targetEl) targetEl.value = ev.target;
-    if (repeatEl) repeatEl.checked = ev.repeat ?? true;
     if (editIdx) editIdx.value = index;
     if (btnAdd) btnAdd.classList.add('hidden');
     if (btnUpdate) btnUpdate.classList.remove('hidden');
+    if (btnCancel) btnCancel.classList.remove('hidden');
+    
+    // Scroll to the event form
+    const form = document.querySelector('.add-event-card');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function updateEvent() {
@@ -887,25 +955,64 @@ function updateEvent() {
     if (isNaN(idx) || idx < 0) return;
 
     const n = document.getElementById('event-name').value;
-    const d = document.getElementById('event-day').value;
     const sh = document.getElementById('start-h').value;
     const sm = document.getElementById('start-m').value;
     const eh = document.getElementById('end-h').value;
     const em = document.getElementById('end-m').value;
-    const t = document.getElementById('event-target').value;
-    const repeat = document.getElementById('event-repeat')?.checked;
+    const tgt = document.getElementById('event-target').value;
+    const isWeekly = eventMode === 'weekly';
 
     if (n) {
-        currentFamily.events[idx] = { ...currentFamily.events[idx], name: n, day: parseInt(d), start: `${sh}:${sm}`, end: `${eh}:${em}`, target: t, repeat };
+        if (isWeekly) {
+            const selectedDays = getSelectedDays();
+            if (selectedDays.length === 0) {
+                alert(getLang() === 'he' ? 'בחר לפחות יום אחד' : 'Select at least one day');
+                return;
+            }
+            // Update the original event with the first selected day
+            currentFamily.events[idx] = { 
+                ...currentFamily.events[idx], 
+                name: n, day: selectedDays[0], 
+                start: `${sh}:${sm}`, end: `${eh}:${em}`, 
+                target: tgt, repeat: true, date: undefined 
+            };
+            // Add new events for additional selected days
+            for (let i = 1; i < selectedDays.length; i++) {
+                currentFamily.events.push({
+                    name: n, day: selectedDays[i],
+                    start: `${sh}:${sm}`, end: `${eh}:${em}`,
+                    target: tgt, repeat: true
+                });
+            }
+        } else {
+            const dateVal = document.getElementById('event-date').value;
+            if (!dateVal) {
+                alert(getLang() === 'he' ? 'בחר תאריך' : 'Please select a date');
+                return;
+            }
+            const date = new Date(dateVal);
+            currentFamily.events[idx] = { 
+                ...currentFamily.events[idx], 
+                name: n, day: date.getDay(), 
+                start: `${sh}:${sm}`, end: `${eh}:${em}`, 
+                target: tgt, repeat: false, date: dateVal 
+            };
+        }
         saveData();
         resetEventForm();
         renderSettings();
     }
 }
 
+function cancelEditEvent() {
+    resetEventForm();
+}
+
 function resetEventForm() {
     document.getElementById('event-name').value = '';
-    document.getElementById('event-day').value = '0';
+    // Uncheck all day checkboxes
+    document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
+    
     const startH = document.getElementById('start-h');
     const startM = document.getElementById('start-m');
     const endH = document.getElementById('end-h');
@@ -915,6 +1022,7 @@ function resetEventForm() {
     const dateInput = document.getElementById('event-date');
     const btnAdd = document.getElementById('btn-add-event');
     const btnUpdate = document.getElementById('btn-update-event');
+    const btnCancel = document.getElementById('btn-cancel-edit');
     
     if (startH) startH.value = '00';
     if (startM) startM.value = '00';
@@ -926,6 +1034,7 @@ function resetEventForm() {
     if (dateInput) dateInput.value = '';
     if (btnAdd) btnAdd.classList.remove('hidden');
     if (btnUpdate) btnUpdate.classList.add('hidden');
+    if (btnCancel) btnCancel.classList.add('hidden');
     
     // Reset to weekly mode
     setEventMode('weekly');
@@ -1413,6 +1522,7 @@ function toggleTask(childIdx, type, taskIdx, element) {
 }
 
 initTimeSelectors();
+renderDayCheckboxes();
 
 // Wait for Firebase auth to determine what to show
 // The main content visibility is controlled by Firebase onAuthStateChanged in index.html

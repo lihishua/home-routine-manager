@@ -331,12 +331,7 @@
                     
                     <!-- Row 2: Date/Day picker -->
                     <div class="event-row" id="date-input-container">
-                        <select id="event-day" class="settings-card-select event-day-select">
-                            <option value="0">יום א'</option><option value="1">יום ב'</option>
-                            <option value="2">יום ג'</option><option value="3">יום ד'</option>
-                            <option value="4">יום ה'</option><option value="5">יום ו'</option>
-                            <option value="6">שבת</option>
-                        </select>
+                        <div id="event-day-checkboxes" class="day-checkboxes"></div>
                         <input type="date" id="event-date" class="settings-card-input event-date-select" style="display:none;">
                     </div>
                     
@@ -349,6 +344,7 @@
                     
                     <button onclick="addEvent()" class="settings-card-btn" id="btn-add-event">הוספה</button>
                     <button onclick="updateEvent()" class="settings-card-btn hidden" id="btn-update-event">עדכון</button>
+                    <button onclick="cancelEditEvent()" class="settings-card-btn cancel-btn hidden" id="btn-cancel-edit">ביטול</button>
                     <div id="settings-event-list" class="settings-card-list"></div>
                 </div>
             </div>
