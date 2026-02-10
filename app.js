@@ -1,4 +1,4 @@
-const DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+// DAYS is now provided by i18n.js via getDays()
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 window.currentFamily = currentFamily; // Make globally accessible for Firebase
 let currentRoutineType = null; // Track which routine view is active (morning/evening)
@@ -99,44 +99,23 @@ function getLoomiIconHtml() {
 }
 
 function getLoomiText(count) {
-    return count === 1 ? "לומי" : "לומים";
+    return count === 1 ? t('loomiSingular') : t('loomiPlural');
 }
 
 // Map task names to Material Symbol icons
 function getTaskIcon(taskName) {
     const name = (taskName || '').toLowerCase();
     
-    // Hebrew keyword to icon mapping
-    const iconMap = [
-        // School/Backpack
-        { keywords: ['תיק', 'ביה"ס', 'בית ספר', 'ילקוט'], icon: 'backpack' },
-        // Food preparation
-        { keywords: ['קופסת אוכל', 'אוכל', 'סנדוויץ', 'כריך'], icon: 'lunch_dining' },
-        // Water
-        { keywords: ['בקבוק', 'מים', 'שתייה'], icon: 'water_drop' },
-        // Teeth brushing
-        { keywords: ['שיניים', 'צחצוח', 'לצחצח'], icon: 'dentistry' },
-        // Washing face
-        { keywords: ['פנים', 'לשטוף', 'רחצה'], icon: 'wash' },
-        // Breakfast
-        { keywords: ['ארוחת בוקר', 'בוקר', 'לאכול'], icon: 'breakfast_dining' },
-        // Getting dressed
-        { keywords: ['להתלבש', 'בגדים', 'ללבוש'], icon: 'checkroom' },
-        // Bedtime
-        { keywords: ['לילה טוב', 'שינה', 'לישון'], icon: 'bedtime' },
-        // Shower/Bath
-        { keywords: ['מקלחת', 'אמבטיה', 'להתרחץ'], icon: 'shower' },
-        // Hair
-        { keywords: ['שיער', 'להסתרק', 'מברשת'], icon: 'face' },
-        // Homework
-        { keywords: ['שיעורי בית', 'לימודים', 'ללמוד'], icon: 'menu_book' },
-        // Cleaning room
-        { keywords: ['חדר', 'לסדר', 'ניקיון'], icon: 'cleaning_services' },
-        // Shoes
-        { keywords: ['נעליים', 'לנעול'], icon: 'steps' },
-        // Hug
-        { keywords: ['חיבוק'], icon: 'favorite' },
-    ];
+    // Keyword to icon mapping - combines both languages
+    const heKeywords = TRANSLATIONS.he.taskKeywords;
+    const enKeywords = TRANSLATIONS.en.taskKeywords;
+    const iconMap = [];
+    for (let i = 0; i < heKeywords.length; i++) {
+        iconMap.push({
+            keywords: [...heKeywords[i].keywords, ...(enKeywords[i] ? enKeywords[i].keywords : [])],
+            icon: heKeywords[i].icon
+        });
+    }
     
     // Find matching icon
     for (const mapping of iconMap) {
@@ -186,7 +165,7 @@ function showView(viewId) {
         // Update the routine page title based on type
         const routineTitle = document.querySelector('#view-routine h2');
         if (routineTitle) {
-            routineTitle.textContent = viewId === 'morning' ? 'שגרת בוקר' : 'שגרת ערב';
+            routineTitle.textContent = viewId === 'morning' ? t('morningRoutine') : t('eveningRoutine');
         }
         currentRoutineType = viewId; // Track current routine type for Firebase sync
         renderRoutine(viewId);
@@ -266,9 +245,9 @@ function renderChildPage(childIndex) {
             </div>
         ` : '';
         headerEl.innerHTML = `
-            <h2 style="margin:0;">העמוד של ${child.name}</h2>
+            <h2 style="margin:0;">${getLang() === 'he' ? t('childPageOf') + ' ' + child.name : child.name + t('childPageOf')}</h2>
             ${loomisHtml}
-            <button onclick="showView('home')" class="back-btn">חזרה</button>
+            <button onclick="showView('home')" class="back-btn">${t('back')}</button>
         `;
     }
     
@@ -276,7 +255,7 @@ function renderChildPage(childIndex) {
         <div class="child-page-grid">
             <!-- Virtual Bank Card -->
             <div class="child-page-card bank-card ${colorClass}">
-                <h3><span class="material-symbols-rounded">savings</span> בנק<br><span class="card-subtitle">(כמה כסף יש לי אצל אמא ואבא)</span></h3>
+                <h3><span class="material-symbols-rounded">savings</span> ${t('bank')}<br><span class="card-subtitle">${t('bankSubtitle')}</span></h3>
                 <div class="bank-display">
                     <span class="bank-currency">₪</span>
                     <input type="number" class="bank-amount-input" value="${child.bank || 0}" 
@@ -295,9 +274,9 @@ function renderChildPage(childIndex) {
 
             <!-- Memos Card -->
             <div class="child-page-card memos-card ${colorClass}">
-                <h3><span class="material-symbols-rounded">sticky_note_2</span> תזכורות</h3>
+                <h3><span class="material-symbols-rounded">sticky_note_2</span> ${t('reminders')}</h3>
                 <div class="memo-input-row">
-                    <input type="text" id="new-memo-text" placeholder="מה לזכור?" class="memo-input">
+                    <input type="text" id="new-memo-text" placeholder="${t('whatToRemember')}" class="memo-input">
                     <input type="date" id="new-memo-date" class="memo-date-input">
                     <button onclick="addMemo(${childIndex})" class="memo-add-btn">+</button>
                 </div>
@@ -312,7 +291,7 @@ function renderChildPage(childIndex) {
 // Render the list of memos for a child
 function renderMemosList(child, childIndex) {
     if (!child.memos || child.memos.length === 0) {
-        return '<div class="no-memos">אין תזכורות עדיין</div>';
+        return '<div class="no-memos">' + t('noReminders') + '</div>';
     }
     
     const today = new Date();
@@ -352,7 +331,8 @@ function renderMemosList(child, childIndex) {
     // Render active memos
     if (activeMemos.length > 0) {
         html += activeMemos.map(({ memo, index }) => {
-            const dateStr = memo.date ? new Date(memo.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' }) : '';
+            const dateLocale = getLang() === 'he' ? 'he-IL' : 'en-US';
+            const dateStr = memo.date ? new Date(memo.date).toLocaleDateString(dateLocale, { day: 'numeric', month: 'numeric' }) : '';
             return `
                 <div class="memo-item">
                     ${memo.date ? `<span class="memo-date-side">${dateStr}</span>` : ''}
@@ -362,15 +342,16 @@ function renderMemosList(child, childIndex) {
             `;
         }).join('');
     } else if (overdueMemos.length === 0) {
-        html += '<div class="no-memos">אין תזכורות עדיין</div>';
+        html += '<div class="no-memos">' + t('noReminders') + '</div>';
     }
     
     // Render overdue memos section
     if (overdueMemos.length > 0) {
         html += `<div class="overdue-section">
-            <div class="overdue-header">עבר התאריך</div>
+            <div class="overdue-header">${t('overdue')}</div>
             ${overdueMemos.map(({ memo, index }) => {
-                const dateStr = new Date(memo.date).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+                const overdueLocale = getLang() === 'he' ? 'he-IL' : 'en-US';
+                const dateStr = new Date(memo.date).toLocaleDateString(overdueLocale, { day: 'numeric', month: 'numeric' });
                 return `
                     <div class="memo-item overdue">
                         <span class="memo-date-side overdue-date">${dateStr}</span>
@@ -379,7 +360,7 @@ function renderMemosList(child, childIndex) {
                             <div class="date-picker-wrapper">
                                 <input type="date" id="update-memo-date-${index}" class="memo-date-update" 
                                        onchange="updateMemoDate(${childIndex}, ${index}, this.value)">
-                                <span class="date-placeholder">בחר תאריך חדש</span>
+                                <span class="date-placeholder">${t('pickNewDate')}</span>
                         </div>
                             <button onclick="deleteMemo(${childIndex}, ${index})" class="del-chore-btn"></button>
                         </div>
@@ -463,10 +444,11 @@ function updateMemoDate(childIndex, memoIndex, newDate) {
 }
 
 // Fill the settings view with child and event controls.
+window.renderSettings = renderSettings;
 function renderSettings() {
     const targetSelect = document.getElementById('event-target');
     if (targetSelect) {
-        targetSelect.innerHTML = `<option value="family">כולם</option>` + 
+        targetSelect.innerHTML = `<option value="family">${t('everyone')}</option>` + 
             currentFamily.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         targetSelect.value = 'family';
         if (typeof resetEventForm === 'function') resetEventForm();
@@ -485,7 +467,7 @@ function renderMarketSection() {
     const marketItems = currentFamily.market || [];
 
     if (marketItems.length === 0) {
-        listContainer.innerHTML = '<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">אין משימות</div>';
+        listContainer.innerHTML = '<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">' + t('noTasks') + '</div>';
         return;
     }
 
@@ -523,7 +505,7 @@ function renderChildList() {
     let html = '';
     children.forEach((c, ci) => {
         const color = c.color || '#ccc';
-        const name = c.name || 'ללא שם';
+        const name = c.name || t('noName');
         const loomis = c.loomis || 0;
         
         // Build chores list - combine tasks that appear in both morning and evening
@@ -578,7 +560,7 @@ function renderChildList() {
                 deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const eIdx=child.evening.findIndex(t=>t.task===taskText);if(eIdx>=0)child.evening.splice(eIdx,1);saveData();renderSettings();})()`;
             }
             
-            choresHtml += '<div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">';
+            choresHtml += '<div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;">';
             choresHtml += '<span style="display:flex;align-items:center;gap:8px;">' + icon + ' ' + taskText + '</span>';
             choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>';
             choresHtml += '</div>';
@@ -593,30 +575,30 @@ function renderChildList() {
         if (isLoomisEnabled()) {
             html += '<div class="loomi-display-row">';
             html += '<span class="loomi-number">' + loomis + ' ' + getLoomiIconHtml() + '</span>';
-            html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">איפוס</span>';
+            html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">' + t('resetLoomis') + '</span>';
             html += '</div>';
         }
         html += '</div>';
-        html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings();renderHeaderNav()" class="delete-child-pill">מחיקה</button>';
+        html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings();renderHeaderNav()" class="delete-child-pill">' + t('deleteChild') + '</button>';
         html += '</div>';
         
         // Add chore input
         html += '<div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">';
-        html += '<input type="text" id="chore-in-' + ci + '" placeholder="מטלה חדשה..." style="flex:1;min-width:100px;padding:6px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.8rem">';
+        html += '<input type="text" id="chore-in-' + ci + '" placeholder="' + t('newTask') + '" style="flex:1;min-width:100px;padding:6px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.8rem">';
         html += '<select id="chore-time-' + ci + '" style="padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;font-size:0.8rem">';
-        html += '<option value="morning">☀️ בוקר</option>';
-        html += '<option value="evening">🌙 ערב</option>';
-        html += '<option value="both">🌤️ שניהם</option>';
+        html += '<option value="morning">' + t('morningOption') + '</option>';
+        html += '<option value="evening">' + t('eveningOption') + '</option>';
+        html += '<option value="both">' + t('bothOption') + '</option>';
         html += '</select>';
         html += '</div>';
         html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:stretch;">';
-        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">הוספה</button>';
-        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="flex:1;">הוסף לכולם</button>';
+        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">' + t('add') + '</button>';
+        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="flex:1;">' + t('addToAll') + '</button>';
         html += '</div>';
         
         // Chores list
         html += '<div style="max-height:150px;overflow-y:auto;font-size:0.8rem">';
-        html += choresHtml || '<div style="color:#999;text-align:center;padding:10px">אין מטלות</div>';
+        html += choresHtml || '<div style="color:#999;text-align:center;padding:10px">' + t('noChores') + '</div>';
         html += '</div>';
         
         html += '</div>';
@@ -626,17 +608,17 @@ function renderChildList() {
     html += '<div class="settings-child-card" style="display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;">';
     html += '<h3>' +
         '<i class="material-symbols-rounded" style="font-size:1.2rem;">family_restroom</i> ' +
-        'הוסף ילד</h3>';
-    html += '<input type="text" id="new-child-name" placeholder="שם..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;">';
+        t('addChild') + '</h3>';
+    html += '<input type="text" id="new-child-name" placeholder="' + t('name') + '" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;">';
     if (children.length > 0) {
         html += '<select id="copy-from-child" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;background:#F8FAFC;">';
-        html += '<option value="">העתק מ...</option>';
+        html += '<option value="">' + t('copyFrom') + '</option>';
         children.forEach((c, ci) => {
-            html += '<option value="' + ci + '">' + (c.name || 'ללא שם') + '</option>';
+            html += '<option value="' + ci + '">' + (c.name || t('noName')) + '</option>';
         });
         html += '</select>';
     }
-    html += '<button onclick="addChild()" class="settings-card-btn" style="width:100%;padding:10px;font-size:0.9rem;">הוספה</button>';
+    html += '<button onclick="addChild()" class="settings-card-btn" style="width:100%;padding:10px;font-size:0.9rem;">' + t('add') + '</button>';
     html += '</div>';
     
     childList.innerHTML = html;
@@ -718,7 +700,7 @@ function addChild() {
     
     if (duplicateExists) {
         // Show error message
-        alert('שם זה כבר קיים! אנא בחר שם אחר.');
+        alert(t('nameExists'));
         nameInput.focus();
         nameInput.style.borderColor = '#FA6868'; // Coral red border
         nameInput.style.borderWidth = '2px';
@@ -780,7 +762,7 @@ function renderEventsList() {
     const events = currentFamily.events || [];
 
     if (events.length === 0) {
-        list.innerHTML = `<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">אין אירועים</div>`;
+        list.innerHTML = `<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">${t('noEvents')}</div>`;
         return;
     }
 
@@ -794,11 +776,11 @@ function renderEventsList() {
             const d = new Date(ev.date);
             dateDisplay = `${d.getDate()}/${d.getMonth() + 1}`;
         } else {
-            dateDisplay = DAYS[ev.day] + "'";
+            dateDisplay = getDays()[ev.day] + "'";
         }
         
         return `
-            <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;direction:rtl;">
+            <div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;">
                 <span>
                     ${dateDisplay} - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
                     ${child ? `- ${child.name}` : ''}${repeatText}
@@ -855,7 +837,7 @@ function addEvent() {
         } else {
             const dateVal = document.getElementById('event-date').value;
             if (!dateVal) {
-                alert('נא לבחור תאריך');
+                alert(t('pleaseSelectDate'));
                 return;
             }
             const date = new Date(dateVal);
@@ -1048,7 +1030,7 @@ function renderWeek() {
     weekEnd.setHours(23, 59, 59, 999);
 
     // Only highlight today when viewing current week
-    const headerRow = DAYS.map((day, i) => `<th class="${!isNextWeek && i === today ? 'today-col' : ''}">${day}</th>`).join('');
+    const headerRow = getDays().map((day, i) => `<th class="${!isNextWeek && i === today ? 'today-col' : ''}">${day}</th>`).join('');
     
     // Helper: convert time string to minutes for comparison
     const timeToMinutes = (time) => {
@@ -1092,7 +1074,7 @@ function renderWeek() {
         return groups;
     };
 
-    const bodyRow = DAYS.map((day, i) => {
+    const bodyRow = getDays().map((day, i) => {
         // Filter events for this day
         let eventsForDay = currentFamily.events.filter(ev => {
             // Weekly events (repeat !== false): show on matching day
@@ -1172,7 +1154,7 @@ function renderWeek() {
         return `<td class="week-day-cell" data-day="${day}">${eventsMarkup}${memosMarkup}</td>`;
     }).join('');
 
-    const buttonText = isNextWeek ? 'חזרה' : 'הצצה לשבוע הבא';
+    const buttonText = isNextWeek ? t('backToThisWeek') : t('peekNextWeek');
 
     grid.innerHTML = `
         <div class="week-table-wrapper">
@@ -1208,7 +1190,7 @@ function renderMarket() {
     const container = document.getElementById('market-list');
     if (!container) return;
     if (currentFamily.market.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">הבנק ריק כרגע... </div>`;
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">${t('bankEmpty')}</div>`;
         return;
     }
     
@@ -1245,7 +1227,7 @@ function renderMarket() {
         return `
             <div class="task-bank-item" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 70px;" onclick="openMarketSelection(${item.originalIndex})">
                 <i class="material-symbols-rounded" style="font-size: 2rem; display: flex; align-items: center;">emoji_events</i>
-                <div style="flex: 1; text-align: right; margin-right: 15px;">
+                <div style="flex: 1; text-align: start; margin-inline-start: 15px;">
                     <span style="font-weight:800; font-size:1.2rem; color: #134686;">${item.task}</span>
                 </div>
                 ${loomisDisplay}
@@ -1264,7 +1246,7 @@ function openMarketSelection(index) {
     overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
     overlay.innerHTML = `
         <div style="background:white; padding:30px; border-radius:30px; width:100%; max-width:400px; text-align:center;">
-            <h2 style="margin-bottom:10px;">מי ביצע את המטלה?</h2>
+            <h2 style="margin-bottom:10px;">${t('whoDidTask')}</h2>
             <p style="margin-bottom:20px; font-weight:bold;">${item.task}</p>
             <div style="display:grid; gap:10px;">
                 ${currentFamily.children.map((child, ci) => {
@@ -1276,7 +1258,7 @@ function openMarketSelection(index) {
                     `;
                 }).join('')}
             </div>
-            <button onclick="document.getElementById('market-overlay').remove()" class="back-btn" style="margin-top:20px; padding:10px 30px;">ביטול</button>
+            <button onclick="document.getElementById('market-overlay').remove()" class="back-btn" style="margin-top:20px; padding:10px 30px;">${t('cancel')}</button>
         </div>`;
     document.body.appendChild(overlay);
 }
@@ -1445,5 +1427,7 @@ window.showAppContent = function() {
         main.style.opacity = '1';
         main.style.pointerEvents = 'auto';
     }
+    // Apply language to dynamic content after rendering
+    if (typeof applyLanguage === 'function') applyLanguage();
 showView('home');
 };

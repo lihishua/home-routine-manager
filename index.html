@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Loomi | ניהול משימות הבית והלו״ז המשפחתי</title>
-    <meta name="description" content="Loomi: אפליקציה נוחה וחווייתית לשילוב הילדים בשגרת הבית והמשימות. לעידוד מעורבות, עצמאות, ואחריות.">
+    <meta name="description" content="Loomi: Help your kids master their daily routine with an app they'll love. Designed to encourage independence, responsibility, and active participation at home.">
     
     <meta property="og:title" content="Loomi - ניהול משימות הבית">
-    <meta property="og:description" content="אפליקציה קלילה וחווייתית לשילוב הילדים בשגרת הבית והמשימות.">
+    <meta property="og:description" content="A fun and easy way to get kids involved in home chores.">
     <meta property="og:image" content="https://loomi-home.com/apple-touch-icon.png">
     <meta property="og:type" content="website">
     
@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=275">
+    <link rel="stylesheet" href="style.css?v=277">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (error) {
-                document.getElementById('auth-error').innerText = "Login failed. Check email/password.";
+                document.getElementById('auth-error').innerText = typeof t === 'function' ? t('loginFailed') : "Login failed. Check email/password.";
             }
         };
 
@@ -154,14 +154,14 @@
             const errorEl = document.getElementById('auth-error');
             
             if (!email) {
-                errorEl.innerText = "Please enter your email address first.";
+                errorEl.innerText = typeof t === 'function' ? t('enterEmailFirst') : "Please enter your email address first.";
                 return;
             }
 
             try {
                 await sendPasswordResetEmail(auth, email);
                 errorEl.style.color = "green";
-                errorEl.innerText = "Reset email sent! Check your inbox.";
+                errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : "Reset email sent! Check your inbox.";
             } catch (error) {
                 errorEl.style.color = "red";
                 errorEl.innerText = "Error: " + error.message;
@@ -214,6 +214,15 @@
     <div id="auth-container" class="auth-overlay" style="display:none;">
         <div class="auth-content">
             <img src="loomi-word.png" class="auth-logo" alt="LOOMI">
+            <!-- Language toggle -->
+            <img src="app-icon.png" class="lang-toggle-icon" alt="">
+            <div class="lang-toggle-container">
+                <span id="lang-label-en" class="lang-label lang-inactive">English</span>
+                <button id="lang-toggle-btn" class="loomis-toggle-btn" onclick="toggleLanguage()">
+                    <span class="toggle-slider"></span>
+                </button>
+                <span id="lang-label-he" class="lang-label lang-active">עברית</span>
+            </div>
             <div class="auth-box">
                 <input type="email" id="email" placeholder="Email" oninput="document.getElementById('auth-error').innerText=''">
                 <input type="password" id="password" placeholder="Password" oninput="document.getElementById('auth-error').innerText=''">
@@ -366,7 +375,7 @@
 
         <!-- Bottom row: child cards horizontal scroll -->
         <div id="settings-child-list" class="settings-child-slider">
-            <div style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">טוען...</div>
+            <div id="settings-loading-text" style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">טוען...</div>
         </div>
         
         <div class="settings-bottom-bar">
@@ -374,7 +383,8 @@
         </div>
     </section>
 
+    <script src="i18n.js?v=2"></script>
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=148"></script>
+    <script src="app.js?v=149"></script>
 </body>
 </html>

@@ -45,7 +45,7 @@
     padding: 0; 
     font-family: 'Fredoka', sans-serif !important; 
     color: var(--text-dark);
-    direction: rtl; 
+    direction: inherit; 
 }
 
 /* Ensure Material Symbols icons always render correctly */
@@ -713,7 +713,7 @@ header #clock {
     gap: 6px;
     width: 100%;
     margin-bottom: 6px;
-    direction: rtl; /* RTL layout: day/date on right, time on left */
+    direction: inherit; /* Follows page language direction */
 }
 
 /* New event card layout */
@@ -1135,7 +1135,7 @@ header #clock {
 }
 
 /* Content Cards */
-.settings-section, .day-column { background: white; padding: 8px 20px 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow); font-size: 0.95rem; direction: rtl; }
+.settings-section, .day-column { background: white; padding: 8px 20px 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow); font-size: 0.95rem; direction: inherit; }
 
 .settings-section h3 {
     margin-bottom: 10px;
@@ -1604,7 +1604,7 @@ h4 {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    direction: rtl;
+    direction: inherit;
 }
 
 .market-manager-card h3 {
@@ -1624,7 +1624,7 @@ h4 {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    direction: rtl;
+    direction: inherit;
     transition: transform 0.15s ease;
 }
 
@@ -2348,7 +2348,7 @@ h4 {
     display: flex;
     gap: 8px;
     margin-bottom: 15px;
-    direction: rtl;
+    direction: inherit;
 }
 
 .memo-input {
@@ -2689,6 +2689,40 @@ h4 {
     font-family: 'Fredoka', sans-serif;
     font-size: 1.8rem;
     margin-bottom: 30px;
+}
+
+/* Language toggle on login page */
+.lang-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    direction: ltr !important; /* Always fixed layout regardless of page direction */
+}
+.lang-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+.lang-label.lang-active {
+    color: #134686;
+}
+.lang-label.lang-inactive {
+    color: #b0b0b0;
+}
+.lang-toggle-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+}
+#lang-toggle-btn {
+    background-color: #e0e0e0;
+}
+#lang-toggle-btn.active {
+    background-color: #e0e0e0;
+}
+#lang-toggle-btn .toggle-slider {
+    background-color: #134686;
 }
 
 .guest-link {
