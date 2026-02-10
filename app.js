@@ -1355,12 +1355,6 @@ function resetEndHourOptions() {
         .map(x => `<option value="${x}">${x}</option>`).join('');
 }
 
-// Update the main clock display every second.
-setInterval(() => { 
-    const clockEl = document.getElementById('clock');
-    if(clockEl) clockEl.innerText = new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'}); 
-}, 1000);
-
 // Build the routine cards for each child for the selected time.
 // Build the routine cards for each child for the selected time.
 function renderRoutine(type) {
