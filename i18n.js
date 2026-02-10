@@ -44,6 +44,7 @@ const TRANSLATIONS = {
         noReminders: 'אין תזכורות עדיין',
         overdue: 'עבר התאריך',
         pickNewDate: 'בחר תאריך חדש',
+        addDateOptional: 'הוסף תאריך (אופציונלי)',
         
         // Settings
         saveAndClose: 'שמור וסגור',
@@ -149,6 +150,7 @@ const TRANSLATIONS = {
         noReminders: 'No reminders yet',
         overdue: 'Overdue',
         pickNewDate: 'Pick a new date',
+        addDateOptional: 'Add date (optional)',
         
         // Settings
         saveAndClose: 'Save & Close',

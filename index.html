@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Loomi | ניהול משימות הבית והלו״ז המשפחתי</title>
-    <meta name="description" content="Loomi: Help your kids master their daily routine with an app they'll love. Designed to encourage independence, responsibility, and active participation at home.">
+    <meta name="description" content="Loomi help your kids master their daily routine with an app they'll love. Designed to encourage independence, responsibility, and active participation at home.">
     
     <meta property="og:title" content="Loomi - ניהול משימות הבית">
     <meta property="og:description" content="A fun and easy way to get kids involved in home chores.">
@@ -67,6 +67,7 @@
         onAuthStateChanged(auth, (user) => {
             const authOverlay = document.getElementById('auth-container');
             const loadingScreen = document.getElementById('loading-screen');
+            console.log('Auth state changed:', user ? 'Logged in as ' + user.email : 'Not logged in');
             if (user) {
                 currentUser = user;
                 window.currentFirebaseUser = user;
@@ -75,18 +76,26 @@
                 // Check for daily reset
                 checkDailyReset(user.uid);
                 // Load user data from Firestore
-                loadUserData(user.uid);
-                // Show loading screen for a moment, then fade into the app
-                setTimeout(() => {
-                    if (loadingScreen) {
-                        loadingScreen.style.transition = 'opacity 0.5s ease-out';
-                        loadingScreen.style.opacity = '0';
-                        setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
-                    }
+                loadUserData(user.uid).then(() => {
+                    console.log('User data loaded, showing app content');
+                    // Show loading screen for a moment, then fade into the app
+                    setTimeout(() => {
+                        if (loadingScreen) {
+                            loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
+                        }
+                        if (window.showAppContent) window.showAppContent();
+                    }, 1200);
+                }).catch(err => {
+                    console.error('Error loading user data:', err);
+                    // Still show app even if data load fails
+                    if (loadingScreen) loadingScreen.style.display = 'none';
                     if (window.showAppContent) window.showAppContent();
-                }, 1200);
+                });
             } else {
                 window.currentFirebaseUser = null;
+                console.log('No user logged in, showing login screen');
                 if (loadingScreen) loadingScreen.style.display = 'none';
                 if (authOverlay) authOverlay.style.display = 'flex';
             }
@@ -103,14 +112,49 @@
 
         // 2. LOAD USER DATA FROM FIRESTORE
         async function loadUserData(uid) {
-            const docRef = doc(db, "users", uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.familyConfig) {
-                    window.currentFamily = data.familyConfig;
-                    if (window.renderAll) window.renderAll();
+            try {
+                // Get local data first (might be from guest mode)
+                const localData = localStorage.getItem('myFamilyConfig');
+                const localFamily = localData ? JSON.parse(localData) : null;
+                
+                const docRef = doc(db, "users", uid);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.familyConfig) {
+                        // Firebase has data - use it (it's the source of truth)
+                        window.currentFamily = data.familyConfig;
+                        // Sync to localStorage for PWA compatibility
+                        localStorage.setItem('myFamilyConfig', JSON.stringify(data.familyConfig));
+                        console.log('Loaded data from Firebase and synced to localStorage');
+                        if (window.renderAll) window.renderAll();
+                    } else if (localFamily) {
+                        // Firebase exists but has no familyConfig, but we have local data
+                        // This is a migration scenario - upload local data to Firebase
+                        console.log('Migrating local guest data to Firebase');
+                        window.currentFamily = localFamily;
+                        await setDoc(docRef, { familyConfig: localFamily }, { merge: true });
+                        console.log('Guest data migrated to Firebase successfully');
+                        if (window.renderAll) window.renderAll();
+                    }
+                } else {
+                    // No Firebase document exists
+                    if (localFamily) {
+                        // We have local guest data - upload it to Firebase
+                        console.log('No Firebase account found, migrating local guest data to Firebase');
+                        window.currentFamily = localFamily;
+                        await setDoc(docRef, { familyConfig: localFamily }, { merge: true });
+                        console.log('Guest data migrated to Firebase successfully');
+                        if (window.renderAll) window.renderAll();
+                    } else {
+                        // No data anywhere - use default
+                        console.log('No data found, using defaults');
+                        if (window.renderAll) window.renderAll();
+                    }
                 }
+            } catch (error) {
+                console.error('Error loading user data:', error);
             }
             // Start real-time sync
             startRealtimeSync(uid);
@@ -122,6 +166,9 @@
                 const data = docSnap.data();
                 if (data && data.familyConfig) {
                     window.currentFamily = data.familyConfig;
+                    // Sync to localStorage for PWA compatibility
+                    localStorage.setItem('myFamilyConfig', JSON.stringify(data.familyConfig));
+                    console.log('Real-time sync: Updated data from Firebase and synced to localStorage');
                     if (window.renderAll) window.renderAll();
                 }
             });
@@ -279,7 +326,7 @@
     <!-- Task market view -->
     <section id="view-market" class="view hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="margin:0;"> בנק המטלות </h2>
+            <h2 style="margin:0;"> בנק משימות </h2>
             <button onclick="showView('home')" class="back-btn">חזרה</button>
         </div>
         <div id="market-list"></div>

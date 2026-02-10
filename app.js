@@ -278,15 +278,26 @@ function renderChildPage(childIndex) {
                 <h3><span class="material-symbols-rounded">sticky_note_2</span> ${t('reminders')}</h3>
                 <div class="memo-input-row">
                     <input type="text" id="new-memo-text" placeholder="${t('whatToRemember')}" class="memo-input">
-                    <input type="date" id="new-memo-date" class="memo-date-input">
-                    <button onclick="addMemo(${childIndex})" class="memo-add-btn">+</button>
+                    <div class="memo-date-wrapper">
+                        <input type="date" id="new-memo-date" class="memo-date-input" onchange="updateMemoDatePlaceholder(this);" onfocus="updateMemoDatePlaceholder(this);" onblur="updateMemoDatePlaceholder(this);">
+                        <span class="memo-date-placeholder">${t('addDateOptional')}</span>
+                    </div>
                 </div>
+                <button onclick="addMemo(${childIndex})" class="memo-add-btn">${t('add')}</button>
                 <div class="memos-list">
                     ${renderMemosList(child, childIndex)}
                 </div>
             </div>
         </div>
     `;
+    
+    // Initialize placeholder visibility for date input
+    setTimeout(() => {
+        const dateInput = document.getElementById('new-memo-date');
+        if (dateInput) {
+            updateMemoDatePlaceholder(dateInput);
+        }
+    }, 0);
 }
 
 // Render the list of memos for a child
@@ -398,6 +409,14 @@ function setChildBank(childIndex, value) {
     saveData();
     renderChildPage(childIndex);
 }
+
+// Update memo date placeholder visibility
+window.updateMemoDatePlaceholder = function(input) {
+    const placeholder = input.parentElement.querySelector('.memo-date-placeholder');
+    if (placeholder) {
+        placeholder.style.display = input.value ? 'none' : 'block';
+    }
+};
 
 // Add a new memo to a child
 function addMemo(childIndex) {
@@ -782,7 +801,6 @@ function renderEventsList() {
 
     list.innerHTML = events.map((ev, i) => {
         const child = currentFamily.children.find(c => c.id === ev.target);
-        const repeatText = ev.repeat !== false ? ' 🔁' : '';
         
         // Show date for one-time events, day for weekly events
         let dateDisplay;
@@ -796,12 +814,11 @@ function renderEventsList() {
         return `
             <div class="chore-edit-row event-list-row">
                 <span class="event-list-info">
-                    ${dateDisplay} - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>) 
-                    ${child ? `- ${child.name}` : ''}${repeatText}
+                    ${dateDisplay} - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>)${child ? ` - ${child.name}` : ''}
                 </span>
                 <span class="event-list-actions">
                     <button onclick="editEvent(${i})" style="color:#5A9CB5;font-size:1.2rem;background:none;border:none;cursor:pointer;" title="${t('edit')}">✎</button>
-                    <button onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>
+                    <button onclick="currentFamily.events.splice(${i},1); saveData(); renderSettings();" class="del-chore-btn"></button>
                 </span>
             </div>`;
     }).join('');
@@ -1238,7 +1255,7 @@ function renderWeek() {
                 const childName = child ? child.name : '';
                 const colorClass = isForEveryone ? 'event-everyone' : getEventColorByName(childName);
                 return `
-                    <div class="event-chip calendar-event ${colorClass} ${isCollision ? 'event-collision' : ''}" onclick="this.classList.toggle('expanded')">
+                    <div class="event-chip calendar-event ${colorClass} ${isCollision ? 'event-collision' : ''}" onclick="toggleEventExpanded(this, event)">
                         <span class="event-title">${ev.name}</span>
                         <span class="event-time">${ev.start}-${ev.end}</span>
                     </div>
@@ -1254,7 +1271,7 @@ function renderWeek() {
         const memosMarkup = memosForDay.map(memo => {
             const colorClass = getEventColorByName(memo.childName);
             return `
-                <div class="event-chip calendar-event calendar-memo ${colorClass}" onclick="this.classList.toggle('expanded')">
+                <div class="event-chip calendar-event calendar-memo ${colorClass}" onclick="toggleEventExpanded(this, event)">
                     <span class="event-title"><span class="material-symbols-rounded memo-icon">sticky_note_2</span>${memo.text}</span>
                 </div>
             `;
@@ -1285,6 +1302,43 @@ function renderWeek() {
         }
     }
 }
+
+// Toggle event expanded state - closes other events and handles outside clicks
+window.toggleEventExpanded = function(element, event) {
+    // Stop event propagation to prevent immediate closing
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    // Close all other expanded events first
+    const allExpanded = document.querySelectorAll('.event-chip.expanded');
+    allExpanded.forEach(expanded => {
+        if (expanded !== element) {
+            expanded.classList.remove('expanded');
+        }
+    });
+    
+    // Toggle the clicked event
+    element.classList.toggle('expanded');
+    
+    // If we just expanded, set up a click listener to close when clicking outside
+    if (element.classList.contains('expanded')) {
+        // Use setTimeout to avoid immediate trigger from the current click
+        setTimeout(() => {
+            const closeOnOutsideClick = (e) => {
+                // If click is not on this element or its children, close it
+                if (!element.contains(e.target)) {
+                    element.classList.remove('expanded');
+                    document.removeEventListener('click', closeOnOutsideClick);
+                }
+            };
+            // Add listener after a short delay to avoid immediate trigger
+            setTimeout(() => {
+                document.addEventListener('click', closeOnOutsideClick, { once: true });
+            }, 100);
+        }, 10);
+    }
+};
 
 // Market sort state: 'high' = high to low, 'low' = low to high
 let marketSortOrder = 'high';
