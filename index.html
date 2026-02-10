@@ -215,13 +215,15 @@
         <div class="auth-content">
             <img src="loomi-word.png" class="auth-logo" alt="LOOMI">
             <!-- Language toggle -->
-            <img src="app-icon.png" class="lang-toggle-icon" alt="">
-            <div class="lang-toggle-container">
-                <span id="lang-label-en" class="lang-label lang-inactive">English</span>
-                <button id="lang-toggle-btn" class="loomis-toggle-btn" onclick="toggleLanguage()">
-                    <span class="toggle-slider"></span>
-                </button>
-                <span id="lang-label-he" class="lang-label lang-active">עברית</span>
+            <div class="lang-toggle-wrapper">
+                <img src="app-icon.png" class="lang-toggle-icon" alt="">
+                <div class="lang-toggle-container">
+                    <span id="lang-label-en" class="lang-label lang-inactive">English</span>
+                    <button id="lang-toggle-btn" class="loomis-toggle-btn" onclick="toggleLanguage()">
+                        <span class="toggle-slider"></span>
+                    </button>
+                    <span id="lang-label-he" class="lang-label lang-active">עברית</span>
+                </div>
             </div>
             <div class="auth-box">
                 <input type="email" id="email" placeholder="Email" oninput="document.getElementById('auth-error').innerText=''">

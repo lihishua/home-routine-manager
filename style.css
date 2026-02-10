@@ -2692,17 +2692,33 @@ h4 {
 }
 
 /* Language toggle on login page */
+.lang-toggle-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    direction: ltr !important; /* Lock direction so layout never flips */
+}
+.lang-toggle-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
 .lang-toggle-container {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
-    margin-bottom: 20px;
-    direction: ltr !important; /* Always fixed layout regardless of page direction */
+    width: 100%;
 }
 .lang-label {
     font-size: 0.95rem;
     font-weight: 700;
     transition: color 0.3s ease;
+    width: 60px;
+    text-align: center;
 }
 .lang-label.lang-active {
     color: #134686;
@@ -2710,12 +2726,10 @@ h4 {
 .lang-label.lang-inactive {
     color: #b0b0b0;
 }
-.lang-toggle-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-}
 #lang-toggle-btn {
+    width: 60px;
+    height: 30px;
+    border-radius: 15px;
     background-color: #e0e0e0;
 }
 #lang-toggle-btn.active {
@@ -2723,6 +2737,11 @@ h4 {
 }
 #lang-toggle-btn .toggle-slider {
     background-color: #134686;
+    width: 24px;
+    height: 24px;
+}
+#lang-toggle-btn.active .toggle-slider {
+    transform: translateX(30px);
 }
 
 .guest-link {
