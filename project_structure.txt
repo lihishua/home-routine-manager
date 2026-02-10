@@ -1,9 +1,23 @@
-home_routine_manager/
-├── index.html          # The main "Kiosk" entry point
-├── style.css           # All your RTL and kid-friendly styling
-├── app.js              # Main logic (Navigation, Swiping kids, Phase switching)
-├── data.js             # Initial sample data (Children, Chores, Icons)
-├── assets/             # Folder for images and sounds
-│   ├── icons/          # Chore images (brush.png, bag.png, etc.)
-│   └── sounds/         # Feedback sounds (success.mp3)
-└── README.md           # The manual for your project
+LOOMI™ | Home Routine Manager
+Project Directory Structure
+---------------------------------------
+
+/ (Root)
+├── index.html          # Main application UI and HTML5 structure
+├── style.css           # Responsive CSS for iPhone and Desktop layouts
+├── app.js              # Core logic: Firebase Auth, Firestore sync, and UI handling
+├── site.webmanifest    # Configuration for iOS/Android home screen installation
+│
+├── assets/             # Brand identity and visual elements
+│   ├── apple-touch-icon.png    # High-resolution icon for iPhone home screen
+│   ├── favicon.ico             # Browser tab icon
+│   └── favicon-96x96.png       # Standard web icon
+│
+├── docs/               # Project documentation and legal
+│   ├── README.md               # Main project overview and setup guide
+│   └── project_structure.txt   # Detailed file hierarchy (this file)
+│
+└── google-verification.html    # Ownership verification for Google Search Console
+
+---------------------------------------
+Last Updated: February 2026
