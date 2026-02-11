@@ -234,18 +234,65 @@
             }, { merge: true });
         };
 
-        // 6. DAILY RESET CHECK
+        // 6. DAILY RESET CHECK - Reset routine checkmarks at midnight (when date changes)
         function checkDailyReset(uid) {
             const lastReset = localStorage.getItem('lastResetDate');
             const today = new Date().toLocaleDateString();
 
             if (lastReset !== today) {
-                // It's a new day! Clear the Firestore document for this user
-                setDoc(doc(db, "users", uid), {}, { merge: false })
-                    .then(() => {
+                // It's a new day! Reset routine checkmarks only (not all data)
+                console.log("New day detected, resetting routine checkmarks...");
+                
+                // Load current data first
+                getDoc(doc(db, "users", uid)).then(docSnap => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.familyConfig && data.familyConfig.children) {
+                            // Reset completed flags for all tasks in all children
+                            data.familyConfig.children.forEach(child => {
+                                if (child.morning) {
+                                    child.morning.forEach(task => {
+                                        task.completed = false;
+                                    });
+                                }
+                                if (child.evening) {
+                                    child.evening.forEach(task => {
+                                        task.completed = false;
+                                    });
+                                }
+                            });
+                            
+                            // Save the updated data
+                            setDoc(doc(db, "users", uid), { familyConfig: data.familyConfig }, { merge: true })
+                                .then(() => {
+                                    localStorage.setItem('lastResetDate', today);
+                                    // Update local data too
+                                    if (window.currentFamily) {
+                                        window.currentFamily.children.forEach(child => {
+                                            if (child.morning) {
+                                                child.morning.forEach(task => { task.completed = false; });
+                                            }
+                                            if (child.evening) {
+                                                child.evening.forEach(task => { task.completed = false; });
+                                            }
+                                        });
+                                        localStorage.setItem('myFamilyConfig', JSON.stringify(window.currentFamily));
+                                    }
+                                    console.log("Routine checkmarks reset for the new day!");
+                                });
+                        } else {
+                            // No data yet, just set the reset date
+                            localStorage.setItem('lastResetDate', today);
+                        }
+                    } else {
+                        // No document yet, just set the reset date
                         localStorage.setItem('lastResetDate', today);
-                        console.log("Routine reset for the new day!");
-                    });
+                    }
+                }).catch(err => {
+                    console.error('Error during daily reset:', err);
+                    // Still set the date to avoid repeated attempts
+                    localStorage.setItem('lastResetDate', today);
+                });
             }
         }
     </script>
@@ -429,7 +476,7 @@
     </section>
 
     <footer style="text-align: center; padding: 20px; font-size: 0.8rem; color: #777;">
-        <p>&copy; 2026 LOOMI™ Home Routine. כל הזכויות שמורות.</p>
+        <p>&copy; 2026 LOOMI™ Home Task Manager. כל הזכויות שמורות.</p>
         <p>
             <a href="#" onclick="showPolicy('privacy')" style="color:#5A9CB5;text-decoration:underline;">Privacy Policy</a> | 
             <a href="#" onclick="showPolicy('terms')" style="color:#5A9CB5;text-decoration:underline;">Terms of Service</a>
