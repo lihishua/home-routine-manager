@@ -741,10 +741,11 @@ header #clock {
 /* Multi-day checkbox pills */
 .day-checkboxes {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 4px;
+    justify-content: flex-start;
     width: 100%;
+    overflow-x: auto;
 }
 
 .day-checkbox-label {
@@ -760,8 +761,9 @@ header #clock {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
     border-radius: 50%;
     background: #f1f5f9;
     color: #64748b;
@@ -2482,6 +2484,11 @@ h4 {
     border: 2px solid #E2E8F0;
     border-radius: 12px;
     font-family: inherit;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0; /* Allow flex item to shrink below content size */
     font-size: 0.9rem;
     background: white;
     position: relative;

@@ -281,7 +281,7 @@ function renderChildPage(childIndex) {
                     <div class="memo-date-wrapper">
                         <input type="date" id="new-memo-date" class="memo-date-input" onchange="updateMemoDatePlaceholder(this);" onfocus="updateMemoDatePlaceholder(this);" onblur="updateMemoDatePlaceholder(this);">
                         <span class="memo-date-placeholder">${t('addDateOptional')}</span>
-                    </div>
+                </div>
                 </div>
                 <button onclick="addMemo(${childIndex})" class="memo-add-btn">${t('add')}</button>
                 <div class="memos-list">
@@ -594,7 +594,8 @@ function renderChildList() {
         html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
         if (isLoomisEnabled()) {
             html += '<div class="loomi-display-row">';
-            html += '<span class="loomi-number">' + loomis + ' ' + getLoomiIconHtml() + '</span>';
+            html += '<span class="loomi-number">' + loomis + '</span>';
+            html += getLoomiIconHtml();
             html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">' + t('resetLoomis') + '</span>';
             html += '</div>';
         }
@@ -611,6 +612,8 @@ function renderChildList() {
         html += '<option value="both">' + t('bothOption') + '</option>';
         html += '</select>';
         html += '</div>';
+        // Day selection for chores
+        html += '<div id="chore-days-' + ci + '" class="day-checkboxes" style="margin-bottom:8px;"></div>';
         html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:stretch;">';
         html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">' + t('add') + '</button>';
         html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="flex:1;">' + t('addToAll') + '</button>';
@@ -623,6 +626,13 @@ function renderChildList() {
         
         html += '</div>';
     });
+    
+    // Render day checkboxes for all children after HTML is set
+    setTimeout(() => {
+        children.forEach((c, ci) => {
+            renderChoreDayCheckboxes(ci);
+        });
+    }, 0);
     
     // Add the "Add Child" card at the end
     html += '<div class="settings-child-card" style="display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;">';
@@ -666,20 +676,28 @@ function addMarketItem() {
     }
 }
 
-// Add a single chore to one child’s routine.
+// Add a single chore to one child's routine.
 function addChore(ci) {
     const input = document.getElementById(`chore-in-${ci}`);
     const v = input ? input.value.trim() : '';
     const t = document.getElementById(`chore-time-${ci}`).value;
+    const selectedDays = getSelectedChoreDays(ci);
+    // If no days selected, show every day (days = undefined or empty array means all days)
+    const days = selectedDays.length > 0 ? selectedDays : undefined;
     
     if (v) {
+        const taskData = {id: Date.now(), task: v};
+        if (days) taskData.days = days;
+        
         if (t === 'both') {
-            currentFamily.children[ci].morning.push({id: Date.now(), task: v});
-            currentFamily.children[ci].evening.push({id: Date.now() + 1, task: v});
+            currentFamily.children[ci].morning.push({...taskData});
+            currentFamily.children[ci].evening.push({...taskData, id: Date.now() + 1});
         } else {
-            currentFamily.children[ci][t].push({id: Date.now(), task: v});
+            currentFamily.children[ci][t].push(taskData);
         }
         input.value = '';
+        // Clear day checkboxes
+        document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
         saveData();
         renderChildList();
     }
@@ -690,17 +708,24 @@ function addChoreToAll(ci) {
     const input = document.getElementById(`chore-in-${ci}`);
     const v = input ? input.value.trim() : '';
     const t = document.getElementById(`chore-time-${ci}`).value;
+    const selectedDays = getSelectedChoreDays(ci);
+    const days = selectedDays.length > 0 ? selectedDays : undefined;
     
     if (v) {
         currentFamily.children.forEach(c => {
+            const taskData = {id: Date.now() + Math.random(), task: v};
+            if (days) taskData.days = days;
+            
             if (t === 'both') {
-                c.morning.push({id: Date.now() + Math.random(), task: v});
-                c.evening.push({id: Date.now() + Math.random() + 1, task: v});
+                c.morning.push({...taskData});
+                c.evening.push({...taskData, id: Date.now() + Math.random() + 1});
             } else {
-                c[t].push({id: Date.now() + Math.random(), task: v});
+                c[t].push(taskData);
             }
         });
         input.value = '';
+        // Clear day checkboxes
+        document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
         saveData();
         renderChildList();
     }
@@ -838,6 +863,25 @@ function renderDayCheckboxes() {
             <span class="day-checkbox-pill">${dayLetter}</span>
         </label>
     `).join('');
+}
+
+// Render day checkboxes for chore selection
+function renderChoreDayCheckboxes(childIndex) {
+    const container = document.getElementById('chore-days-' + childIndex);
+    if (!container) return;
+    const daysShort = getDays();
+    container.innerHTML = daysShort.map((dayLetter, i) => `
+        <label class="day-checkbox-label">
+            <input type="checkbox" class="chore-day-checkbox" value="${i}">
+            <span class="day-checkbox-pill">${dayLetter}</span>
+        </label>
+    `).join('');
+}
+
+// Get selected days for a chore
+function getSelectedChoreDays(childIndex) {
+    const checkboxes = document.querySelectorAll(`#chore-days-${childIndex} .chore-day-checkbox:checked`);
+    return Array.from(checkboxes).map(cb => parseInt(cb.value, 10));
 }
 
 function getSelectedDays() {
@@ -1516,7 +1560,15 @@ function renderRoutine(type) {
             </div>
             
             <div class="routine-tasks-list">
-                ${child[type].map((task, ti) => {
+                ${child[type].filter((task, ti) => {
+                    // Filter tasks by current day if they have days specified
+                    if (task.days && task.days.length > 0) {
+                        const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+                        return task.days.includes(today);
+                    }
+                    // If no days specified, show every day
+                    return true;
+                }).map((task, ti) => {
                     const taskId = `task-${ci}-${type}-${ti}`;
                     const isCompleted = task.completed ? 'completed' : '';
                     return `
