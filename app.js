@@ -72,13 +72,10 @@ function removeDuplicateChildren() {
 removeDuplicateChildren();
 
 // Persist the active family configuration to storage.
-function saveData() { 
+function saveData() {
     localStorage.setItem('myFamilyConfig', JSON.stringify(currentFamily));
-    window.currentFamily = currentFamily; // Keep global in sync
-    // Also save to Firebase if logged in
-    if (window.saveToFirebase) {
-        window.saveToFirebase();
-    }
+    window.currentFamily = currentFamily; // This is vital for your renderer
+    if (window.saveToFirebase) window.saveToFirebase();
 }
 
 // Global render function for Firebase real-time sync
@@ -160,7 +157,7 @@ function showView(viewId) {
     }
     
     if (viewId === 'week') renderWeek();
-    if (viewId === 'settings') { sortEvents(); renderSettings(); }
+    if (viewId === 'settings') { sortEvents(); sortChores(); renderSettings(); }
     if (viewId === 'market') renderMarket();
     if (isRoutine) {
         // Update the routine page title based on type
@@ -520,7 +517,10 @@ function renderChildList() {
     const childList = document.getElementById('settings-child-list');
     if (!childList) return;
     
-    const children = currentFamily.children || [];
+    // CRITICAL: Always read from window.currentFamily first (it's the source of truth)
+    // Then fall back to currentFamily, then empty array
+    const familyData = window.currentFamily || currentFamily;
+    const children = (familyData && familyData.children) ? familyData.children : [];
 
     let html = '';
     children.forEach((c, ci) => {
@@ -530,8 +530,10 @@ function renderChildList() {
         
         // Build chores list - combine tasks that appear in both morning and evening
         let choresHtml = '';
-        const morningTasks = c.morning || [];
-        const eveningTasks = c.evening || [];
+        // CRITICAL: Read directly from the child object, not from a cached reference
+        // This ensures we get the latest data even if arrays were modified
+        const morningTasks = (c.morning && Array.isArray(c.morning)) ? c.morning : [];
+        const eveningTasks = (c.evening && Array.isArray(c.evening)) ? c.evening : [];
         
         // Create a map of task text to its occurrences
         const taskMap = new Map();
@@ -559,6 +561,10 @@ function renderChildList() {
             const hasMorning = occurrences.morning !== null;
             const hasEvening = occurrences.evening !== null;
             
+            // Get days from morning task (if exists) or evening task
+            const taskObj = occurrences.morning ? occurrences.morning.task : (occurrences.evening ? occurrences.evening.task : null);
+            const days = taskObj && taskObj.days ? taskObj.days : null;
+            
             let icon = '';
             if (hasMorning && hasEvening) {
                 icon = '☀️🌙'; // Both icons
@@ -566,6 +572,14 @@ function renderChildList() {
                 icon = '☀️';
             } else if (hasEvening) {
                 icon = '🌙';
+            }
+            
+            // Build days display if exists
+            let daysDisplay = '';
+            if (days && days.length > 0 && days.length < 7) {
+                const daysShort = getDays();
+                const dayLetters = days.sort((a, b) => a - b).map(d => daysShort[d]).join(',');
+                daysDisplay = ' <span style="color:#94a3b8;font-size:0.7rem;">(' + dayLetters + ')</span>';
             }
             
             // Create delete function that removes from both if needed
@@ -580,9 +594,15 @@ function renderChildList() {
                 deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const eIdx=child.evening.findIndex(t=>t.task===taskText);if(eIdx>=0)child.evening.splice(eIdx,1);saveData();renderSettings();})()`;
             }
             
-            choresHtml += '<div class="chore-edit-row" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;">';
-            choresHtml += '<span style="display:flex;align-items:center;gap:8px;">' + icon + ' ' + taskText + '</span>';
+            // Create edit function
+            const editFunc = `editChore(${ci}, '${taskTextEscaped}')`;
+            
+            choresHtml += '<div class="chore-edit-row event-list-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;">';
+            choresHtml += '<span class="event-list-actions">';
+            choresHtml += '<button onclick="' + editFunc + '" style="color:#5A9CB5;font-size:1.2rem;background:none;border:none;cursor:pointer;" title="' + t('edit') + '">✎</button>';
             choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>';
+            choresHtml += '</span>';
+            choresHtml += '<span class="event-list-info" style="display:flex;align-items:center;gap:8px;text-align:right;flex:1;">' + icon + ' ' + taskText + daysDisplay + '</span>';
             choresHtml += '</div>';
         });
 
@@ -606,12 +626,14 @@ function renderChildList() {
         // Add chore input
         html += '<div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">';
         html += '<input type="text" id="chore-in-' + ci + '" placeholder="' + t('newTask') + '" style="flex:1;min-width:100px;padding:6px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.8rem">';
-        html += '<select id="chore-time-' + ci + '" style="padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;font-size:0.8rem">';
-        html += '<option value="morning">' + t('morningOption') + '</option>';
-        html += '<option value="evening">' + t('eveningOption') + '</option>';
-        html += '<option value="both">' + t('bothOption') + '</option>';
-        html += '</select>';
+        html += '<div class="chore-time-buttons" style="display:flex;gap:4px;align-items:center;">';
+        html += `<button type="button" id="chore-morning-${ci}" class="chore-time-btn active" onclick="setChoreTime(${ci}, 'morning')" title="${t('morningOption')}">☀️</button>`;
+        html += `<button type="button" id="chore-evening-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'evening')" title="${t('eveningOption')}">🌙</button>`;
+        html += `<button type="button" id="chore-both-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'both')" title="${t('both')}">☀️🌙</button>`;
         html += '</div>';
+        html += '</div>';
+        // Hidden input to track current selection
+        html += '<input type="hidden" id="chore-time-' + ci + '" value="morning">';
         // Day selection for chores
         html += '<div id="chore-days-' + ci + '" class="day-checkboxes" style="margin-bottom:8px;"></div>';
         html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:stretch;">';
@@ -651,7 +673,12 @@ function renderChildList() {
     html += '<button onclick="addChild()" class="settings-card-btn" style="width:100%;padding:10px;font-size:0.9rem;">' + t('add') + '</button>';
     html += '</div>';
     
-    childList.innerHTML = html;
+    // CRITICAL: Force DOM update by setting innerHTML
+    if (childList) {
+        childList.innerHTML = html;
+        // Force a reflow to ensure the browser processes the change
+        void childList.offsetHeight;
+    }
 }
 
 // Adjust the loomis cost for a market item and refresh settings.
@@ -676,6 +703,114 @@ function addMarketItem() {
     }
 }
 
+// Toggle chore time selection (morning/evening)
+window.setChoreTime = function(childIndex, selection) {
+    const morningBtn = document.getElementById(`chore-morning-${childIndex}`);
+    const eveningBtn = document.getElementById(`chore-evening-${childIndex}`);
+    const bothBtn = document.getElementById(`chore-both-${childIndex}`);
+    const hiddenInput = document.getElementById(`chore-time-${childIndex}`);
+
+    if (!morningBtn || !eveningBtn || !bothBtn || !hiddenInput) return;
+
+    // 1. Reset all buttons to inactive
+    morningBtn.classList.remove('active');
+    eveningBtn.classList.remove('active');
+    bothBtn.classList.remove('active');
+
+    // 2. Activate only the selected button
+    if (selection === 'morning') morningBtn.classList.add('active');
+    if (selection === 'evening') eveningBtn.classList.add('active');
+    if (selection === 'both') bothBtn.classList.add('active');
+
+    // 3. Update the hidden input that your addChore functions read
+    hiddenInput.value = selection;
+};
+
+// Edit a chore - populate the form
+window.editChore = function(childIndex, taskText) {
+    const input = document.getElementById(`chore-in-${childIndex}`);
+    if (!input) return;
+
+    const child = currentFamily.children[childIndex];
+    if (!child) return;
+
+    const morningTask = child.morning.find(t => t.task === taskText);
+    const eveningTask = child.evening.find(t => t.task === taskText);
+    if (!morningTask && !eveningTask) return;
+
+    input.value = taskText;
+    input.dataset.editingTask = taskText; // Crucial for removal logic
+    input.dataset.editingChildIndex = childIndex;
+
+    // Set buttons to "Update" mode
+    const card = input.closest('.settings-child-card');
+    const addBtn = card.querySelector('button.settings-card-btn:not(.add-btn-orange)');
+    const allBtn = card.querySelector('button.add-btn-orange');
+
+    if (addBtn) {
+        addBtn.textContent = t('update');
+        addBtn.setAttribute('onclick', `updateChore(${childIndex})`);
+    }
+    if (allBtn) {
+        allBtn.textContent = t('updateAll');
+        allBtn.setAttribute('onclick', `updateChoreToAll(${childIndex})`);
+    }
+
+    // Populate Time Buttons & Checkboxes...
+    const hasMorning = !!morningTask;
+    const hasEvening = !!eveningTask;
+    const timeSelection = (hasMorning && hasEvening) ? 'both' : (hasMorning ? 'morning' : 'evening');
+    
+    // Use setChoreTime to properly set the active button (single selection)
+    setChoreTime(childIndex, timeSelection);
+
+    const taskWithDays = morningTask || eveningTask;
+    document.querySelectorAll(`#chore-days-${childIndex} .chore-day-checkbox`).forEach(cb => {
+        cb.checked = taskWithDays?.days?.includes(parseInt(cb.value, 10)) || false;
+    });
+};
+
+// Update a task for a specific child and reset UI
+function updateChore(childIndex) {
+    const input = document.getElementById(`chore-in-${childIndex}`);
+    if (!input || !input.value.trim()) return;
+
+    const oldTaskText = input.dataset.editingTask;
+    const newTaskText = input.value.trim();
+    const timeVal = document.getElementById(`chore-time-${childIndex}`).value;
+    const selectedDays = getSelectedChoreDays(childIndex);
+    const days = selectedDays.length > 0 ? selectedDays : undefined;
+
+    const child = currentFamily.children[childIndex];
+    if (!child) return;
+
+    // 1. Filter out old task
+    child.morning = child.morning.filter(t => t.task !== oldTaskText);
+    child.evening = child.evening.filter(t => t.task !== oldTaskText);
+
+    // 2. Add new task
+    const taskData = { id: Date.now(), task: newTaskText };
+    if (days) taskData.days = days;
+
+    if (timeVal === 'both') {
+        child.morning.unshift({ ...taskData });
+        child.evening.unshift({ ...taskData, id: Date.now() + 1 });
+    } else {
+        child[timeVal].unshift(taskData);
+    }
+
+    // 3. Clear Metadata IMMEDIATELY to exit Edit Mode
+    input.value = '';
+    input.removeAttribute('data-editing-task');
+    input.removeAttribute('data-editing-child-index');
+    // Reset time buttons to default (morning)
+    setChoreTime(childIndex, 'morning');
+
+    // 4. Save and full UI refresh
+    saveData();
+    renderSettings(); // Calls renderChildList internally in your app.js
+}
+
 // Add a single chore to one child's routine.
 function addChore(ci) {
     const input = document.getElementById(`chore-in-${ci}`);
@@ -690,45 +825,63 @@ function addChore(ci) {
         if (days) taskData.days = days;
         
         if (t === 'both') {
-            currentFamily.children[ci].morning.push({...taskData});
-            currentFamily.children[ci].evening.push({...taskData, id: Date.now() + 1});
+            currentFamily.children[ci].morning.unshift({...taskData});
+            currentFamily.children[ci].evening.unshift({...taskData, id: Date.now() + 1});
         } else {
-            currentFamily.children[ci][t].push(taskData);
+            currentFamily.children[ci][t].unshift(taskData);
         }
         input.value = '';
         // Clear day checkboxes
         document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
+        // Reset time buttons to default (morning)
+        setChoreTime(ci, 'morning');
         saveData();
         renderChildList();
     }
 }
 
 // Copy a chore to every child's routine list.
-function addChoreToAll(ci) {
-    const input = document.getElementById(`chore-in-${ci}`);
-    const v = input ? input.value.trim() : '';
-    const t = document.getElementById(`chore-time-${ci}`).value;
-    const selectedDays = getSelectedChoreDays(ci);
+function updateChoreToAll(childIndex) {
+    const input = document.getElementById(`chore-in-${childIndex}`);
+    if (!input || !input.value.trim()) return;
+
+    const oldTaskText = input.dataset.editingTask;
+    const newTaskText = input.value.trim();
+    const timeVal = document.getElementById(`chore-time-${childIndex}`).value;
+    const selectedDays = getSelectedChoreDays(childIndex);
     const days = selectedDays.length > 0 ? selectedDays : undefined;
-    
-    if (v) {
-        currentFamily.children.forEach(c => {
-            const taskData = {id: Date.now() + Math.random(), task: v};
-            if (days) taskData.days = days;
-            
-            if (t === 'both') {
-                c.morning.push({...taskData});
-                c.evening.push({...taskData, id: Date.now() + Math.random() + 1});
-            } else {
-                c[t].push(taskData);
-            }
-        });
-        input.value = '';
-        // Clear day checkboxes
-        document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
-        saveData();
-        renderChildList();
-    }
+
+    // CRITICAL: Use window.currentFamily if available to ensure we modify the right object
+    const familyToModify = window.currentFamily || currentFamily;
+
+    // Apply to every child
+    familyToModify.children.forEach(c => {
+        c.morning = c.morning.filter(t => t.task !== oldTaskText);
+        c.evening = c.evening.filter(t => t.task !== oldTaskText);
+
+        const taskData = { id: Date.now() + Math.random(), task: newTaskText };
+        if (days) taskData.days = days;
+
+        if (timeVal === 'both') {
+            c.morning.unshift({ ...taskData, id: Date.now() + Math.random() });
+            c.evening.unshift({ ...taskData, id: Date.now() + Math.random() + 1 });
+        } else {
+            c[timeVal].unshift(taskData);
+        }
+    });
+
+    // Sync currentFamily to match
+    currentFamily = familyToModify;
+
+    // Reset Input
+    input.value = '';
+    input.removeAttribute('data-editing-task');
+    input.removeAttribute('data-editing-child-index');
+    // Reset time buttons to default (morning)
+    setChoreTime(childIndex, 'morning');
+
+    saveData();
+    renderSettings(); // Triggers the full UI rebuild
 }
 
 // Add a new child to the family.
@@ -777,16 +930,24 @@ function addChild() {
     if (copyFromIndex !== '' && copyFromIndex !== null) {
         const sourceChild = currentFamily.children[parseInt(copyFromIndex)];
         if (sourceChild) {
-            // Deep copy morning tasks
-            newChild.morning = sourceChild.morning.map(t => ({
-                id: Date.now() + Math.random(),
-                task: t.task
-            }));
-            // Deep copy evening tasks
-            newChild.evening = sourceChild.evening.map(t => ({
-                id: Date.now() + Math.random() + 1000,
-                task: t.task
-            }));
+            // Deep copy morning tasks (including days property)
+            newChild.morning = sourceChild.morning.map(t => {
+                const newTask = {
+                    id: Date.now() + Math.random(),
+                    task: t.task
+                };
+                if (t.days) newTask.days = [...t.days]; // Copy days array if it exists
+                return newTask;
+            });
+            // Deep copy evening tasks (including days property)
+            newChild.evening = sourceChild.evening.map(t => {
+                const newTask = {
+                    id: Date.now() + Math.random() + 1000,
+                    task: t.task
+                };
+                if (t.days) newTask.days = [...t.days]; // Copy days array if it exists
+                return newTask;
+            });
         }
     }
     
@@ -809,6 +970,19 @@ function sortEvents() {
         if (!aWeekly && bWeekly) return 1;
         if (aWeekly && bWeekly) return a.day - b.day;
         return (a.date || '').localeCompare(b.date || '');
+    });
+}
+
+// Sort chores for each child (by task text alphabetically)
+function sortChores() {
+    if (!currentFamily.children) return;
+    currentFamily.children.forEach(child => {
+        if (child.morning) {
+            child.morning.sort((a, b) => (a.task || '').localeCompare(b.task || ''));
+        }
+        if (child.evening) {
+            child.evening.sort((a, b) => (a.task || '').localeCompare(b.task || ''));
+        }
     });
 }
 

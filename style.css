@@ -787,7 +787,7 @@ header #clock {
     gap: 8px;
     padding: 6px 0;
     border-bottom: 1px solid #f1f5f9;
-    direction: ltr;
+    direction: ltr; /* Keep LTR for consistent button/text positioning */
 }
 
 .event-list-actions {
@@ -795,14 +795,15 @@ header #clock {
     align-items: center;
     gap: 4px;
     flex-shrink: 0;
-    order: 0;
+    order: 0; /* Buttons on the left */
 }
 
 .event-list-info {
     flex: 1;
     min-width: 0;
-    text-align: right;
-    order: 1;
+    text-align: right; /* Text aligned right for Hebrew */
+    direction: rtl; /* RTL for Hebrew text content */
+    order: 1; /* Text on the right */
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -819,6 +820,39 @@ header #clock {
 
 .edit-event-btn:hover {
     background: #f1f5f9;
+}
+
+/* Chore time selection buttons (sun/moon) */
+.chore-time-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.chore-time-btn {
+    background: #e2e8f0;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    opacity: 0.5;
+}
+
+.chore-time-btn.active {
+    background: #FACE68;
+    border-color: #F9B42A;
+    opacity: 1;
+    box-shadow: 0 2px 4px rgba(250, 206, 104, 0.3);
+}
+
+.chore-time-btn:hover {
+    opacity: 0.8;
+}
+
+.chore-time-btn.active:hover {
+    opacity: 1;
 }
 
 /* Cancel edit button */
