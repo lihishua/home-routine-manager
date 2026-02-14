@@ -825,19 +825,40 @@ header #clock {
 /* Chore time selection buttons (sun/moon) */
 .chore-time-buttons {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     align-items: center;
 }
 
 .chore-time-btn {
     background: #e2e8f0;
-    border: 2px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 1.2rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.15s ease;
     opacity: 0.5;
+    line-height: 1;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chore-time-btn i {
+    font-family: 'Material Symbols Rounded' !important;
+    font-size: 1rem;
+    color: #5A9CB5;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.chore-time-btn[id^="chore-both-"] {
+    gap: 1px;
+}
+
+.chore-time-btn[id^="chore-both-"] i {
+    font-size: 0.75rem;
 }
 
 .chore-time-btn.active {

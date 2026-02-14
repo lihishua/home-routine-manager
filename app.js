@@ -624,12 +624,12 @@ function renderChildList() {
         html += '</div>';
         
         // Add chore input
-        html += '<div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">';
-        html += '<input type="text" id="chore-in-' + ci + '" placeholder="' + t('newTask') + '" style="flex:1;min-width:100px;padding:6px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.8rem">';
-        html += '<div class="chore-time-buttons" style="display:flex;gap:4px;align-items:center;">';
-        html += `<button type="button" id="chore-morning-${ci}" class="chore-time-btn active" onclick="setChoreTime(${ci}, 'morning')" title="${t('morningOption')}">☀️</button>`;
-        html += `<button type="button" id="chore-evening-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'evening')" title="${t('eveningOption')}">🌙</button>`;
-        html += `<button type="button" id="chore-both-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'both')" title="${t('both')}">☀️🌙</button>`;
+        html += '<div style="display:flex;gap:4px;margin-bottom:8px;align-items:center;flex-wrap:nowrap">';
+        html += '<input type="text" id="chore-in-' + ci + '" placeholder="' + t('newTask') + '" style="flex:1;min-width:80px;padding:4px 6px;border-radius:6px;border:1px solid #e2e8f0;font-size:0.75rem">';
+        html += '<div class="chore-time-buttons" style="display:flex;gap:2px;align-items:center;flex-shrink:0;">';
+        html += `<button type="button" id="chore-morning-${ci}" class="chore-time-btn active" onclick="setChoreTime(${ci}, 'morning')" title="${t('morningOption')}"><i class="material-symbols-rounded">wb_sunny</i></button>`;
+        html += `<button type="button" id="chore-evening-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'evening')" title="${t('eveningOption')}"><i class="material-symbols-rounded">dark_mode</i></button>`;
+        html += `<button type="button" id="chore-both-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'both')" title="${t('both')}"><i class="material-symbols-rounded">wb_sunny</i><i class="material-symbols-rounded">dark_mode</i></button>`;
         html += '</div>';
         html += '</div>';
         // Hidden input to track current selection
