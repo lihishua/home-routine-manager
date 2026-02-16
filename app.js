@@ -750,10 +750,14 @@ window.editChore = function(childIndex, taskText) {
     if (addBtn) {
         addBtn.textContent = t('update');
         addBtn.setAttribute('onclick', `updateChore(${childIndex})`);
+        addBtn.classList.add('update-mode-btn');
+        // Keep add-btn-row for size properties
     }
     if (allBtn) {
         allBtn.textContent = t('updateAll');
         allBtn.setAttribute('onclick', `updateChoreToAll(${childIndex})`);
+        allBtn.classList.add('update-mode-btn');
+        // Keep add-btn-orange for size properties
     }
 
     // Populate Time Buttons & Checkboxes...
@@ -830,6 +834,55 @@ function addChore(ci) {
         } else {
             currentFamily.children[ci][t].unshift(taskData);
         }
+        input.value = '';
+        // Clear day checkboxes
+        document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
+        // Reset time buttons to default (morning)
+        setChoreTime(ci, 'morning');
+        saveData();
+        renderChildList();
+    }
+}
+
+// Copy a chore to every child's routine list.
+function addChoreToAll(ci) {
+    const input = document.getElementById(`chore-in-${ci}`);
+    const v = input ? input.value.trim() : '';
+    const t = document.getElementById(`chore-time-${ci}`).value;
+    const selectedDays = getSelectedChoreDays(ci);
+    const days = selectedDays.length > 0 ? selectedDays : undefined;
+    
+    if (v) {
+        // CRITICAL: Ensure we're modifying the same object that window.currentFamily points to
+        const familyToModify = window.currentFamily || currentFamily;
+        
+        let addedToAny = false;
+        familyToModify.children.forEach(c => {
+            // Check if this child already has this task
+            const hasTask = c.morning.some(t => t.task === v) || c.evening.some(t => t.task === v);
+            if (hasTask) return; // Skip if already exists
+            
+            const taskData = {id: Date.now() + Math.random(), task: v};
+            if (days) taskData.days = days;
+            
+            if (t === 'both') {
+                c.morning.unshift({...taskData});
+                c.evening.unshift({...taskData, id: Date.now() + Math.random() + 1});
+            } else {
+                c[t].unshift(taskData);
+            }
+            addedToAny = true;
+        });
+        
+        // CRITICAL: Sync currentFamily to match window.currentFamily
+        currentFamily = familyToModify;
+        
+        if (!addedToAny) {
+            // Task already exists in all children, don't do anything but still clear form
+            input.value = '';
+            return;
+        }
+        
         input.value = '';
         // Clear day checkboxes
         document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
@@ -1176,8 +1229,13 @@ function editEvent(index) {
     if (endM) endM.value = ev.end.split(':')[1];
     if (targetEl) targetEl.value = ev.target;
     if (editIdx) editIdx.value = index;
-    if (btnAdd) btnAdd.classList.add('hidden');
-    if (btnUpdate) btnUpdate.classList.remove('hidden');
+    if (btnAdd) {
+        btnAdd.classList.add('hidden');
+    }
+    if (btnUpdate) {
+        btnUpdate.classList.remove('hidden');
+        btnUpdate.classList.add('update-mode-btn');
+    }
     if (btnCancel) btnCancel.classList.remove('hidden');
     
     // Scroll to the event form
@@ -1267,8 +1325,13 @@ function resetEventForm() {
     if (target) target.value = 'family';
     if (editIdx) editIdx.value = '-1';
     if (dateInput) dateInput.value = '';
-    if (btnAdd) btnAdd.classList.remove('hidden');
-    if (btnUpdate) btnUpdate.classList.add('hidden');
+    if (btnAdd) {
+        btnAdd.classList.remove('hidden');
+    }
+    if (btnUpdate) {
+        btnUpdate.classList.add('hidden');
+        btnUpdate.classList.remove('update-mode-btn');
+    }
     if (btnCancel) btnCancel.classList.add('hidden');
     
     // Reset to weekly mode

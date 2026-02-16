@@ -2112,6 +2112,32 @@ h4 {
     transform: translateY(3px);
     box-shadow: 0 3px 0px #E5954F !important;
 }
+
+/* Update/Edit mode buttons - Blue color to distinguish from Add buttons */
+/* Only change colors, keep all size/shape properties from add-btn-row */
+/* When both classes are present, update-mode-btn overrides only the color */
+.add-btn-row.update-mode-btn {
+    background-color: #5A9CB5 !important; /* Turquoise blue */
+    color: #ffffff !important; /* White text for contrast */
+    /* Keep same box-shadow size as add-btn-row */
+    box-shadow: 0 6px 0px #4A8BA5 !important; /* Darker blue shadow, same depth */
+}
+
+.add-btn-row.update-mode-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0px #4A8BA5 !important; /* Same active shadow as add buttons */
+}
+
+/* Update mode for orange "add to all" button when in edit mode */
+.add-btn-orange.update-mode-btn {
+    background-color: #5A9CB5 !important;
+    /* Keep same box-shadow size as add-btn-orange */
+    box-shadow: 0 6px 0px #4A8BA5 !important;
+}
+
+.add-btn-orange.update-mode-btn:active {
+    box-shadow: 0 3px 0px #4A8BA5 !important;
+}
 .add-btn-row:active {
     transform: translateY(3px);
     box-shadow: 0 3px 0px #E5B959 !important;
