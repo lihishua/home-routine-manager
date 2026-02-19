@@ -475,6 +475,12 @@ function renderSettings() {
     renderEventsList();
     renderMarketSection();
     renderChildList();
+    
+    // Ensure children section title is translated
+    const childrenTitle = document.querySelector('.settings-section-title');
+    if (childrenTitle) {
+        childrenTitle.textContent = t('childrenSection');
+    }
 }
 
 function renderMarketSection() {

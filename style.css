@@ -1310,20 +1310,33 @@ h2, h3, .compact-h3 {
 }
 .settings-section-title {
     color: #134686;
-    font-size: 1.8rem;
-    font-weight: 900;
+    font-size: 1.2rem;
+    font-weight: 800;
     position: relative;
-    display: inline-block;
+    display: block;
+    text-align: right; /* Align text to right for Hebrew */
+    width: 100%;
+    box-sizing: border-box;
 }
+
+[dir="ltr"] .settings-section-title {
+    text-align: left; /* Align text to left for English */
+}
+
 .settings-section-title::after {
     content: '';
     position: absolute;
     bottom: -5px;
-    left: 0;
+    right: 0; /* Start from right for RTL */
     width: 60%;
     height: 4px;
     background: #FAAC68; /* Orange underline */
     border-radius: 10px;
+}
+
+[dir="ltr"] .settings-section-title::after {
+    right: auto;
+    left: 0; /* Start from left for LTR */
 }
 h2.page-title {
     color: #134686;

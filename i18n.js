@@ -63,6 +63,7 @@ const TRANSLATIONS = {
         whatToDo: 'מה שעושים?',
         noTasks: 'אין משימות',
         addChild: 'הוספת ילד',
+        childrenSection: 'ילדים ומשימות שיגרה',
         name: 'שם...',
         copyFrom: 'העתק מ...',
         noName: 'ללא שם',
@@ -172,6 +173,7 @@ const TRANSLATIONS = {
         whatToDo: 'What to do?',
         noTasks: 'No tasks',
         addChild: 'Add Child',
+        childrenSection: 'Children & Home Routine Chores',
         name: 'Name...',
         copyFrom: 'Copy from...',
         noName: 'No name',
@@ -390,6 +392,10 @@ function applyLanguage() {
     // Loading text
     const loadingText = document.getElementById('settings-loading-text');
     if (loadingText) loadingText.textContent = t('loading');
+    
+    // Children section title
+    const childrenTitle = document.querySelector('.settings-section-title');
+    if (childrenTitle) childrenTitle.textContent = t('childrenSection');
 }
 
 // Update the language toggle button visual (active/right = Hebrew side)
