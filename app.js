@@ -100,209 +100,65 @@ function getLoomiText(count) {
     return count === 1 ? t('loomiSingular') : t('loomiPlural');
 }
 
-// Icon cache - stores downloaded icons locally
+// Icon cache - stores fetched SVG icons as data URIs in localStorage
 const iconCache = JSON.parse(localStorage.getItem('loomi-icon-cache') || '{}');
 
-// Save icon cache to localStorage
 function saveIconCache() {
-    localStorage.setItem('loomi-icon-cache', JSON.stringify(iconCache));
-}
-
-// Map Material Symbol icon names to search keywords for dynamic icon fetching
-const iconKeywordMapping = {
-    'backpack': ['backpack', 'bag', 'school bag'],
-    'lunch_dining': ['lunch', 'food', 'meal', 'sandwich'],
-    'water_drop': ['water', 'bottle', 'drink'],
-    'dentistry': ['tooth', 'teeth', 'brush teeth', 'dental'],
-    'wash': ['wash', 'face', 'clean face'],
-    'breakfast_dining': ['breakfast', 'eat', 'meal'],
-    'checkroom': ['dress', 'clothes', 'get dressed'],
-    'bedtime': ['sleep', 'bedtime', 'goodnight'],
-    'shower': ['shower', 'bath', 'bathe'],
-    'face': ['hair', 'comb', 'brush'],
-    'menu_book': ['homework', 'study', 'learn', 'book'],
-    'cleaning_services': ['clean', 'tidy', 'room'],
-    'steps': ['shoes', 'put on shoes'],
-    'favorite': ['hug', 'love'],
-    'bed': ['bed', 'blanket', 'pillow'],
-    'window': ['window', 'air', 'curtains'],
-    'task_alt': ['task', 'todo', 'checklist'] // Default
-};
-
-// Get search keyword for an icon name
-function getIconKeyword(iconName) {
-    const keywords = iconKeywordMapping[iconName] || iconKeywordMapping['task_alt'];
-    return keywords[0]; // Use first keyword for search
-}
-
-// Freepik API configuration (v1)
-const FREEPIK_API_KEY = 'FPSXb4ebe48498501f09711e6c03781ef38d';
-
-// Fetch icon from Freepik API v1 - using AI text-to-icon generation
-async function fetchIconFromAPI(keyword) {
     try {
-        // Use Freepik's AI text-to-icon endpoint to generate icons dynamically
-        const generateResponse = await fetch(
-            'https://api.freepik.com/v1/ai/text-to-icon',
-            {
-                method: 'POST',
-                headers: {
-                    'x-freepik-api-key': FREEPIK_API_KEY,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    prompt: `${keyword} icon hand drawn style simple`,
-                    format: 'svg',
-                    style: 'color', // Options: solid, outline, color, flat, sticker
-                    webhook_url: '', // Not needed for polling approach
-                    num_inference_steps: 20,
-                    guidance_scale: 7
-                })
-            }
-        );
-        
-        if (generateResponse.ok) {
-            const taskData = await generateResponse.json();
-            
-            if (taskData.data && taskData.data.task_id) {
-                const taskId = taskData.data.task_id;
-                
-                // Poll for task completion (AI generation is async)
-                // Check status every 2 seconds, max 30 seconds (15 attempts)
-                for (let i = 0; i < 15; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    try {
-                        const statusResponse = await fetch(
-                            `https://api.freepik.com/v1/ai/text-to-icon/${taskId}`,
-                            {
-                                headers: {
-                                    'x-freepik-api-key': FREEPIK_API_KEY,
-                                    'Accept': 'application/json'
-                                }
-                            }
-                        );
-                        
-                        if (statusResponse.ok) {
-                            const statusData = await statusResponse.json();
-                            
-                            if (statusData.data.status === 'COMPLETED' && statusData.data.generated && statusData.data.generated.length > 0) {
-                                // Fetch the generated SVG
-                                const svgUrl = statusData.data.generated[0];
-                                const svgResponse = await fetch(svgUrl);
-                                
-                                if (svgResponse.ok) {
-                                    let svg = await svgResponse.text();
-                                    
-                                    // Apply turquoise color to SVG
-                                    svg = svg.replace(/fill="[^"]*"/g, 'fill="#5A9CB5"');
-                                    svg = svg.replace(/stroke="[^"]*"/g, 'stroke="#5A9CB5"');
-                                    
-                                    return svg;
-                                }
-                            } else if (statusData.data.status === 'FAILED') {
-                                console.warn(`Icon generation failed for keyword: ${keyword}`);
-                                break; // Stop polling if failed
-                            }
-                            // If still IN_PROGRESS or CREATED, continue polling
-                        }
-                    } catch (pollError) {
-                        console.warn('Error polling icon status:', pollError);
-                        // Continue polling despite errors
-                    }
-                }
-            }
-        } else {
-            const errorData = await generateResponse.json().catch(() => ({}));
-            console.warn('Freepik API error:', errorData.message || generateResponse.statusText);
-        }
-        
-        // Fallback: Try Iconify if Freepik AI doesn't work or times out
-        const searchTerms = [
-            `mdi:${keyword}`,
-            `material-symbols:${keyword}`,
-            `fluent:${keyword}`
-        ];
-        
-        for (const term of searchTerms) {
-            try {
-                const response = await fetch(`https://api.iconify.design/${term}.svg?color=%235A9CB5&width=40&height=40`);
-                if (response.ok) {
-                    const svg = await response.text();
-                    return svg;
-                }
-            } catch (e) {
-                continue;
-            }
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('Error fetching icon from Freepik:', error);
-        return null;
+        localStorage.setItem('loomi-icon-cache', JSON.stringify(iconCache));
+    } catch (e) {
+        console.warn('Could not save icon cache:', e);
     }
 }
 
-// Download and cache an icon
-async function downloadAndCacheIcon(keyword, iconName) {
-    // Check cache first
-    if (iconCache[iconName]) {
-        return iconCache[iconName];
-    }
-    
-    // Try to fetch from API
-    const svg = await fetchIconFromAPI(keyword);
-    
-    if (svg) {
-        // Cache the SVG data
-        iconCache[iconName] = svg;
-        saveIconCache();
-        
-        // Also save as file for future use
+// Fetch an SVG icon from Iconify API (works from browser, no CORS issues)
+async function fetchIconFromIconify(keyword) {
+    // Try multiple icon sets in order of preference
+    const searchTerms = [
+        `material-symbols:${keyword}`,
+        `mdi:${keyword}`,
+        `fluent:${keyword}-24-regular`,
+        `ion:${keyword}`,
+        `ph:${keyword}`
+    ];
+
+    for (const term of searchTerms) {
         try {
-            const blob = new Blob([svg], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
-            iconCache[iconName] = url; // Store blob URL
-            saveIconCache();
+            const response = await fetch(`https://api.iconify.design/${term}.svg?color=%235A9CB5&width=40&height=40`);
+            if (response.ok) {
+                const svg = await response.text();
+                if (svg && svg.includes('<svg')) {
+                    // Convert to data URI for persistent caching
+                    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+                }
+            }
         } catch (e) {
-            // If blob creation fails, store SVG directly
-            iconCache[iconName] = `data:image/svg+xml;base64,${btoa(svg)}`;
-            saveIconCache();
+            continue;
         }
-        
-        return iconCache[iconName];
     }
-    
     return null;
 }
 
-// Get icon path - checks cache, then tries to download
-async function getIconPath(iconName) {
-    const keyword = getIconKeyword(iconName);
-    
-    // Check if we have it cached
-    if (iconCache[iconName]) {
-        return iconCache[iconName];
+// Download and cache an icon by keyword
+async function downloadAndCacheIcon(keyword, cacheKey) {
+    if (iconCache[cacheKey]) return iconCache[cacheKey];
+
+    const dataUri = await fetchIconFromIconify(keyword);
+    if (dataUri) {
+        iconCache[cacheKey] = dataUri;
+        saveIconCache();
+        return dataUri;
     }
-    
-    // Try to download it
-    const iconData = await downloadAndCacheIcon(keyword, iconName);
-    if (iconData) {
-        return iconData;
-    }
-    
-    // Fallback to default
-    return iconCache['task_alt'] || 'icons/chores/task_alt.svg';
+    return null;
 }
 
-// Map task names to icons (now with dynamic fetching)
+// Map task names to Material Symbol icon names
 function getTaskIcon(taskName) {
     const name = (taskName || '').toLowerCase();
-    
-    // Keyword to icon mapping - combines both languages
-    const heKeywords = TRANSLATIONS.he.taskKeywords;
-    const enKeywords = TRANSLATIONS.en.taskKeywords;
+
+    // Build keyword-to-icon mapping from both language translations
+    const heKeywords = TRANSLATIONS.he.taskKeywords || [];
+    const enKeywords = TRANSLATIONS.en.taskKeywords || [];
     const iconMap = [];
     for (let i = 0; i < heKeywords.length; i++) {
         iconMap.push({
@@ -310,8 +166,8 @@ function getTaskIcon(taskName) {
             icon: heKeywords[i].icon
         });
     }
-    
-    // Find matching icon
+
+    // Find matching Material Symbol icon name
     let matchedIcon = 'task_alt'; // Default
     for (const mapping of iconMap) {
         for (const keyword of mapping.keywords) {
@@ -322,42 +178,46 @@ function getTaskIcon(taskName) {
         }
         if (matchedIcon !== 'task_alt') break;
     }
-    
-    // For new tasks not in the mapping, use task name as search keyword
-    let searchKeyword = matchedIcon;
-    if (matchedIcon === 'task_alt' && name) {
-        // Extract first meaningful word as keyword for dynamic search
-        const words = name.split(/\s+/).filter(w => w.length > 2);
-        if (words.length > 0) {
-            searchKeyword = words[0];
-        }
+
+    // For known icons, use Material Symbols font directly (already loaded)
+    if (matchedIcon !== 'task_alt') {
+        return `<span class="material-symbols-rounded chore-icon-material">${matchedIcon}</span>`;
     }
-    
-    // Return placeholder with data attributes - will be loaded asynchronously
+
+    // For unknown tasks, show default Material Symbol + attempt dynamic load
     const uniqueId = `icon-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    return `<img src="icons/chores/task_alt.svg" alt="" class="chore-icon" id="${uniqueId}" data-icon-name="${matchedIcon}" data-search-keyword="${searchKeyword}" data-task-name="${name}">`;
+    // Extract a meaningful search keyword from the task name
+    const words = name.split(/\s+/).filter(w => w.length > 2);
+    const searchKeyword = words.length > 0 ? words[0] : '';
+
+    return `<span class="material-symbols-rounded chore-icon-material" id="${uniqueId}" data-search-keyword="${searchKeyword}">task_alt</span>`;
 }
 
-// Load icons dynamically after rendering
+// After rendering routine, try to fetch better icons for unknown tasks
 function loadDynamicIcons() {
-    document.querySelectorAll('img.chore-icon[data-icon-name]').forEach(img => {
-        const iconName = img.getAttribute('data-icon-name');
-        const searchKeyword = img.getAttribute('data-search-keyword');
-        const taskName = img.getAttribute('data-task-name');
-        
-        // First, try to load the matched icon
-        getIconPath(iconName).then(iconPath => {
-            if (iconPath && iconPath !== 'icons/chores/task_alt.svg') {
-                img.src = iconPath;
-                img.onerror = null; // Clear error handler once loaded
-            } else if (searchKeyword && searchKeyword !== iconName && searchKeyword !== 'task_alt') {
-                // If matched icon not found, try searching with task keyword
-                downloadAndCacheIcon(searchKeyword, searchKeyword).then(iconPath => {
-                    if (iconPath) {
-                        img.src = iconPath;
-                        img.onerror = null;
-                    }
-                });
+    document.querySelectorAll('.chore-icon-material[data-search-keyword]').forEach(el => {
+        const keyword = el.getAttribute('data-search-keyword');
+        if (!keyword) return;
+
+        // Check cache first
+        if (iconCache[keyword]) {
+            // Replace Material Symbol span with cached <img>
+            const img = document.createElement('img');
+            img.src = iconCache[keyword];
+            img.alt = '';
+            img.className = 'chore-icon';
+            el.replaceWith(img);
+            return;
+        }
+
+        // Fetch from Iconify in the background
+        downloadAndCacheIcon(keyword, keyword).then(dataUri => {
+            if (dataUri && el.isConnected) {
+                const img = document.createElement('img');
+                img.src = dataUri;
+                img.alt = '';
+                img.className = 'chore-icon';
+                el.replaceWith(img);
             }
         });
     });
