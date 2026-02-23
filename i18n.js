@@ -22,6 +22,8 @@ const TRANSLATIONS = {
         morningRoutine: 'שגרת בוקר',
         eveningRoutine: 'שגרת ערב',
         back: 'חזרה',
+        wellDoneMorning: 'כל הכבוד {name}! יום מעולה!',
+        wellDoneEvening: 'כל הכבוד {name}! לילה טוב וחלומות מתוקים',
         
         // Market / Task bank
         taskBankTitle: 'בנק המטלות',
@@ -132,6 +134,8 @@ const TRANSLATIONS = {
         morningRoutine: 'Morning Routine',
         eveningRoutine: 'Evening Routine',
         back: 'Back',
+        wellDoneMorning: 'Well done {name}! Have an amazing day!',
+        wellDoneEvening: 'Well done {name}! Good night & sweet dreams',
         
         // Market / Task bank
         taskBankTitle: 'Task Bank',

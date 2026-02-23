@@ -1942,19 +1942,15 @@ function toggleTask(childIdx, type, taskIdx, element) {
             // Short cute pop sound
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
             audio.volume = 0.5;
-            // Handle promise for play() which may be blocked
             const playPromise = audio.play();
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    // Autoplay was prevented
-                    console.log('Audio play failed:', error);
-                });
+                playPromise.catch(error => console.log('Audio play failed:', error));
             }
             confetti({
                 particleCount: 40,
                 spread: 50,
                 origin: { y: 0.8 },
-                colors: ['#FAAC68', '#FACE68', '#E77F1A'] // Orange confetti colors
+                colors: ['#FAAC68', '#FACE68', '#E77F1A']
             });
         } catch(e) {
             console.log('Sound error:', e);
@@ -1965,7 +1961,102 @@ function toggleTask(childIdx, type, taskIdx, element) {
             currentFamily.children[childIdx].loomis = (currentFamily.children[childIdx].loomis || 0) + 1;
             saveData();
         }
+
+        // Check if ALL visible tasks for this child are now completed
+        checkAllTasksDone(childIdx, type);
     }
+}
+
+// Check if all visible tasks are done and show big celebration
+function checkAllTasksDone(childIdx, type) {
+    const child = currentFamily.children[childIdx];
+    if (!child) return;
+
+    const today = new Date().getDay();
+    // Get only the tasks visible today (same filter logic as renderRoutine)
+    const visibleTasks = child[type].filter(task => {
+        if (task.days && task.days.length > 0) {
+            return task.days.includes(today);
+        }
+        return true;
+    });
+
+    if (visibleTasks.length === 0) return;
+    const allDone = visibleTasks.every(task => task.completed);
+    if (!allDone) return;
+
+    // All tasks completed — big celebration!
+    setTimeout(() => {
+        // Multi-burst confetti shower
+        const duration = 3000;
+        const end = Date.now() + duration;
+        const colors = ['#FAAC68', '#FACE68', '#E77F1A', '#5A9CB5', '#134686', '#ff6b6b', '#48dbfb', '#feca57'];
+
+        (function frame() {
+            confetti({
+                particleCount: 8,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0, y: 0.6 },
+                colors: colors
+            });
+            confetti({
+                particleCount: 8,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1, y: 0.6 },
+                colors: colors
+            });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+
+        // Show celebration popup
+        const msgKey = type === 'morning' ? 'wellDoneMorning' : 'wellDoneEvening';
+        const message = t(msgKey).replace('{name}', child.name);
+        showCelebrationPopup(message, type);
+
+        // Play a celebration sound
+        try {
+            const cheerAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+            cheerAudio.volume = 0.6;
+            const playPromise = cheerAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {});
+            }
+        } catch(e) {}
+    }, 400);
+}
+
+// Show a beautiful celebration popup
+function showCelebrationPopup(message, type) {
+    // Remove any existing popup
+    const existing = document.getElementById('celebration-popup');
+    if (existing) existing.remove();
+
+    const isMorning = type === 'morning';
+    const popup = document.createElement('div');
+    popup.id = 'celebration-popup';
+    popup.innerHTML = `
+        <div class="celebration-content">
+            <div class="celebration-icon">
+                <span class="material-symbols-rounded">${isMorning ? 'emoji_events' : 'stars'}</span>
+            </div>
+            <div class="celebration-message">${message}</div>
+            <button class="celebration-close" onclick="this.closest('#celebration-popup').remove()">
+                <span class="material-symbols-rounded celebration-btn-icon">${isMorning ? 'rocket_launch' : 'bedtime'}</span>
+                ${t('back')}
+            </button>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    // Auto-dismiss after 6 seconds
+    setTimeout(() => {
+        if (popup.isConnected) {
+            popup.style.animation = 'celebrationFadeOut 0.5s ease forwards';
+            setTimeout(() => { if (popup.isConnected) popup.remove(); }, 500);
+        }
+    }, 6000);
 }
 
 initTimeSelectors();

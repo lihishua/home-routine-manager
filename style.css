@@ -3084,3 +3084,98 @@ input[type="email"], input[type="password"] {
 .forgot-link:hover {
     color: #134686;
 }
+
+/* ===== Celebration Popup (all chores done) ===== */
+#celebration-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    animation: celebrationFadeIn 0.4s ease;
+}
+
+.celebration-content {
+    background: linear-gradient(145deg, #ffffff, #f8f4ff);
+    border-radius: 28px;
+    padding: 40px 32px 30px;
+    text-align: center;
+    max-width: 340px;
+    width: 85%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 4px rgba(250, 172, 104, 0.3);
+    animation: celebrationBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.celebration-icon {
+    margin-bottom: 12px;
+    animation: celebrationPulse 1s ease-in-out infinite alternate;
+}
+
+.celebration-icon .material-symbols-rounded {
+    font-size: 4rem;
+    color: #FAAC68;
+}
+
+.celebration-message {
+    font-family: 'Fredoka', 'Assistant', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #134686;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.celebration-close {
+    background: linear-gradient(135deg, #FAAC68, #E77F1A);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'Assistant', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c56a14;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.celebration-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 auto;
+}
+
+.celebration-btn-icon {
+    font-size: 1.2rem;
+    vertical-align: middle;
+}
+
+.celebration-close:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #c56a14;
+}
+
+@keyframes celebrationFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes celebrationFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes celebrationBounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes celebrationPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.15) rotate(5deg); }
+}
