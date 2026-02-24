@@ -250,16 +250,13 @@
                         if (data.familyConfig && data.familyConfig.children) {
                             // Reset completed flags for all tasks in all children
                             data.familyConfig.children.forEach(child => {
-                                if (child.morning) {
-                                    child.morning.forEach(task => {
-                                        task.completed = false;
-                                    });
-                                }
-                                if (child.evening) {
-                                    child.evening.forEach(task => {
-                                        task.completed = false;
-                                    });
-                                }
+                                ['morning', 'noon', 'evening'].forEach(routine => {
+                                    if (child[routine]) {
+                                        child[routine].forEach(task => {
+                                            task.completed = false;
+                                        });
+                                    }
+                                });
                             });
                             
                             // Save the updated data
@@ -269,12 +266,11 @@
                                     // Update local data too
                                     if (window.currentFamily) {
                                         window.currentFamily.children.forEach(child => {
-                                            if (child.morning) {
-                                                child.morning.forEach(task => { task.completed = false; });
-                                            }
-                                            if (child.evening) {
-                                                child.evening.forEach(task => { task.completed = false; });
-                                            }
+                                            ['morning', 'noon', 'evening'].forEach(routine => {
+                                                if (child[routine]) {
+                                                    child[routine].forEach(task => { task.completed = false; });
+                                                }
+                                            });
                                         });
                                         localStorage.setItem('myFamilyConfig', JSON.stringify(window.currentFamily));
                                     }
@@ -340,20 +336,20 @@
 
     <!-- Primary navigation grid -->
     <main id="view-home" class="view">
-        <div class="menu-grid">
-            <button onclick="showView('morning')" class="menu-card morning">
-                <span class="material-symbols-rounded menu-icon">light_mode</span>
+        <div class="menu-grid routines-2">
+            <button onclick="showView('morning')" class="menu-card morning" data-i18n-key="morning" data-routine-btn="morning">
+                <span class="material-symbols-rounded menu-icon">wb_twilight</span>
                 <span class="menu-text">בוקר</span>
             </button>
-            <button onclick="showView('evening')" class="menu-card evening">
+            <button onclick="showView('evening')" class="menu-card evening" data-i18n-key="evening" data-routine-btn="evening">
                 <span class="material-symbols-rounded menu-icon">dark_mode</span>
                 <span class="menu-text">ערב</span>
             </button>
-            <button onclick="showView('market')" class="menu-card market-card">
+            <button onclick="showView('market')" class="menu-card market-card" data-i18n-key="taskBank">
                 <span class="material-symbols-rounded menu-icon">emoji_events</span>
                 <span class="menu-text"> בנק משימות </span>
             </button>
-            <button onclick="showView('week')" class="menu-card week">
+            <button onclick="showView('week')" class="menu-card week" data-i18n-key="weekView">
                 <span class="material-symbols-rounded menu-icon">calendar_month</span>
                 <span class="menu-text">מה קורה השבוע? </span>
             </button>
@@ -400,13 +396,14 @@
 
     <!-- Settings hub for events and routines -->
     <section id="view-settings" class="view hidden">
-        <!-- Two-column layout: Left = Loomis + Tasks, Right = Save + Events -->
+        <!-- Save button above both columns -->
+        <div style="display:flex;justify-content:center;margin-bottom:15px;">
+            <button onclick="showView('home')" class="save-btn">שמור וסגור</button>
+        </div>
+        <!-- Two-column layout -->
         <div class="settings-two-columns">
-            <!-- RIGHT column (first in RTL): Save button + Events card -->
+            <!-- RIGHT column (first in RTL): Events card -->
             <div class="settings-column">
-                <div class="settings-column-header">
-                    <button onclick="showView('home')" class="save-btn">שמור וסגור</button>
-                </div>
                 <!-- Event planner card -->
                 <div class="settings-card settings-card-purple add-event-card">
                     <h3>הוסף אירוע</h3>
@@ -443,19 +440,17 @@
                 </div>
             </div>
 
-            <!-- LEFT column (second in RTL): Loomis toggle + Tasks card -->
+            <!-- LEFT column (second in RTL): Tasks card with Loomis toggle -->
             <div class="settings-column">
-                <div class="settings-column-header">
-                    <div class="loomis-toggle-container">
+                <!-- Market chore card -->
+                <div class="settings-card settings-card-green" id="settings-market-section">
+                    <h3><i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> הוסף משימה</h3>
+                    <div class="loomis-toggle-container" style="margin-bottom:10px;">
                         <span class="loomis-toggle-label">איסוף לומים</span>
                         <button id="loomis-toggle-btn" class="loomis-toggle-btn" onclick="toggleCollectLoomis()">
                             <span class="toggle-slider"></span>
                         </button>
                     </div>
-                </div>
-                <!-- Market chore card -->
-                <div class="settings-card settings-card-green" id="settings-market-section">
-                    <h3><i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> הוסף משימה</h3>
                     <div class="add-task-row">
                         <input type="text" id="new-market-name" placeholder="מה שעושים?" class="settings-card-input">
                         <button onclick="addMarketItem()" class="settings-card-btn">הוספה</button>
@@ -466,7 +461,29 @@
         </div>
 
         <!-- Title for kids section -->
-        <h3 class="settings-section-title" style="margin: 20px 0 15px 0; padding: 0 20px; font-size: 1.2rem; font-weight: 800; color: var(--text-dark); position: relative; z-index: 1;" data-i18n="childrenSection">ילדים</h3>
+        <h3 class="settings-section-title" style="margin: 20px 0 10px 0; padding: 0 20px; font-size: 1.2rem; font-weight: 800; color: var(--text-dark); position: relative; z-index: 1;" data-i18n="childrenSection">ילדים</h3>
+        
+        <!-- Routine toggles (horizontal) -->
+        <div class="routine-toggles-row">
+            <div class="routine-toggle-item">
+                <span id="morning-toggle-label" class="routine-toggle-label">שגרת בוקר</span>
+                <button id="morning-toggle-btn" class="loomis-toggle-btn active" onclick="toggleRoutine('morning')">
+                    <span class="toggle-slider"></span>
+                </button>
+            </div>
+            <div class="routine-toggle-item">
+                <span id="noon-toggle-label" class="routine-toggle-label">שגרת צהריים</span>
+                <button id="noon-toggle-btn" class="loomis-toggle-btn" onclick="toggleRoutine('noon')">
+                    <span class="toggle-slider"></span>
+                </button>
+            </div>
+            <div class="routine-toggle-item">
+                <span id="evening-toggle-label" class="routine-toggle-label">שגרת ערב</span>
+                <button id="evening-toggle-btn" class="loomis-toggle-btn active" onclick="toggleRoutine('evening')">
+                    <span class="toggle-slider"></span>
+                </button>
+            </div>
+        </div>
 
         <!-- Bottom row: child cards horizontal scroll -->
         <div id="settings-child-list" class="settings-child-slider">

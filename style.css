@@ -434,11 +434,55 @@ header #clock {
     cursor: pointer; transition: transform 0.1s;
 }
 .menu-card:active { transform: scale(0.95); }
-/* Morning Button */
+
+/* Dynamic routine grid layouts */
+/* 1 routine: wide rectangle on top, then 2 fixed buttons below */
+.menu-grid.routines-1 {
+    grid-template-columns: 1fr 1fr;
+}
+.menu-grid.routines-1 > [data-routine-btn] {
+    grid-column: 1 / -1;
+    aspect-ratio: 2.5 / 1;
+}
+
+/* 2 routines (default): 2 squares top row */
+.menu-grid.routines-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* 3 routines: top row 3 rectangles, bottom row 2 buttons (centered) */
+.menu-grid.routines-3 {
+    grid-template-columns: repeat(6, 1fr);
+}
+.menu-grid.routines-3 > [data-routine-btn] {
+    grid-column: span 2;
+    aspect-ratio: auto;
+    min-height: 120px;
+    padding: 15px 5px;
+}
+.menu-grid.routines-3 > .market-card {
+    grid-column: 1 / 4;
+    aspect-ratio: auto;
+    min-height: 120px;
+    padding: 15px 5px;
+}
+.menu-grid.routines-3 > .week {
+    grid-column: 4 / 7;
+    aspect-ratio: auto;
+    min-height: 120px;
+    padding: 15px 5px;
+}
+
 /* Morning Button - Yellow */
 .morning { 
     background-color: #FACE68 !important; 
     color: #134686 !important; 
+}
+
+/* Noon Button - Mint/Turquoise */
+.noon-card {
+    background-color: #90D5C8 !important;
+    color: #134686 !important;
 }
 
 /* Evening Button - Orange */
@@ -466,6 +510,12 @@ header #clock {
     font-weight: normal;
     font-style: normal;
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.menu-grid.routines-3 .menu-icon {
+    font-size: 2.5rem !important;
+}
+.menu-grid.routines-3 .menu-text {
+    font-size: 1rem;
 }
 .menu-text { font-size: 1.4rem; font-weight: 800; }
 
@@ -501,6 +551,7 @@ header #clock {
 .settings-two-columns {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
     gap: 30px;
     padding: 0 10px;
     margin-bottom: 30px;
@@ -743,7 +794,7 @@ header #clock {
     display: flex;
     flex-wrap: nowrap;
     gap: 4px;
-    justify-content: flex-start;
+    justify-content: center;
     width: 100%;
     overflow-x: auto;
 }
@@ -784,7 +835,7 @@ header #clock {
 .event-list-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     padding: 6px 0;
     border-bottom: 1px solid #f1f5f9;
     direction: ltr; /* Keep LTR for consistent button/text positioning */
@@ -793,7 +844,7 @@ header #clock {
 .event-list-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     flex-shrink: 0;
     order: 0; /* Buttons on the left */
 }
@@ -2044,6 +2095,29 @@ h4 {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+/* Routine toggles row (horizontal, below kids title) */
+.routine-toggles-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 20px 10px;
+    flex-wrap: wrap;
+}
+
+.routine-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.routine-toggle-label {
+    color: #134686;
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
 
 .loomis-toggle-label {

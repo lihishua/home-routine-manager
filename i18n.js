@@ -13,6 +13,7 @@ const TRANSLATIONS = {
         
         // Home page
         morning: 'בוקר',
+        noon: 'צהריים',
         evening: 'ערב',
         taskBank: 'בנק משימות',
         weekView: 'מה קורה השבוע?',
@@ -20,10 +21,17 @@ const TRANSLATIONS = {
         
         // Routine
         morningRoutine: 'שגרת בוקר',
+        noonRoutine: 'שגרת צהריים',
         eveningRoutine: 'שגרת ערב',
         back: 'חזרה',
-        wellDoneMorning: 'כל הכבוד {name}! יום מעולה!',
-        wellDoneEvening: 'כל הכבוד {name}! לילה טוב וחלומות מתוקים',
+        wellDoneMorning: 'כל הכבוד {name}! שיהיה יום נהדר!',
+        wellDoneNoon: 'כל הכבוד {name}! כל המטלות של הצהריים בוצעו!',
+        wellDoneEvening: 'כל הכבוד {name}! שיהיה לך לילה טוב, וחלומות מתוקים',
+        
+        // Routine toggles
+        morningToggle: 'שגרת בוקר',
+        noonToggle: 'שגרת צהריים',
+        eveningToggle: 'שגרת ערב',
         
         // Market / Task bank
         taskBankTitle: 'בנק המטלות',
@@ -70,10 +78,11 @@ const TRANSLATIONS = {
         copyFrom: 'העתק מ...',
         noName: 'ללא שם',
         deleteChild: 'מחיקה',
+        confirmDeleteChild: 'אתה בטוח שברצונך למחוק את {name}?',
         newTask: 'מטלה חדשה...',
-        morningOption: '☀️ בוקר',
-        eveningOption: '🌙 ערב',
-        bothOption: '🌤️ שניהם',
+        morningOption: 'בוקר',
+        noonOption: 'צהריים',
+        eveningOption: 'ערב',
         addToAll: 'הוספה לכולם',
         noChores: 'אין מטלות',
         nameExists: 'שם זה כבר קיים! אנא בחר שם אחר.',
@@ -125,6 +134,7 @@ const TRANSLATIONS = {
         
         // Home page
         morning: 'Morning',
+        noon: 'Noon',
         evening: 'Evening',
         taskBank: 'Task Bank',
         weekView: "What's this week?",
@@ -132,10 +142,17 @@ const TRANSLATIONS = {
         
         // Routine
         morningRoutine: 'Morning Routine',
+        noonRoutine: 'Noon Routine',
         eveningRoutine: 'Evening Routine',
         back: 'Back',
         wellDoneMorning: 'Well done {name}! Have an amazing day!',
+        wellDoneNoon: 'Well done {name}! All noon chores completed!',
         wellDoneEvening: 'Well done {name}! Good night & sweet dreams',
+        
+        // Routine toggles
+        morningToggle: 'Morning Routine',
+        noonToggle: 'Noon Routine',
+        eveningToggle: 'Evening Routine',
         
         // Market / Task bank
         taskBankTitle: 'Task Bank',
@@ -182,10 +199,11 @@ const TRANSLATIONS = {
         copyFrom: 'Copy from...',
         noName: 'No name',
         deleteChild: 'Delete',
+        confirmDeleteChild: 'Delete {name}?',
         newTask: 'New task...',
-        morningOption: '☀️ Morning',
-        eveningOption: '🌙 Evening',
-        bothOption: '🌤️ Both',
+        morningOption: 'Morning',
+        noonOption: 'Noon',
+        eveningOption: 'Evening',
         addToAll: 'Add to all',
         noChores: 'No chores',
         nameExists: 'This name already exists! Please choose a different name.',
@@ -308,11 +326,11 @@ function applyLanguage() {
     const guestLink = document.querySelector('.guest-link');
     if (guestLink) guestLink.textContent = t('guestEntry');
     
-    // Home page menu
-    const menuTexts = document.querySelectorAll('.menu-text');
-    const menuKeys = ['morning', 'evening', 'taskBank', 'weekView'];
-    menuTexts.forEach((el, i) => {
-        if (menuKeys[i]) el.textContent = t(menuKeys[i]);
+    // Home page menu (use data attributes for reliable translation)
+    document.querySelectorAll('.menu-card[data-i18n-key]').forEach(card => {
+        const key = card.getAttribute('data-i18n-key');
+        const textEl = card.querySelector('.menu-text');
+        if (textEl && key) textEl.textContent = t(key);
     });
     
     const homeSettingsBtn = document.querySelector('.home-settings-btn');
@@ -322,12 +340,11 @@ function applyLanguage() {
     const backBtns = document.querySelectorAll('.back-btn');
     backBtns.forEach(btn => btn.textContent = t('back'));
     
-    // View titles
+    // View titles - update routine title based on current routine type
     const routineTitle = document.querySelector('#view-routine h2');
-    if (routineTitle) {
-        // Keep whichever routine title is currently shown
-        const isMorning = routineTitle.textContent.trim().includes('בוקר') || routineTitle.textContent.trim().includes('Morning');
-        routineTitle.textContent = ' ' + (isMorning ? t('morningRoutine') : t('eveningRoutine')) + ' ';
+    if (routineTitle && window.currentRoutineType) {
+        const titleMap = { morning: 'morningRoutine', noon: 'noonRoutine', evening: 'eveningRoutine' };
+        routineTitle.textContent = ' ' + t(titleMap[window.currentRoutineType] || 'morningRoutine') + ' ';
     }
     
     const marketTitle = document.querySelector('#view-market h2');
@@ -372,6 +389,14 @@ function applyLanguage() {
     // Loomis toggle (in settings, not the lang toggle on login page)
     const loomisLabel = document.querySelector('.loomis-toggle-container .loomis-toggle-label');
     if (loomisLabel) loomisLabel.textContent = t('collectLoomis');
+    
+    // Routine toggles
+    const morningToggleLabel = document.getElementById('morning-toggle-label');
+    const noonToggleLabel = document.getElementById('noon-toggle-label');
+    const eveningToggleLabel = document.getElementById('evening-toggle-label');
+    if (morningToggleLabel) morningToggleLabel.textContent = t('morningToggle');
+    if (noonToggleLabel) noonToggleLabel.textContent = t('noonToggle');
+    if (eveningToggleLabel) eveningToggleLabel.textContent = t('eveningToggle');
     
     // Task card
     const taskCardTitle = document.querySelector('#settings-market-section h3');

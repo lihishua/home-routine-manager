@@ -15,6 +15,16 @@ if (!currentFamily.events) currentFamily.events = [];
 // Default collectLoomis to true if not set
 if (currentFamily.collectLoomis === undefined) currentFamily.collectLoomis = true;
 
+// Default routine toggles: morning ON, noon OFF, evening ON
+if (!currentFamily.routineToggles) {
+    currentFamily.routineToggles = { morning: true, noon: false, evening: true };
+}
+
+// Ensure every child has a noon array
+currentFamily.children.forEach(child => {
+    if (!child.noon) child.noon = [];
+});
+
 // Toggle Loomis collection on/off
 function toggleCollectLoomis() {
     currentFamily.collectLoomis = !currentFamily.collectLoomis;
@@ -38,6 +48,94 @@ function updateLoomisToggleUI() {
 // Helper: check if Loomis collection is enabled
 function isLoomisEnabled() {
     return currentFamily.collectLoomis !== false;
+}
+
+// Toggle a routine (morning/noon/evening) on/off
+function toggleRoutine(routineType) {
+    if (!currentFamily.routineToggles) {
+        currentFamily.routineToggles = { morning: true, noon: false, evening: true };
+    }
+    currentFamily.routineToggles[routineType] = !currentFamily.routineToggles[routineType];
+    
+    // Ensure at least one routine is enabled
+    const toggles = currentFamily.routineToggles;
+    if (!toggles.morning && !toggles.noon && !toggles.evening) {
+        // Revert - can't disable all
+        currentFamily.routineToggles[routineType] = true;
+        return;
+    }
+    
+    saveData();
+    updateRoutineTogglesUI();
+    updateHomeMenuGrid();
+}
+
+// Update routine toggle buttons UI
+function updateRoutineTogglesUI() {
+    const toggles = currentFamily.routineToggles || { morning: true, noon: false, evening: true };
+    ['morning', 'noon', 'evening'].forEach(key => {
+        const btn = document.getElementById(`${key}-toggle-btn`);
+        if (btn) {
+            btn.classList.toggle('active', !!toggles[key]);
+        }
+    });
+}
+
+// Get array of active routine types
+function getActiveRoutines() {
+    const toggles = currentFamily.routineToggles || { morning: true, noon: false, evening: true };
+    return ['morning', 'noon', 'evening'].filter(key => toggles[key]);
+}
+
+// Update the home page menu grid based on active routines
+function updateHomeMenuGrid() {
+    const grid = document.querySelector('.menu-grid');
+    if (!grid) return;
+    
+    const active = getActiveRoutines();
+    const iconMap = { morning: 'wb_twilight', noon: 'wb_sunny', evening: 'dark_mode' };
+    const i18nMap = { morning: 'morning', noon: 'noon', evening: 'evening' };
+    const classMap = { morning: 'morning', noon: 'noon-card', evening: 'evening' };
+    
+    // Build routine buttons HTML
+    let routineHtml = '';
+    active.forEach(type => {
+        routineHtml += `<button onclick="showView('${type}')" class="menu-card ${classMap[type]}" data-i18n-key="${i18nMap[type]}" data-routine-btn="${type}">
+            <span class="material-symbols-rounded menu-icon">${iconMap[type]}</span>
+            <span class="menu-text">${t(i18nMap[type])}</span>
+        </button>`;
+    });
+    
+    // Fixed buttons
+    const fixedHtml = `
+        <button onclick="showView('market')" class="menu-card market-card" data-i18n-key="taskBank">
+            <span class="material-symbols-rounded menu-icon">emoji_events</span>
+            <span class="menu-text">${t('taskBank')}</span>
+        </button>
+        <button onclick="showView('week')" class="menu-card week" data-i18n-key="weekView">
+            <span class="material-symbols-rounded menu-icon">calendar_month</span>
+            <span class="menu-text">${t('weekView')}</span>
+        </button>`;
+    
+    grid.innerHTML = routineHtml + fixedHtml;
+    
+    // Update grid CSS class based on count
+    grid.classList.remove('routines-1', 'routines-2', 'routines-3');
+    grid.classList.add(`routines-${active.length}`);
+}
+
+// Delete child with confirmation
+function confirmDeleteChild(ci) {
+    const child = currentFamily.children[ci];
+    if (!child) return;
+    
+    const message = t('confirmDeleteChild').replace('{name}', child.name);
+    if (confirm(message)) {
+        currentFamily.children.splice(ci, 1);
+        saveData();
+        renderSettings();
+        renderHeaderNav();
+    }
 }
 
 // Remove duplicate children based on name (case-insensitive, trimmed)
@@ -81,10 +179,14 @@ function saveData() {
 // Global render function for Firebase real-time sync
 window.renderAll = function() {
     currentFamily = window.currentFamily; // Update local from global
+    // Ensure noon arrays exist for all children
+    currentFamily.children.forEach(child => { if (!child.noon) child.noon = []; });
+    if (!currentFamily.routineToggles) currentFamily.routineToggles = { morning: true, noon: false, evening: true };
     if (typeof renderHeaderNav === 'function') renderHeaderNav();
     if (typeof renderWeek === 'function') renderWeek();
     if (typeof renderMemos === 'function') renderMemos();
     if (typeof renderDayCheckboxes === 'function') renderDayCheckboxes();
+    if (typeof updateHomeMenuGrid === 'function') updateHomeMenuGrid();
     // Re-render routine view if active (for Firebase sync)
     if (currentRoutineType && typeof renderRoutine === 'function') {
         renderRoutine(currentRoutineType);
@@ -244,7 +346,7 @@ function showView(viewId) {
     });
     
     // Determine if we are going into routine mode
-    const isRoutine = (viewId === 'morning' || viewId === 'evening');
+    const isRoutine = (viewId === 'morning' || viewId === 'noon' || viewId === 'evening');
     const tid = isRoutine ? 'view-routine' : `view-${viewId}`;
     
     const target = document.getElementById(tid);
@@ -260,13 +362,16 @@ function showView(viewId) {
     if (isRoutine) {
         // Update the routine page title based on type
         const routineTitle = document.querySelector('#view-routine h2');
+        const titleMap = { morning: 'morningRoutine', noon: 'noonRoutine', evening: 'eveningRoutine' };
         if (routineTitle) {
-            routineTitle.textContent = viewId === 'morning' ? t('morningRoutine') : t('eveningRoutine');
+            routineTitle.textContent = t(titleMap[viewId]);
         }
-        currentRoutineType = viewId; // Track current routine type for Firebase sync
+        currentRoutineType = viewId;
+        window.currentRoutineType = viewId; // For i18n access
         renderRoutine(viewId);
     } else {
-        currentRoutineType = null; // Not in routine view
+        currentRoutineType = null;
+        window.currentRoutineType = null;
     }
     
     renderHeaderNav();
@@ -570,6 +675,7 @@ function renderSettings() {
     }
 
     updateLoomisToggleUI();
+    updateRoutineTogglesUI();
     renderEventsList();
     renderMarketSection();
     renderChildList();
@@ -632,51 +738,49 @@ function renderChildList() {
         const name = c.name || t('noName');
         const loomis = c.loomis || 0;
         
-        // Build chores list - combine tasks that appear in both morning and evening
+        // Build chores list - combine tasks that appear in morning, noon, and evening
         let choresHtml = '';
         // CRITICAL: Read directly from the child object, not from a cached reference
-        // This ensures we get the latest data even if arrays were modified
         const morningTasks = (c.morning && Array.isArray(c.morning)) ? c.morning : [];
+        const noonTasks = (c.noon && Array.isArray(c.noon)) ? c.noon : [];
         const eveningTasks = (c.evening && Array.isArray(c.evening)) ? c.evening : [];
         
         // Create a map of task text to its occurrences
         const taskMap = new Map();
         
-        // Add morning tasks
         morningTasks.forEach((t, ti) => {
             const taskText = t.task || '';
-            if (!taskMap.has(taskText)) {
-                taskMap.set(taskText, { morning: null, evening: null });
-            }
+            if (!taskMap.has(taskText)) taskMap.set(taskText, { morning: null, noon: null, evening: null });
             taskMap.get(taskText).morning = { index: ti, task: t };
         });
         
-        // Add evening tasks
+        noonTasks.forEach((t, ti) => {
+            const taskText = t.task || '';
+            if (!taskMap.has(taskText)) taskMap.set(taskText, { morning: null, noon: null, evening: null });
+            taskMap.get(taskText).noon = { index: ti, task: t };
+        });
+        
         eveningTasks.forEach((t, ti) => {
             const taskText = t.task || '';
-            if (!taskMap.has(taskText)) {
-                taskMap.set(taskText, { morning: null, evening: null });
-            }
+            if (!taskMap.has(taskText)) taskMap.set(taskText, { morning: null, noon: null, evening: null });
             taskMap.get(taskText).evening = { index: ti, task: t };
         });
         
         // Render each unique task
         taskMap.forEach((occurrences, taskText) => {
             const hasMorning = occurrences.morning !== null;
+            const hasNoon = occurrences.noon !== null;
             const hasEvening = occurrences.evening !== null;
             
-            // Get days from morning task (if exists) or evening task
-            const taskObj = occurrences.morning ? occurrences.morning.task : (occurrences.evening ? occurrences.evening.task : null);
+            // Get days from any task occurrence
+            const taskObj = (occurrences.morning || occurrences.noon || occurrences.evening)?.task;
             const days = taskObj && taskObj.days ? taskObj.days : null;
             
+            // Build routine icons
             let icon = '';
-            if (hasMorning && hasEvening) {
-                icon = '☀️🌙'; // Both icons
-            } else if (hasMorning) {
-                icon = '☀️';
-            } else if (hasEvening) {
-                icon = '🌙';
-            }
+            if (hasMorning) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#FACE68;vertical-align:middle;">wb_twilight</i>';
+            if (hasNoon) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#90D5C8;vertical-align:middle;">wb_sunny</i>';
+            if (hasEvening) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#FAAC68;vertical-align:middle;">dark_mode</i>';
             
             // Build days display if exists
             let daysDisplay = '';
@@ -686,27 +790,19 @@ function renderChildList() {
                 daysDisplay = ' <span style="color:#94a3b8;font-size:0.7rem;">(' + dayLetters + ')</span>';
             }
             
-            // Create delete function that removes from both if needed
-            // Use task text to find and remove, since indices might change
+            // Create delete function that removes from all routines
             const taskTextEscaped = taskText.replace(/'/g, "\\'");
-            let deleteFunc = '';
-            if (hasMorning && hasEvening) {
-                deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const mIdx=child.morning.findIndex(t=>t.task===taskText);const eIdx=child.evening.findIndex(t=>t.task===taskText);if(mIdx>=0)child.morning.splice(mIdx,1);if(eIdx>=0)child.evening.splice(eIdx,1);saveData();renderSettings();})()`;
-            } else if (hasMorning) {
-                deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const mIdx=child.morning.findIndex(t=>t.task===taskText);if(mIdx>=0)child.morning.splice(mIdx,1);saveData();renderSettings();})()`;
-            } else if (hasEvening) {
-                deleteFunc = `(function(){const ci=${ci};const taskText='${taskTextEscaped}';const child=currentFamily.children[ci];const eIdx=child.evening.findIndex(t=>t.task===taskText);if(eIdx>=0)child.evening.splice(eIdx,1);saveData();renderSettings();})()`;
-            }
+            const deleteFunc = `(function(){const ci=${ci};const tt='${taskTextEscaped}';const ch=currentFamily.children[ci];['morning','noon','evening'].forEach(r=>{if(ch[r]){const idx=ch[r].findIndex(t=>t.task===tt);if(idx>=0)ch[r].splice(idx,1);}});saveData();renderSettings();})()`;
             
             // Create edit function
             const editFunc = `editChore(${ci}, '${taskTextEscaped}')`;
             
-            choresHtml += '<div class="chore-edit-row event-list-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;">';
+            choresHtml += '<div class="chore-edit-row event-list-row">';
             choresHtml += '<span class="event-list-actions">';
             choresHtml += '<button onclick="' + editFunc + '" style="color:#5A9CB5;font-size:1.2rem;background:none;border:none;cursor:pointer;" title="' + t('edit') + '">✎</button>';
             choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>';
             choresHtml += '</span>';
-            choresHtml += '<span class="event-list-info" style="display:flex;align-items:center;gap:8px;text-align:right;flex:1;">' + icon + ' ' + taskText + daysDisplay + '</span>';
+            choresHtml += '<span class="event-list-info">' + icon + ' ' + taskText + daysDisplay + '</span>';
             choresHtml += '</div>';
         });
 
@@ -724,19 +820,19 @@ function renderChildList() {
             html += '</div>';
         }
         html += '</div>';
-        html += '<button onclick="currentFamily.children.splice(' + ci + ',1);saveData();renderSettings();renderHeaderNav()" class="delete-child-pill">' + t('deleteChild') + '</button>';
+        html += '<button onclick="confirmDeleteChild(' + ci + ')" class="delete-child-pill">' + t('deleteChild') + '</button>';
         html += '</div>';
         
         // Add chore input
         html += '<div style="display:flex;gap:4px;margin-bottom:8px;align-items:center;flex-wrap:nowrap">';
         html += '<input type="text" id="chore-in-' + ci + '" placeholder="' + t('newTask') + '" style="flex:1;min-width:80px;padding:4px 6px;border-radius:6px;border:1px solid #e2e8f0;font-size:0.75rem">';
         html += '<div class="chore-time-buttons" style="display:flex;gap:2px;align-items:center;flex-shrink:0;">';
-        html += `<button type="button" id="chore-morning-${ci}" class="chore-time-btn active" onclick="setChoreTime(${ci}, 'morning')" title="${t('morningOption')}"><i class="material-symbols-rounded">wb_sunny</i></button>`;
-        html += `<button type="button" id="chore-evening-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'evening')" title="${t('eveningOption')}"><i class="material-symbols-rounded">dark_mode</i></button>`;
-        html += `<button type="button" id="chore-both-${ci}" class="chore-time-btn" onclick="setChoreTime(${ci}, 'both')" title="${t('both')}"><i class="material-symbols-rounded">wb_sunny</i><i class="material-symbols-rounded">dark_mode</i></button>`;
+        html += `<button type="button" id="chore-morning-${ci}" class="chore-time-btn active" onclick="toggleChoreTime(${ci}, 'morning')" title="${t('morningOption')}"><i class="material-symbols-rounded">wb_twilight</i></button>`;
+        html += `<button type="button" id="chore-noon-${ci}" class="chore-time-btn" onclick="toggleChoreTime(${ci}, 'noon')" title="${t('noonOption')}"><i class="material-symbols-rounded">wb_sunny</i></button>`;
+        html += `<button type="button" id="chore-evening-${ci}" class="chore-time-btn" onclick="toggleChoreTime(${ci}, 'evening')" title="${t('eveningOption')}"><i class="material-symbols-rounded">dark_mode</i></button>`;
         html += '</div>';
         html += '</div>';
-        // Hidden input to track current selection
+        // Hidden input to track current selection (comma-separated)
         html += '<input type="hidden" id="chore-time-' + ci + '" value="morning">';
         // Day selection for chores
         html += '<div id="chore-days-' + ci + '" class="day-checkboxes" style="margin-bottom:8px;"></div>';
@@ -807,27 +903,49 @@ function addMarketItem() {
     }
 }
 
-// Toggle chore time selection (morning/evening)
-window.setChoreTime = function(childIndex, selection) {
+// Toggle chore time selection (multi-select: morning/noon/evening)
+window.toggleChoreTime = function(childIndex, routineType) {
     const morningBtn = document.getElementById(`chore-morning-${childIndex}`);
+    const noonBtn = document.getElementById(`chore-noon-${childIndex}`);
     const eveningBtn = document.getElementById(`chore-evening-${childIndex}`);
-    const bothBtn = document.getElementById(`chore-both-${childIndex}`);
     const hiddenInput = document.getElementById(`chore-time-${childIndex}`);
 
-    if (!morningBtn || !eveningBtn || !bothBtn || !hiddenInput) return;
+    if (!morningBtn || !noonBtn || !eveningBtn || !hiddenInput) return;
 
-    // 1. Reset all buttons to inactive
-    morningBtn.classList.remove('active');
-    eveningBtn.classList.remove('active');
-    bothBtn.classList.remove('active');
+    const btn = document.getElementById(`chore-${routineType}-${childIndex}`);
+    const isActive = btn.classList.contains('active');
+    
+    // Count currently active buttons
+    const activeCount = [morningBtn, noonBtn, eveningBtn].filter(b => b.classList.contains('active')).length;
+    
+    // Prevent deactivating the last active button
+    if (isActive && activeCount <= 1) return;
+    
+    // Toggle the clicked button
+    btn.classList.toggle('active');
+    
+    // Update hidden input with comma-separated active routines
+    const activeRoutines = [];
+    if (morningBtn.classList.contains('active')) activeRoutines.push('morning');
+    if (noonBtn.classList.contains('active')) activeRoutines.push('noon');
+    if (eveningBtn.classList.contains('active')) activeRoutines.push('evening');
+    hiddenInput.value = activeRoutines.join(',');
+};
 
-    // 2. Activate only the selected button
-    if (selection === 'morning') morningBtn.classList.add('active');
-    if (selection === 'evening') eveningBtn.classList.add('active');
-    if (selection === 'both') bothBtn.classList.add('active');
+// Set chore time buttons to specific routines (for edit mode)
+window.setChoreTime = function(childIndex, routinesStr) {
+    const morningBtn = document.getElementById(`chore-morning-${childIndex}`);
+    const noonBtn = document.getElementById(`chore-noon-${childIndex}`);
+    const eveningBtn = document.getElementById(`chore-evening-${childIndex}`);
+    const hiddenInput = document.getElementById(`chore-time-${childIndex}`);
 
-    // 3. Update the hidden input that your addChore functions read
-    hiddenInput.value = selection;
+    if (!morningBtn || !noonBtn || !eveningBtn || !hiddenInput) return;
+
+    const routines = routinesStr.split(',');
+    morningBtn.classList.toggle('active', routines.includes('morning'));
+    noonBtn.classList.toggle('active', routines.includes('noon'));
+    eveningBtn.classList.toggle('active', routines.includes('evening'));
+    hiddenInput.value = routinesStr;
 };
 
 // Edit a chore - populate the form
@@ -838,12 +956,13 @@ window.editChore = function(childIndex, taskText) {
     const child = currentFamily.children[childIndex];
     if (!child) return;
 
-    const morningTask = child.morning.find(t => t.task === taskText);
-    const eveningTask = child.evening.find(t => t.task === taskText);
-    if (!morningTask && !eveningTask) return;
+    const morningTask = child.morning ? child.morning.find(t => t.task === taskText) : null;
+    const noonTask = child.noon ? child.noon.find(t => t.task === taskText) : null;
+    const eveningTask = child.evening ? child.evening.find(t => t.task === taskText) : null;
+    if (!morningTask && !noonTask && !eveningTask) return;
 
     input.value = taskText;
-    input.dataset.editingTask = taskText; // Crucial for removal logic
+    input.dataset.editingTask = taskText;
     input.dataset.editingChildIndex = childIndex;
 
     // Set buttons to "Update" mode
@@ -855,24 +974,22 @@ window.editChore = function(childIndex, taskText) {
         addBtn.textContent = t('update');
         addBtn.setAttribute('onclick', `updateChore(${childIndex})`);
         addBtn.classList.add('update-mode-btn');
-        // Keep add-btn-row for size properties
     }
     if (allBtn) {
         allBtn.textContent = t('updateAll');
         allBtn.setAttribute('onclick', `updateChoreToAll(${childIndex})`);
         allBtn.classList.add('update-mode-btn');
-        // Keep add-btn-orange for size properties
     }
 
-    // Populate Time Buttons & Checkboxes...
-    const hasMorning = !!morningTask;
-    const hasEvening = !!eveningTask;
-    const timeSelection = (hasMorning && hasEvening) ? 'both' : (hasMorning ? 'morning' : 'evening');
+    // Build comma-separated time selection from which routines have this task
+    const activeRoutines = [];
+    if (morningTask) activeRoutines.push('morning');
+    if (noonTask) activeRoutines.push('noon');
+    if (eveningTask) activeRoutines.push('evening');
     
-    // Use setChoreTime to properly set the active button (single selection)
-    setChoreTime(childIndex, timeSelection);
+    setChoreTime(childIndex, activeRoutines.join(','));
 
-    const taskWithDays = morningTask || eveningTask;
+    const taskWithDays = morningTask || noonTask || eveningTask;
     document.querySelectorAll(`#chore-days-${childIndex} .chore-day-checkbox`).forEach(cb => {
         cb.checked = taskWithDays?.days?.includes(parseInt(cb.value, 10)) || false;
     });
@@ -891,57 +1008,53 @@ function updateChore(childIndex) {
 
     const child = currentFamily.children[childIndex];
     if (!child) return;
+    if (!child.noon) child.noon = [];
 
-    // 1. Filter out old task
+    // 1. Filter out old task from all routines
     child.morning = child.morning.filter(t => t.task !== oldTaskText);
+    child.noon = child.noon.filter(t => t.task !== oldTaskText);
     child.evening = child.evening.filter(t => t.task !== oldTaskText);
 
-    // 2. Add new task
-    const taskData = { id: Date.now(), task: newTaskText };
-    if (days) taskData.days = days;
+    // 2. Add new task to selected routines
+    const routines = timeVal.split(',');
+    routines.forEach((routine, i) => {
+        const taskData = { id: Date.now() + i, task: newTaskText };
+        if (days) taskData.days = days;
+        child[routine].unshift(taskData);
+    });
 
-    if (timeVal === 'both') {
-        child.morning.unshift({ ...taskData });
-        child.evening.unshift({ ...taskData, id: Date.now() + 1 });
-    } else {
-        child[timeVal].unshift(taskData);
-    }
-
-    // 3. Clear Metadata IMMEDIATELY to exit Edit Mode
+    // 3. Clear Metadata
     input.value = '';
     input.removeAttribute('data-editing-task');
     input.removeAttribute('data-editing-child-index');
-    // Reset time buttons to default (morning)
     setChoreTime(childIndex, 'morning');
 
     // 4. Save and full UI refresh
     saveData();
-    renderSettings(); // Calls renderChildList internally in your app.js
+    renderSettings();
 }
 
 // Add a single chore to one child's routine.
 function addChore(ci) {
     const input = document.getElementById(`chore-in-${ci}`);
     const v = input ? input.value.trim() : '';
-    const t = document.getElementById(`chore-time-${ci}`).value;
+    const timeVal = document.getElementById(`chore-time-${ci}`).value;
     const selectedDays = getSelectedChoreDays(ci);
-    // If no days selected, show every day (days = undefined or empty array means all days)
     const days = selectedDays.length > 0 ? selectedDays : undefined;
     
     if (v) {
-        const taskData = {id: Date.now(), task: v};
-        if (days) taskData.days = days;
+        const child = currentFamily.children[ci];
+        if (!child.noon) child.noon = [];
         
-        if (t === 'both') {
-            currentFamily.children[ci].morning.unshift({...taskData});
-            currentFamily.children[ci].evening.unshift({...taskData, id: Date.now() + 1});
-        } else {
-            currentFamily.children[ci][t].unshift(taskData);
-        }
+        const routines = timeVal.split(',');
+        routines.forEach((routine, i) => {
+            const taskData = { id: Date.now() + i, task: v };
+            if (days) taskData.days = days;
+            child[routine].unshift(taskData);
+        });
+        
         input.value = '';
-        // Clear day checkboxes
         document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
-        // Reset time buttons to default (morning)
         setChoreTime(ci, 'morning');
         saveData();
         renderChildList();
@@ -952,52 +1065,47 @@ function addChore(ci) {
 function addChoreToAll(ci) {
     const input = document.getElementById(`chore-in-${ci}`);
     const v = input ? input.value.trim() : '';
-    const t = document.getElementById(`chore-time-${ci}`).value;
+    const timeVal = document.getElementById(`chore-time-${ci}`).value;
     const selectedDays = getSelectedChoreDays(ci);
     const days = selectedDays.length > 0 ? selectedDays : undefined;
     
     if (v) {
-        // CRITICAL: Ensure we're modifying the same object that window.currentFamily points to
         const familyToModify = window.currentFamily || currentFamily;
+        const routines = timeVal.split(',');
         
         let addedToAny = false;
         familyToModify.children.forEach(c => {
-            // Check if this child already has this task
-            const hasTask = c.morning.some(t => t.task === v) || c.evening.some(t => t.task === v);
-            if (hasTask) return; // Skip if already exists
+            if (!c.noon) c.noon = [];
+            // Check if this child already has this task in any routine
+            const hasTask = c.morning.some(t => t.task === v) || 
+                           c.noon.some(t => t.task === v) || 
+                           c.evening.some(t => t.task === v);
+            if (hasTask) return;
             
-            const taskData = {id: Date.now() + Math.random(), task: v};
-            if (days) taskData.days = days;
-            
-            if (t === 'both') {
-                c.morning.unshift({...taskData});
-                c.evening.unshift({...taskData, id: Date.now() + Math.random() + 1});
-            } else {
-                c[t].unshift(taskData);
-            }
+            routines.forEach((routine, i) => {
+                const taskData = { id: Date.now() + Math.random() + i, task: v };
+                if (days) taskData.days = days;
+                c[routine].unshift(taskData);
+            });
             addedToAny = true;
         });
         
-        // CRITICAL: Sync currentFamily to match window.currentFamily
         currentFamily = familyToModify;
         
         if (!addedToAny) {
-            // Task already exists in all children, don't do anything but still clear form
             input.value = '';
             return;
         }
         
         input.value = '';
-        // Clear day checkboxes
         document.querySelectorAll(`#chore-days-${ci} .chore-day-checkbox`).forEach(cb => cb.checked = false);
-        // Reset time buttons to default (morning)
         setChoreTime(ci, 'morning');
         saveData();
         renderChildList();
     }
 }
 
-// Copy a chore to every child's routine list.
+// Update a chore across all children
 function updateChoreToAll(childIndex) {
     const input = document.getElementById(`chore-in-${childIndex}`);
     if (!input || !input.value.trim()) return;
@@ -1008,37 +1116,33 @@ function updateChoreToAll(childIndex) {
     const selectedDays = getSelectedChoreDays(childIndex);
     const days = selectedDays.length > 0 ? selectedDays : undefined;
 
-    // CRITICAL: Use window.currentFamily if available to ensure we modify the right object
     const familyToModify = window.currentFamily || currentFamily;
+    const routines = timeVal.split(',');
 
-    // Apply to every child
     familyToModify.children.forEach(c => {
+        if (!c.noon) c.noon = [];
+        // Remove old task from all routines
         c.morning = c.morning.filter(t => t.task !== oldTaskText);
+        c.noon = c.noon.filter(t => t.task !== oldTaskText);
         c.evening = c.evening.filter(t => t.task !== oldTaskText);
 
-        const taskData = { id: Date.now() + Math.random(), task: newTaskText };
-        if (days) taskData.days = days;
-
-        if (timeVal === 'both') {
-            c.morning.unshift({ ...taskData, id: Date.now() + Math.random() });
-            c.evening.unshift({ ...taskData, id: Date.now() + Math.random() + 1 });
-        } else {
-            c[timeVal].unshift(taskData);
-        }
+        // Add to selected routines
+        routines.forEach((routine, i) => {
+            const taskData = { id: Date.now() + Math.random() + i, task: newTaskText };
+            if (days) taskData.days = days;
+            c[routine].unshift(taskData);
+        });
     });
 
-    // Sync currentFamily to match
     currentFamily = familyToModify;
 
-    // Reset Input
     input.value = '';
     input.removeAttribute('data-editing-task');
     input.removeAttribute('data-editing-child-index');
-    // Reset time buttons to default (morning)
     setChoreTime(childIndex, 'morning');
 
     saveData();
-    renderSettings(); // Triggers the full UI rebuild
+    renderSettings();
 }
 
 // Add a new child to the family.
@@ -1079,6 +1183,7 @@ function addChild() {
         name: name,
         color: color,
         morning: [],
+        noon: [],
         evening: [],
         loomis: 0
     };
@@ -1087,23 +1192,15 @@ function addChild() {
     if (copyFromIndex !== '' && copyFromIndex !== null) {
         const sourceChild = currentFamily.children[parseInt(copyFromIndex)];
         if (sourceChild) {
-            // Deep copy morning tasks (including days property)
-            newChild.morning = sourceChild.morning.map(t => {
-                const newTask = {
-                    id: Date.now() + Math.random(),
-                    task: t.task
-                };
-                if (t.days) newTask.days = [...t.days]; // Copy days array if it exists
-                return newTask;
-            });
-            // Deep copy evening tasks (including days property)
-            newChild.evening = sourceChild.evening.map(t => {
-                const newTask = {
-                    id: Date.now() + Math.random() + 1000,
-                    task: t.task
-                };
-                if (t.days) newTask.days = [...t.days]; // Copy days array if it exists
-                return newTask;
+            // Deep copy tasks from all routines (including days property)
+            ['morning', 'noon', 'evening'].forEach(routine => {
+                if (sourceChild[routine] && Array.isArray(sourceChild[routine])) {
+                    newChild[routine] = sourceChild[routine].map(t => {
+                        const newTask = { id: Date.now() + Math.random(), task: t.task };
+                        if (t.days) newTask.days = [...t.days];
+                        return newTask;
+                    });
+                }
             });
         }
     }
@@ -1134,12 +1231,11 @@ function sortEvents() {
 function sortChores() {
     if (!currentFamily.children) return;
     currentFamily.children.forEach(child => {
-        if (child.morning) {
-            child.morning.sort((a, b) => (a.task || '').localeCompare(b.task || ''));
-        }
-        if (child.evening) {
-            child.evening.sort((a, b) => (a.task || '').localeCompare(b.task || ''));
-        }
+        ['morning', 'noon', 'evening'].forEach(routine => {
+            if (child[routine]) {
+                child[routine].sort((a, b) => (a.task || '').localeCompare(b.task || ''));
+            }
+        });
     });
 }
 
@@ -1894,6 +1990,7 @@ function renderRoutine(type) {
     container.innerHTML = currentFamily.children.map((child, ci) => {
         const colorClass = getChildColorByName(child.name);
         const colorValue = getChildColorValueByName(child.name);
+        const tasks = child[type] || [];
         return `
         <div class="routine-child-card">
             <div class="routine-child-header">
@@ -1901,7 +1998,7 @@ function renderRoutine(type) {
             </div>
             
             <div class="routine-tasks-list">
-                ${child[type].map((task, originalIdx) => {
+                ${tasks.map((task, originalIdx) => {
                     // Filter tasks by current day if they have days specified
                     if (task.days && task.days.length > 0) {
                         const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
@@ -1973,8 +2070,9 @@ function checkAllTasksDone(childIdx, type) {
     if (!child) return;
 
     const today = new Date().getDay();
+    const tasks = child[type] || [];
     // Get only the tasks visible today (same filter logic as renderRoutine)
-    const visibleTasks = child[type].filter(task => {
+    const visibleTasks = tasks.filter(task => {
         if (task.days && task.days.length > 0) {
             return task.days.includes(today);
         }
@@ -2011,8 +2109,8 @@ function checkAllTasksDone(childIdx, type) {
         })();
 
         // Show celebration popup
-        const msgKey = type === 'morning' ? 'wellDoneMorning' : 'wellDoneEvening';
-        const message = t(msgKey).replace('{name}', child.name);
+        const msgMap = { morning: 'wellDoneMorning', noon: 'wellDoneNoon', evening: 'wellDoneEvening' };
+        const message = t(msgMap[type] || 'wellDoneMorning').replace('{name}', child.name);
         showCelebrationPopup(message, type);
 
         // Play a celebration sound
@@ -2033,17 +2131,18 @@ function showCelebrationPopup(message, type) {
     const existing = document.getElementById('celebration-popup');
     if (existing) existing.remove();
 
-    const isMorning = type === 'morning';
+    const iconMap = { morning: 'emoji_events', noon: 'wb_sunny', evening: 'stars' };
+    const btnIconMap = { morning: 'rocket_launch', noon: 'celebration', evening: 'bedtime' };
     const popup = document.createElement('div');
     popup.id = 'celebration-popup';
     popup.innerHTML = `
         <div class="celebration-content">
             <div class="celebration-icon">
-                <span class="material-symbols-rounded">${isMorning ? 'emoji_events' : 'stars'}</span>
+                <span class="material-symbols-rounded">${iconMap[type] || 'emoji_events'}</span>
             </div>
             <div class="celebration-message">${message}</div>
             <button class="celebration-close" onclick="this.closest('#celebration-popup').remove()">
-                <span class="material-symbols-rounded celebration-btn-icon">${isMorning ? 'rocket_launch' : 'bedtime'}</span>
+                <span class="material-symbols-rounded celebration-btn-icon">${btnIconMap[type] || 'rocket_launch'}</span>
                 ${t('back')}
             </button>
         </div>
@@ -2077,7 +2176,9 @@ window.showAppContent = function() {
     }
     // Apply language to dynamic content after rendering
     if (typeof applyLanguage === 'function') applyLanguage();
-showView('home');
+    // Build home menu grid based on active routines
+    updateHomeMenuGrid();
+    showView('home');
 };
 
 window.showPolicy = (type) => {
