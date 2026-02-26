@@ -15,6 +15,11 @@ if (!currentFamily.events) currentFamily.events = [];
 // Default collectLoomis to true if not set
 if (currentFamily.collectLoomis === undefined) currentFamily.collectLoomis = true;
 
+// Settings lock is stored per-device in localStorage (NOT synced via Firebase)
+// so each device (iPad / iPhone) can independently decide whether to lock settings.
+let pinLock = JSON.parse(localStorage.getItem('loomi-pin-lock') || 'null') || { enabled: false, pin: '' };
+function savePinLock() { localStorage.setItem('loomi-pin-lock', JSON.stringify(pinLock)); }
+
 // Default routine toggles: morning ON, noon OFF, evening ON
 if (!currentFamily.routineToggles) {
     currentFamily.routineToggles = { morning: true, noon: false, evening: true };
@@ -24,6 +29,43 @@ if (!currentFamily.routineToggles) {
 currentFamily.children.forEach(child => {
     if (!child.noon) child.noon = [];
 });
+
+// Soft low-pitched ding when a task is checked
+function playCheckSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(330, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.28, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+    } catch(e) {}
+}
+
+// Gentle 3-note ascending chime for routine completion
+function playCelebrationSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [[330, 0], [392, 0.18], [523, 0.36]].forEach(([freq, delay]) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.22, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.5);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.5);
+        });
+    } catch(e) {}
+}
 
 // Toggle Loomis collection on/off
 function toggleCollectLoomis() {
@@ -87,6 +129,22 @@ function getActiveRoutines() {
     return ['morning', 'noon', 'evening'].filter(key => toggles[key]);
 }
 
+// Check if all children have completed all of today's visible tasks for a routine
+function isRoutineDoneForAll(type) {
+    const children = currentFamily.children || [];
+    if (children.length === 0) return false;
+    const today = new Date().getDay();
+    return children.every(child => {
+        const tasks = child[type] || [];
+        const visibleTasks = tasks.filter(task => {
+            if (task.days && task.days.length > 0) return task.days.includes(today);
+            return true;
+        });
+        if (visibleTasks.length === 0) return true; // child has no tasks today → skip them
+        return visibleTasks.every(task => task.completed);
+    });
+}
+
 // Update the home page menu grid based on active routines
 function updateHomeMenuGrid() {
     const grid = document.querySelector('.menu-grid');
@@ -100,7 +158,9 @@ function updateHomeMenuGrid() {
     // Build routine buttons HTML
     let routineHtml = '';
     active.forEach(type => {
-        routineHtml += `<button onclick="showView('${type}')" class="menu-card ${classMap[type]}" data-i18n-key="${i18nMap[type]}" data-routine-btn="${type}">
+        const done = isRoutineDoneForAll(type);
+        routineHtml += `<button onclick="showView('${type}')" class="menu-card ${classMap[type]}${done ? ' routine-done' : ''}" data-i18n-key="${i18nMap[type]}" data-routine-btn="${type}">
+            ${done ? '<span class="routine-done-badge"><span class="material-symbols-rounded">verified</span></span>' : ''}
             <span class="material-symbols-rounded menu-icon">${iconMap[type]}</span>
             <span class="menu-text">${t(i18nMap[type])}</span>
         </button>`;
@@ -339,6 +399,25 @@ function renderChildScore(child) {
 
 // Show one of the main app views and re-render related data.
 function showView(viewId) {
+    // Settings PIN lock intercept
+    if (viewId === 'settings') {
+        const lock = pinLock;
+        if (lock && lock.enabled && lock.pin) {
+            showPinOverlay(t('enterPin'), function(enteredPin, reset) {
+                if (enteredPin === lock.pin) {
+                    closePinOverlay();
+                    _doShowView('settings');
+                } else {
+                    if (window._pinShowError) window._pinShowError(t('wrongPin'));
+                }
+            }, true);
+            return;
+        }
+    }
+    _doShowView(viewId);
+}
+
+function _doShowView(viewId) {
     document.querySelectorAll('.view').forEach(v => {
         v.classList.add('hidden');
         v.style.opacity = '0';
@@ -358,6 +437,7 @@ function showView(viewId) {
     
     if (viewId === 'week') renderWeek();
     if (viewId === 'settings') { sortEvents(); sortChores(); renderSettings(); }
+    if (viewId === 'home') updateHomeMenuGrid();
     if (viewId === 'market') renderMarket();
     if (isRoutine) {
         // Update the routine page title based on type
@@ -676,10 +756,11 @@ function renderSettings() {
 
     updateLoomisToggleUI();
     updateRoutineTogglesUI();
+    updateSettingsLockUI();
     renderEventsList();
     renderMarketSection();
     renderChildList();
-    
+
     // Ensure children section title is translated
     const childrenTitle = document.querySelector('.settings-section-title');
     if (childrenTitle) {
@@ -694,7 +775,7 @@ function renderMarketSection() {
     const marketItems = currentFamily.market || [];
 
     if (marketItems.length === 0) {
-        listContainer.innerHTML = '<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">' + t('noTasks') + '</div>';
+        listContainer.innerHTML = `<div class="settings-empty">${t('noTasks')}</div>`;
         return;
     }
 
@@ -1247,7 +1328,7 @@ function renderEventsList() {
     const events = currentFamily.events || [];
 
     if (events.length === 0) {
-        list.innerHTML = `<div style="color:#999; font-size:0.8rem; text-align:center; padding:10px;">${t('noEvents')}</div>`;
+        list.innerHTML = `<div class="settings-empty">${t('noEvents')}</div>`;
         return;
     }
 
@@ -1266,7 +1347,7 @@ function renderEventsList() {
         return `
             <div class="chore-edit-row event-list-row">
                 <span class="event-list-info">
-                    ${dateDisplay} - <strong>${ev.name}</strong> (<span style="direction:ltr;">${ev.start}-${ev.end}</span>)${child ? ` - ${child.name}` : ''}
+                    ${dateDisplay} - <strong>${ev.name}</strong> <span dir="ltr">(${ev.start}-${ev.end})</span>${child ? ` - ${child.name}` : ''}
                 </span>
                 <span class="event-list-actions">
                     <button onclick="editEvent(${i})" style="color:#5A9CB5;font-size:1.2rem;background:none;border:none;cursor:pointer;" title="${t('edit')}">✎</button>
@@ -1834,7 +1915,7 @@ function renderMarket() {
     const container = document.getElementById('market-list');
     if (!container) return;
     if (currentFamily.market.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">${t('bankEmpty')}</div>`;
+        container.innerHTML = `<div class="empty-state"><span class="material-symbols-rounded">emoji_events</span><p>${t('bankEmpty')}</p></div>`;
         return;
     }
     
@@ -1926,10 +2007,7 @@ function processMarketWin(itemIndex, childIndex) {
     document.getElementById('market-overlay').remove();
     
     try {
-        // Short cute pop sound - same as routine check
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-        audio.volume = 0.5;
-        audio.play();
+        playCheckSound();
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FAAC68', '#FACE68', '#E77F1A'] }); // Orange confetti
     } catch(e) {}
 
@@ -1991,28 +2069,49 @@ function renderRoutine(type) {
         const colorClass = getChildColorByName(child.name);
         const colorValue = getChildColorValueByName(child.name);
         const tasks = child[type] || [];
+        const today = new Date().getDay();
+        const visibleTasks = tasks.filter(task => {
+            if (task.days && task.days.length > 0) return task.days.includes(today);
+            return true;
+        });
+        const completedCount = visibleTasks.filter(t => t.completed).length;
+        const totalCount = visibleTasks.length;
+        const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+        const allDone = totalCount > 0 && completedCount === totalCount;
         return `
-        <div class="routine-child-card">
+        <div class="routine-child-card${allDone ? ' child-all-done' : ''}">
             <div class="routine-child-header">
-                <h2 class="${colorClass}" style="color: #134686">${child.name}</h2>
+                <div class="child-name-row">
+                    <h2 class="${colorClass}" style="color: #134686">${child.name}</h2>
+                    ${allDone ? '<span class="child-done-badge"><span class="material-symbols-rounded">verified</span></span>' : ''}
+                </div>
+                ${totalCount > 0 ? `
+                <div class="routine-progress">
+                    <div class="routine-progress-track">
+                        <div class="routine-progress-fill" style="width:${progressPct}%"></div>
+                    </div>
+                    <span class="routine-progress-text">${completedCount}/${totalCount}</span>
+                </div>` : ''}
             </div>
             
             <div class="routine-tasks-list">
-                ${tasks.map((task, originalIdx) => {
-                    // Filter tasks by current day if they have days specified
-                    if (task.days && task.days.length > 0) {
-                        const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
-                        if (!task.days.includes(today)) return ''; // Skip but preserve original index
-                    }
-                    const taskId = `task-${ci}-${type}-${originalIdx}`;
-                    const isCompleted = task.completed ? 'completed' : '';
-                    return `
-                    <div class="routine-item ${isCompleted}" id="${taskId}" onclick="toggleTask(${ci}, '${type}', ${originalIdx}, this)">
-                        <span class="task-icon">${getTaskIcon(task.task)}</span>
-                        <span class="task-text">${task.task}</span>
-                    </div>
-                `;
-                }).join('')}
+                ${visibleTasks.length === 0
+                    ? `<div class="empty-state">
+                            <span class="material-symbols-rounded">checklist</span>
+                            <p>${t('noChores')}</p>
+                        </div>`
+                    : tasks.map((task, originalIdx) => {
+                        if (task.days && task.days.length > 0 && !task.days.includes(today)) return '';
+                        const taskId = `task-${ci}-${type}-${originalIdx}`;
+                        const isCompleted = task.completed ? 'completed' : '';
+                        return `
+                        <div class="routine-item ${isCompleted}" id="${taskId}" onclick="toggleTask(${ci}, '${type}', ${originalIdx}, this)">
+                            <span class="task-icon">${getTaskIcon(task.task)}</span>
+                            <span class="task-text">${task.task}</span>
+                        </div>
+                    `;
+                    }).join('')
+                }
             </div>
         </div>
         `;
@@ -2036,13 +2135,7 @@ function toggleTask(childIdx, type, taskIdx, element) {
     // Add the sound and confetti if checked
     if (isCompleted) {
         try {
-            // Short cute pop sound
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-            audio.volume = 0.5;
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => console.log('Audio play failed:', error));
-            }
+            playCheckSound();
             confetti({
                 particleCount: 40,
                 spread: 50,
@@ -2062,6 +2155,24 @@ function toggleTask(childIdx, type, taskIdx, element) {
         // Check if ALL visible tasks for this child are now completed
         checkAllTasksDone(childIdx, type);
     }
+
+    // Update progress bar for this child's card live
+    const cards = document.querySelectorAll('#child-slider .routine-child-card');
+    const card = cards[childIdx];
+    if (card) {
+        const allItems = card.querySelectorAll('.routine-item');
+        const doneItems = card.querySelectorAll('.routine-item.completed');
+        const total = allItems.length;
+        const completed = doneItems.length;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const fill = card.querySelector('.routine-progress-fill');
+        const text = card.querySelector('.routine-progress-text');
+        if (fill) fill.style.width = pct + '%';
+        if (text) text.textContent = `${completed}/${total}`;
+    }
+
+    // Refresh home menu badges
+    updateHomeMenuGrid();
 }
 
 // Check if all visible tasks are done and show big celebration
@@ -2082,6 +2193,17 @@ function checkAllTasksDone(childIdx, type) {
     if (visibleTasks.length === 0) return;
     const allDone = visibleTasks.every(task => task.completed);
     if (!allDone) return;
+
+    // Add done badge to this child's card immediately
+    const cards = document.querySelectorAll('#child-slider .routine-child-card');
+    const card = cards[childIdx];
+    if (card && !card.classList.contains('child-all-done')) {
+        card.classList.add('child-all-done');
+        const nameRow = card.querySelector('.child-name-row');
+        if (nameRow && !nameRow.querySelector('.child-done-badge')) {
+            nameRow.insertAdjacentHTML('beforeend', '<span class="child-done-badge"><span class="material-symbols-rounded">verified</span></span>');
+        }
+    }
 
     // All tasks completed — big celebration!
     setTimeout(() => {
@@ -2114,14 +2236,7 @@ function checkAllTasksDone(childIdx, type) {
         showCelebrationPopup(message, type);
 
         // Play a celebration sound
-        try {
-            const cheerAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
-            cheerAudio.volume = 0.6;
-            const playPromise = cheerAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {});
-            }
-        } catch(e) {}
+        playCelebrationSound();
     }, 400);
 }
 
@@ -2182,8 +2297,176 @@ window.showAppContent = function() {
 };
 
 window.showPolicy = (type) => {
-    const content = type === 'privacy' 
+    const content = type === 'privacy'
         ? "LOOMI collects your email for login and saves your routine data securely in Google Firebase. We do not share your data."
         : "LOOMI is a tool for personal and family use. Users are responsible for their own account security and passwords.";
     alert(content);
 };
+
+// --- Settings PIN Lock System ---
+
+// Update the lock toggle button UI to reflect current state
+function updateSettingsLockUI() {
+    const btn = document.getElementById('settings-lock-btn');
+    if (!btn) return;
+    const lock = pinLock;
+    const isLocked = lock && lock.enabled && lock.pin;
+    btn.classList.toggle('active', !!isLocked);
+}
+
+// Called when the lock toggle is tapped
+function toggleSettingsLock() {
+    const lock = pinLock;
+    if (!lock.enabled || !lock.pin) {
+        // Currently off → start PIN setup flow
+        showSetPinOverlay();
+    } else {
+        // Currently on → ask for PIN to confirm disabling
+        showPinOverlay(t('disablePin'), function(enteredPin) {
+            if (enteredPin === lock.pin) {
+                pinLock = { enabled: false, pin: '' };
+                savePinLock();
+                updateSettingsLockUI();
+                closePinOverlay();
+            } else {
+                if (window._pinShowError) window._pinShowError(t('wrongPin'));
+            }
+        }, false);
+    }
+}
+
+// Show a PIN entry overlay.
+// title: heading string
+// onPinComplete(enteredPin): called when 4 digits are entered; caller decides to close or show error
+// showForgot: whether to show the "forgot PIN" button
+function showPinOverlay(title, onPinComplete, showForgot) {
+    closePinOverlay(); // remove any existing overlay
+
+    const overlay = document.createElement('div');
+    overlay.id = 'pin-overlay';
+    overlay.className = 'pin-overlay';
+    overlay.innerHTML = `
+        <div class="pin-modal">
+            <h2 class="pin-title">${title}</h2>
+            <div class="pin-dots" id="pin-dots">
+                <span class="pin-dot" id="pin-dot-0"></span>
+                <span class="pin-dot" id="pin-dot-1"></span>
+                <span class="pin-dot" id="pin-dot-2"></span>
+                <span class="pin-dot" id="pin-dot-3"></span>
+            </div>
+            <p class="pin-error-msg" id="pin-error-msg">&nbsp;</p>
+            <div class="pin-keypad">
+                ${[1,2,3,4,5,6,7,8,9].map(k => `<button class="pin-key" onclick="window._pinKeyPress('${k}')">${k}</button>`).join('')}
+                <button class="pin-key pin-key-empty"></button>
+                <button class="pin-key" onclick="window._pinKeyPress('0')">0</button>
+                <button class="pin-key pin-key-del" onclick="window._pinKeyPress('del')">⌫</button>
+            </div>
+            ${showForgot ? `<button class="pin-forgot-btn" onclick="handleForgotPinClick()">${t('forgotPin')}</button>` : ''}
+            <button class="pin-cancel-btn" onclick="closePinOverlay()">${t('cancel')}</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    let entered = '';
+
+    window._pinKeyPress = function(key) {
+        if (key === 'del') {
+            entered = entered.slice(0, -1);
+        } else if (entered.length < 4) {
+            entered += key;
+        }
+        // Update dot indicators
+        for (let i = 0; i < 4; i++) {
+            const dot = document.getElementById('pin-dot-' + i);
+            if (dot) dot.classList.toggle('pin-dot-filled', i < entered.length);
+        }
+        // Fire callback when 4 digits entered
+        if (entered.length === 4) {
+            setTimeout(() => {
+                onPinComplete(entered);
+                // Don't reset here — let the callback decide
+            }, 150);
+        }
+    };
+
+    window._pinReset = function() {
+        entered = '';
+        for (let i = 0; i < 4; i++) {
+            const dot = document.getElementById('pin-dot-' + i);
+            if (dot) dot.classList.remove('pin-dot-filled');
+        }
+    };
+
+    window._pinShowError = function(msg) {
+        window._pinReset();
+        const errorEl = document.getElementById('pin-error-msg');
+        if (errorEl) errorEl.textContent = msg;
+        const modal = overlay.querySelector('.pin-modal');
+        if (modal) {
+            modal.classList.remove('pin-shake');
+            void modal.offsetWidth; // trigger reflow for animation restart
+            modal.classList.add('pin-shake');
+        }
+    };
+}
+
+// Remove the PIN overlay from the DOM
+function closePinOverlay() {
+    const overlay = document.getElementById('pin-overlay');
+    if (overlay) overlay.remove();
+    window._pinKeyPress = null;
+    window._pinReset = null;
+    window._pinShowError = null;
+}
+
+// Two-step flow: set PIN then confirm
+function showSetPinOverlay() {
+    let firstPin = null;
+
+    showPinOverlay(t('setPin'), function onPinComplete(pin) {
+        if (!firstPin) {
+            // Step 1 done — move to confirm
+            firstPin = pin;
+            const titleEl = document.querySelector('#pin-overlay .pin-title');
+            if (titleEl) titleEl.textContent = t('confirmPin');
+            // Reset entered + dots so confirmation step starts fresh
+            if (window._pinReset) window._pinReset();
+            const errorEl = document.getElementById('pin-error-msg');
+            if (errorEl) errorEl.textContent = '\u00A0';
+        } else {
+            // Step 2 done — validate
+            if (pin === firstPin) {
+                pinLock = { enabled: true, pin };
+                savePinLock();
+                updateSettingsLockUI();
+                closePinOverlay();
+            } else {
+                firstPin = null;
+                if (window._pinShowError) window._pinShowError(t('pinMismatch'));
+                // After shake, reset to step 1
+                setTimeout(() => {
+                    const titleEl = document.querySelector('#pin-overlay .pin-title');
+                    if (titleEl) titleEl.textContent = t('setPin');
+                }, 600);
+            }
+        }
+    }, false);
+}
+
+// Send a Firebase password reset email as the "forgot PIN" escape hatch
+async function handleForgotPinClick() {
+    const errorEl = document.getElementById('pin-error-msg');
+    if (window.isGuestMode || !window.currentFirebaseUser) {
+        if (errorEl) errorEl.textContent = t('pinForgotGuest');
+        return;
+    }
+    try {
+        const email = window.currentFirebaseUser.email;
+        if (window.firebaseSendPasswordResetEmail && window.firebaseAuth) {
+            await window.firebaseSendPasswordResetEmail(window.firebaseAuth, email);
+        }
+        if (errorEl) { errorEl.style.color = '#4caf50'; errorEl.textContent = t('pinForgotSent'); }
+    } catch (e) {
+        if (errorEl) errorEl.textContent = e.message;
+    }
+}

@@ -141,47 +141,6 @@ body {
     vertical-align: middle;
 }
 
-/* The Loomi Icon Stack (legacy) */
-.loomi-icon-imgs-stack, .loomi-icons-stack {
-    position: relative;
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    vertical-align: middle;
-    margin: 0 4px;
-}
-.loomi-icon-img {
-    width: 32px;
-    height: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
-    transition: transform 0.2s;
-}
-
-/* Loomi icon - duplicate rule (keeping for compatibility) */
-.loomi-icon {
-    width: 32px;
-    height: 32px;
-    background-image: url('loomi-icon.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: inline-block;
-    vertical-align: middle;
-}
-.loomi-back {
-    transform: translate(2px, 2px) scale(0.9);
-    opacity: 0.7;
-    z-index: 1;
-}
-.loomi-front {
-    z-index: 2;
-}
-.loomi-icon-imgs-stack:hover .loomi-front {
-    transform: scale(1.1);
-}
 
 /* Loomi display without pill */
 .loomi-display {
@@ -428,12 +387,32 @@ header #clock {
 
 /* Home Menu Grid */
 .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-.menu-card { 
-    aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; 
-    justify-content: center; border-radius: 30px; border: none; box-shadow: var(--shadow); 
+.menu-card {
+    aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; border-radius: 30px; border: none; box-shadow: var(--shadow);
     cursor: pointer; transition: transform 0.1s;
+    position: relative;
 }
 .menu-card:active { transform: scale(0.95); }
+
+/* Done-today badge on routine home cards */
+.routine-done-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.routine-done-badge .material-symbols-rounded {
+    font-size: 22px;
+    color: #FAAC68;
+}
 
 /* Dynamic routine grid layouts */
 /* 1 routine: wide rectangle on top, then 2 fixed buttons below */
@@ -547,12 +526,11 @@ header #clock {
 }
 
 /* Container for the 3 main cards */
-/* Two-column layout for settings */
+/* Two-column layout for settings — CSS Grid keeps both cards equal height */
 .settings-two-columns {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
     padding: 0 10px;
     margin-bottom: 30px;
     max-width: 750px;
@@ -561,10 +539,9 @@ header #clock {
 }
 
 .settings-column {
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 15px;
 }
 
 .settings-column-header {
@@ -599,15 +576,16 @@ header #clock {
 }
 
 .settings-card {
-    width: 310px !important;
-    height: 420px !important; /* LOCKED height for perfect rows */
+    width: 100% !important;
+    height: 100% !important; /* fill the grid cell — makes both cards equal height */
+    min-height: 200px !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow: hidden !important; /* Prevents content from stretching the card */
+    overflow: hidden !important; /* needed so inner list can scroll */
     background-color: #FDF4E3 !important;
     border-radius: 30px !important;
     padding: 20px !important;
-    box-shadow: none !important; /* Remove lower blue shadow */
+    box-shadow: none !important;
     margin: 0 !important;
     box-sizing: border-box;
 }
@@ -835,28 +813,31 @@ header #clock {
 .event-list-row {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 6px 0;
+    gap: 6px;
+    padding: 7px 0;
     border-bottom: 1px solid #f1f5f9;
-    direction: ltr; /* Keep LTR for consistent button/text positioning */
+    direction: rtl;
 }
 
+/* Push buttons to the left using logical margin — works regardless of direction */
 .event-list-actions {
     display: flex;
     align-items: center;
     gap: 2px;
     flex-shrink: 0;
-    order: 0; /* Buttons on the left */
+    margin-inline-start: auto;
 }
 
 .event-list-info {
     flex: 1;
     min-width: 0;
-    text-align: right; /* Text aligned right for Hebrew */
-    direction: rtl; /* RTL for Hebrew text content */
-    order: 1; /* Text on the right */
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    text-align: right;
+    direction: rtl;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.82rem;
+    line-height: 1.4;
 }
 
 .edit-event-btn {
@@ -1076,20 +1057,19 @@ header #clock {
 
 
 .settings-card-list {
-    flex: 1;
+    flex: 1;          /* fills remaining card height */
     overflow-y: auto;
-    font-size: 0.7rem;
-    margin-top: 0;
+    font-size: 0.8rem;
+    margin-top: 4px;
     margin-bottom: 2px;
-    min-height: 0;
-    /* No max-height - let it fill to the bottom of the card */
+    min-height: 0;    /* allows flex shrink */
 }
 
 .settings-card-list .chore-edit-row {
-    padding: 4px 0;
-    font-size: 0.75rem;
+    padding: 6px 0;
+    font-size: 0.82rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -1099,7 +1079,7 @@ header #clock {
     justify-content: flex-start;
 }
 
-.settings-card-list .chore-edit-row span {
+.settings-card-list .chore-edit-row span:not(.event-list-actions) {
     flex: 1;
     text-align: right;
 }
@@ -1361,33 +1341,27 @@ h2, h3, .compact-h3 {
 }
 .settings-section-title {
     color: #134686;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 800;
     position: relative;
     display: block;
-    text-align: right; /* Align text to right for Hebrew */
+    text-align: center;
     width: 100%;
+    padding: 0 20px 10px;
+    margin: 20px 0 12px;
     box-sizing: border-box;
-}
-
-[dir="ltr"] .settings-section-title {
-    text-align: left; /* Align text to left for English */
 }
 
 .settings-section-title::after {
     content: '';
     position: absolute;
-    bottom: -5px;
-    right: 0; /* Start from right for RTL */
-    width: 60%;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
     height: 4px;
-    background: #FAAC68; /* Orange underline */
+    background: #FAAC68;
     border-radius: 10px;
-}
-
-[dir="ltr"] .settings-section-title::after {
-    right: auto;
-    left: 0; /* Start from left for LTR */
 }
 h2.page-title {
     color: #134686;
@@ -1976,13 +1950,6 @@ h4 {
     line-height: 1;
     min-width: 20px; /* Consistent button width */
 }
-.loomi-stepper .loomi-icon-imgs-stack {
-    width: 16px;
-    height: 16px;
-}
-.loomi-stepper .loomi-icon-img {
-    width: 16px;
-}
 .loomi-stepper .loomi-count {
     font-size: 0.85rem; /* Slightly larger */
     min-width: 24px; /* Fixed width for number */
@@ -2052,7 +2019,44 @@ h4 {
     box-shadow: 0 2px 0px #E5B959 !important;
 }
 
-.back-btn { 
+/* Empty states */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    color: #94a3b8;
+    gap: 12px;
+    text-align: center;
+}
+.empty-state .material-symbols-rounded {
+    font-size: 52px;
+    opacity: 0.45;
+}
+.empty-state p {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Smaller empty state for inside settings panel lists */
+.settings-empty {
+    color: #aaa;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 12px 8px;
+}
+
+/* Shared header for all sub-views (routine, market, week, child page) */
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.back-btn {
     background-color: #FAAC68 !important; 
     color: #134686 !important; 
     font-weight: 800;
@@ -2102,21 +2106,25 @@ h4 {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    gap: 20px;
-    padding: 0 20px 10px;
+    gap: 16px;
+    padding: 14px 20px;
     flex-wrap: wrap;
+    background: white;
+    border-radius: 20px;
+    margin: 0 0 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 
 .routine-toggle-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .routine-toggle-label {
     color: #134686;
-    font-weight: 600;
-    font-size: 0.8rem;
+    font-weight: 700;
+    font-size: 0.85rem;
     white-space: nowrap;
 }
 
@@ -2273,6 +2281,57 @@ h4 {
     text-align: center;
     margin-bottom: 20px;
     flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+/* Per-child "all done" state */
+.routine-child-card.child-all-done {
+    background: #f0fdf4;
+}
+.child-name-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.child-done-badge {
+    display: inline-flex;
+    align-items: center;
+}
+.child-done-badge .material-symbols-rounded {
+    font-size: 30px;
+    color: #FAAC68;
+}
+
+/* Progress bar */
+.routine-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    width: 100%;
+}
+.routine-progress-track {
+    flex: 1;
+    height: 7px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.routine-progress-fill {
+    height: 100%;
+    background: #FAAC68;
+    border-radius: 4px;
+    transition: width 0.35s ease;
+}
+.routine-child-card.child-all-done .routine-progress-fill {
+    background: #4caf50;
+}
+.routine-progress-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    min-width: 28px;
+    text-align: center;
 }
 
 .routine-child-header h2 {
@@ -2508,12 +2567,7 @@ h4 {
 }
 
 /* Child page header */
-.child-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
+.child-page-header {}
 
 /* Header loomis display */
 .header-loomis {
@@ -2934,14 +2988,16 @@ h4 {
     
     /* Settings page responsive fixes */
     .settings-two-columns {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
         gap: 20px;
     }
-    
+
     .settings-column {
         width: 100%;
-        align-items: center;
+    }
+
+    .settings-card {
+        height: auto !important; /* on mobile let cards grow naturally */
     }
     
     .settings-column-header {
@@ -2956,10 +3012,10 @@ h4 {
     }
     
     .settings-card {
-        width: 95% !important;
-        max-width: 350px !important;
+        width: 100% !important;
+        max-width: 100% !important;
         height: auto !important;
-        min-height: 300px !important;
+        min-height: 160px !important;
     }
     
     .settings-child-slider {
@@ -3127,13 +3183,14 @@ input[type="email"], input[type="password"] {
 }
 
 .auth-buttons button:first-child {
-    background: #5A9CB5;
+    background: #134686;
     color: white;
 }
 
 .auth-buttons button:last-child {
-    background: #134686;
-    color: white;
+    background: transparent;
+    color: #134686;
+    border: 2px solid #134686;
 }
 
 .auth-buttons button:hover {
@@ -3252,4 +3309,149 @@ input[type="email"], input[type="password"] {
 @keyframes celebrationPulse {
     0% { transform: scale(1); }
     100% { transform: scale(1.15) rotate(5deg); }
+}
+/* --- Settings PIN Lock --- */
+
+/* Lock toggle row inside settings bottom bar */
+.settings-lock-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.settings-lock-icon {
+    font-size: 20px;
+    color: var(--text-dark);
+    opacity: 0.7;
+}
+.settings-lock-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+/* Full-screen PIN overlay */
+.pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(19, 70, 134, 0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* PIN modal card */
+.pin-modal {
+    background: #fff;
+    border-radius: 28px;
+    padding: 36px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    width: min(340px, 90vw);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.pin-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0;
+    text-align: center;
+}
+
+/* 4-dot indicator row */
+.pin-dots {
+    display: flex;
+    gap: 18px;
+}
+.pin-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2.5px solid var(--loomi-blue);
+    background: transparent;
+    transition: background 0.15s;
+}
+.pin-dot.pin-dot-filled {
+    background: var(--loomi-blue);
+}
+
+/* Error / status message */
+.pin-error-msg {
+    font-size: 0.85rem;
+    color: var(--loomi-coral);
+    text-align: center;
+    min-height: 1.2em;
+    margin: 0;
+}
+
+/* Numeric keypad */
+.pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+.pin-key {
+    height: 60px;
+    border-radius: 14px;
+    border: none;
+    background: var(--bg-darker);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: background 0.12s, transform 0.08s;
+}
+.pin-key:active {
+    background: #c9dde8;
+    transform: scale(0.93);
+}
+.pin-key-empty {
+    background: transparent !important;
+    cursor: default;
+    pointer-events: none;
+}
+.pin-key-del {
+    font-size: 1.2rem;
+}
+
+/* Forgot PIN link */
+.pin-forgot-btn {
+    background: none;
+    border: none;
+    color: var(--loomi-blue);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+/* Cancel button */
+.pin-cancel-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 12px;
+}
+
+/* Shake animation on wrong PIN */
+@keyframes pinShake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-10px); }
+    40%       { transform: translateX(10px); }
+    60%       { transform: translateX(-8px); }
+    80%       { transform: translateX(8px); }
+}
+.pin-shake {
+    animation: pinShake 0.45s ease;
 }

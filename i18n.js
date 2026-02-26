@@ -24,9 +24,9 @@ const TRANSLATIONS = {
         noonRoutine: 'שגרת צהריים',
         eveningRoutine: 'שגרת ערב',
         back: 'חזרה',
-        wellDoneMorning: 'כל הכבוד {name}! שיהיה יום נהדר!',
-        wellDoneNoon: 'כל הכבוד {name}! כל המטלות של הצהריים בוצעו!',
-        wellDoneEvening: 'כל הכבוד {name}! שיהיה לך לילה טוב, וחלומות מתוקים',
+        wellDoneMorning: 'כל הכבוד {name}! <br> שיהיה יום נהדר!',
+        wellDoneNoon: 'כל הכבוד {name}! <br> כל המטלות של הצהריים בוצעו!',
+        wellDoneEvening: 'כל הכבוד {name}! <br> שיהיה לך לילה טוב, וחלומות מתוקים',
         
         // Routine toggles
         morningToggle: 'שגרת בוקר',
@@ -100,6 +100,18 @@ const TRANSLATIONS = {
         loginFailed: 'ההתחברות נכשלה. בדוק אימייל/סיסמה.',
         enterEmailFirst: 'נא להזין כתובת אימייל קודם.',
         resetEmailSent: 'נשלח! בדוק את תיבת המייל שלך.',
+
+        // Settings PIN lock
+        settingsLock: 'נעילת הגדרות',
+        enterPin: 'הזן קוד גישה',
+        setPin: 'בחר קוד 4 ספרות',
+        confirmPin: 'הזן שוב לאישור',
+        pinMismatch: 'הקודים לא תואמים, נסה שוב',
+        wrongPin: 'קוד שגוי, נסה שוב',
+        forgotPin: 'שכחתי קוד',
+        pinForgotSent: 'נשלח מייל לאיפוס סיסמה',
+        pinForgotGuest: 'לא ניתן לאפס קוד במצב אורח',
+        disablePin: 'הזן קוד לכיבוי הנעילה',
         
         // Task icon keywords (Hebrew)
         taskKeywords: [
@@ -145,9 +157,9 @@ const TRANSLATIONS = {
         noonRoutine: 'Noon Routine',
         eveningRoutine: 'Evening Routine',
         back: 'Back',
-        wellDoneMorning: 'Well done {name}! Have an amazing day!',
-        wellDoneNoon: 'Well done {name}! All noon chores completed!',
-        wellDoneEvening: 'Well done {name}! Good night & sweet dreams',
+        wellDoneMorning: 'Well done {name}! <br> Have an amazing day!',
+        wellDoneNoon: 'Well done {name}! <br> All noon chores completed!',
+        wellDoneEvening: 'Well done {name}! <br> Good night & sweet dreams',
         
         // Routine toggles
         morningToggle: 'Morning Routine',
@@ -221,6 +233,18 @@ const TRANSLATIONS = {
         loginFailed: 'Login failed. Check email/password.',
         enterEmailFirst: 'Please enter your email address first.',
         resetEmailSent: 'Reset email sent.. Check your inbox.',
+
+        // Settings PIN lock
+        settingsLock: 'Lock Settings',
+        enterPin: 'Enter PIN',
+        setPin: 'Choose a 4-digit PIN',
+        confirmPin: 'Confirm PIN',
+        pinMismatch: "PINs don't match, try again",
+        wrongPin: 'Wrong PIN, try again',
+        forgotPin: 'Forgot PIN?',
+        pinForgotSent: 'Password reset email sent',
+        pinForgotGuest: 'Cannot reset PIN in guest mode',
+        disablePin: 'Enter PIN to disable lock',
         
         // Task icon keywords (English)
         taskKeywords: [
@@ -425,6 +449,10 @@ function applyLanguage() {
     // Children section title
     const childrenTitle = document.querySelector('.settings-section-title');
     if (childrenTitle) childrenTitle.textContent = t('childrenSection');
+
+    // Settings lock label
+    const lockLabel = document.querySelector('.settings-lock-label');
+    if (lockLabel) lockLabel.textContent = t('settingsLock');
 }
 
 // Update the language toggle button visual (active/right = Hebrew side)
