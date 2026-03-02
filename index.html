@@ -103,6 +103,13 @@
         });
 
         // GUEST MODE - enter app without registering, data stays local only
+        document.addEventListener('touchstart', (e) => {
+            if (!e.target.closest('.guest-link-wrapper')) {
+                const w = document.querySelector('.guest-link-wrapper');
+                if (w) w.classList.remove('tooltip-open');
+            }
+        });
+
         window.handleGuestMode = () => {
             const authOverlay = document.getElementById('auth-container');
             if (authOverlay) authOverlay.style.display = 'none';
@@ -326,7 +333,11 @@
                 <p class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</p>
                 <p id="auth-error" style="color: red;"></p>
             </div>
-            <p class="guest-link" onclick="handleGuestMode()"></p>
+            <div class="guest-link-wrapper">
+                <p class="guest-link" onclick="handleGuestMode()"></p>
+                <span class="guest-info-icon" ontouchstart="event.preventDefault(); this.closest('.guest-link-wrapper').classList.toggle('tooltip-open')">?</span>
+                <div class="guest-tooltip" id="guest-tooltip"></div>
+            </div>
         </div>
     </div>
 
@@ -407,12 +418,14 @@
             <div class="settings-column">
                 <!-- Event planner card -->
                 <div class="settings-card settings-card-purple add-event-card">
-                    <h3>הוסף אירוע</h3>
+                    <h3>הוסף אירוע <span class="info-icon" data-tooltip-key="tooltipEvents">?</span></h3>
                     <input type="hidden" id="edit-event-idx" value="-1">
                     
                     <div class="type-toggle">
                         <button type="button" id="btn-weekly" class="active" onclick="setEventMode('weekly')">שבועי</button>
+                        <span class="info-icon" data-tooltip-key="tooltipEventWeekly">?</span>
                         <button type="button" id="btn-once" onclick="setEventMode('once')">תאריך ספציפי</button>
+                        <span class="info-icon" data-tooltip-key="tooltipEventOnce">?</span>
                     </div>
                     
                     <!-- Row 1: Event name + Kid selector -->
@@ -465,6 +478,10 @@
         <h3 class="settings-section-title" data-i18n="childrenSection">ילדים</h3>
         
         <!-- Routine toggles (horizontal) -->
+        <div class="routine-toggles-label">
+            <span data-i18n="routinesSection">שגרות</span>
+            <span class="info-icon" data-tooltip-key="tooltipRoutineToggles">?</span>
+        </div>
         <div class="routine-toggles-row">
             <div class="routine-toggle-item">
                 <span id="morning-toggle-label" class="routine-toggle-label">שגרת בוקר</span>
@@ -495,6 +512,7 @@
             <div class="settings-lock-row">
                 <span class="material-symbols-rounded settings-lock-icon">lock</span>
                 <span class="settings-lock-label">נעילת הגדרות</span>
+                <span class="info-icon" data-tooltip-key="tooltipPinLock">?</span>
                 <button id="settings-lock-btn" class="loomis-toggle-btn" onclick="toggleSettingsLock()">
                     <span class="toggle-slider"></span>
                 </button>
@@ -510,6 +528,8 @@
             <a href="#" onclick="showPolicy('terms')" style="color:#5A9CB5;text-decoration:underline;">Terms of Service</a>
         </p>
     </footer>
+
+    <div id="app-tooltip" class="app-tooltip"></div>
 
     <script src="i18n.js?v=2"></script>
     <script src="data.js?v=125"></script>

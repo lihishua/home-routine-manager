@@ -5,10 +5,10 @@ const TRANSLATIONS = {
         days: ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'],
         daysFull: ["יום א'", "יום ב'", "יום ג'", "יום ד'", "יום ה'", "יום ו'", "שבת"],
         
-        // Loomi
-        loomiSingular: 'לומי',
-        loomiPlural: 'לומים',
-        collectLoomis: 'איסוף לומים',
+        // Stars
+        loomiSingular: 'כוכב',
+        loomiPlural: 'כוכבים',
+        collectLoomis: 'איסוף כוכבים',
         resetLoomis: 'איפוס',
         
         // Home page
@@ -95,6 +95,18 @@ const TRANSLATIONS = {
         signUp: 'הרשמה',
         forgotPassword: 'שכחתי סיסמא',
         guestEntry: 'כניסה כאורח',
+        guestTooltip: 'השתמשו באפליקציה ללא הרשמה. כמה זמן שתרצו. כל המידע יישמר במכשיר שלכם בלבד.',
+        tooltipAddToAll: 'מוסיף את המשימה הזו לכל הילדים בו זמנית',
+        tooltipRoutineToggles: 'שגרות הן רשימות משימות לפי שעות היום — בוקר, צהריים וערב. הפעילו רק את השגרות הרלוונטיות למשפחה שלכם',
+        tooltipEvents: 'אירועים הם פעילויות מתוזמנות כמו חוגים. הם מופיעים בלוח השבועי של כל ילד',
+        tooltipAddChild: 'הוסיפו את בני המשפחה שעוקבים אחרי השגרות. ניתן להעתיק משימות מילד קיים',
+        tooltipProgress: 'מציג כמה משימות הושלמו היום מתוך הסה"כ',
+        tooltipPinLock: 'נועל את ההגדרות במכשיר זה בלבד — שימושי כשהילדים משתמשים בטאבלט',
+        tooltipBank: 'הכסף שקיבלתי בחגים ובימי הולדת, שאמא שומרת לי',
+        tooltipMemo: 'הוסיפו תזכורת שתופיע כאן. אם תוסיפו תאריך — היא תופיע גם בשבוע הרלוונטי בלוח השנה',
+        tooltipEventWeekly: 'אירוע שחוזר על עצמו כל שבוע — למשל חוג קבוע ביום מסוים',
+        tooltipEventOnce: 'יופיע בלוח השנה בשבוע הנכון, כשיגיע הזמן :-)',
+        routinesSection: 'שגרות',
         emailPlaceholder: 'אימייל',
         passwordPlaceholder: 'סיסמה',
         loginFailed: 'ההתחברות נכשלה. בדוק אימייל/סיסמה.',
@@ -138,10 +150,10 @@ const TRANSLATIONS = {
         days: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
         daysFull: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
         
-        // Loomi
-        loomiSingular: 'Loomi',
-        loomiPlural: 'Loomis',
-        collectLoomis: 'Collect Loomis',
+        // Stars
+        loomiSingular: 'Star',
+        loomiPlural: 'Stars',
+        collectLoomis: 'Collect Stars',
         resetLoomis: 'Reset',
         
         // Home page
@@ -228,6 +240,18 @@ const TRANSLATIONS = {
         signUp: 'Sign Up',
         forgotPassword: 'Forgot Password?',
         guestEntry: 'Enter as Guest',
+        guestTooltip: 'Explore the app without entering anything! For as long as you like. All data will be saved on your device.',
+        tooltipAddToAll: 'Adds this task to all children at once',
+        tooltipRoutineToggles: 'Routines are task lists for different times of day — morning, noon and evening. Enable only the ones relevant to your family',
+        tooltipEvents: 'Events are scheduled activities like classes. They appear on each child\'s weekly schedule',
+        tooltipAddChild: 'Add family members who follow routines. You can copy tasks from an existing child',
+        tooltipProgress: 'Shows how many tasks have been completed today out of the total',
+        tooltipPinLock: 'Locks the settings on this device only — useful when kids use the tablet',
+        tooltipBank: 'The money I got on holidays and birthdays, that mom is keeping for me',
+        tooltipMemo: 'Add a reminder that will appear here. Add a date and it will also show up in the relevant week on the calendar',
+        tooltipEventWeekly: 'A recurring event that repeats every week — like a regular class on a fixed day',
+        tooltipEventOnce: 'Will appear on the calendar in the right week, when the moment comes :-)',
+        routinesSection: 'Routines',
         emailPlaceholder: 'Email',
         passwordPlaceholder: 'Password',
         loginFailed: 'Login failed. Check email/password.',
@@ -349,6 +373,10 @@ function applyLanguage() {
     
     const guestLink = document.querySelector('.guest-link');
     if (guestLink) guestLink.textContent = t('guestEntry');
+    const guestTooltip = document.getElementById('guest-tooltip');
+    if (guestTooltip) guestTooltip.textContent = t('guestTooltip');
+    const routinesLabel = document.querySelector('.routine-toggles-label [data-i18n="routinesSection"]');
+    if (routinesLabel) routinesLabel.textContent = t('routinesSection');
     
     // Home page menu (use data attributes for reliable translation)
     document.querySelectorAll('.menu-card[data-i18n-key]').forEach(card => {

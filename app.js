@@ -30,6 +30,67 @@ currentFamily.children.forEach(child => {
     if (!child.noon) child.noon = [];
 });
 
+// ── Tooltip engine ──
+function infoIcon(key) {
+    return `<span class="info-icon" data-tooltip-key="${key}">?</span>`;
+}
+
+function initTooltipEngine() {
+    const tooltip = document.getElementById('app-tooltip');
+    if (!tooltip) return;
+    let activeIcon = null;
+
+    function show(icon) {
+        const key = icon.getAttribute('data-tooltip-key');
+        const text = key ? t(key) : '';
+        if (!text) return;
+        tooltip.textContent = text;
+        tooltip.style.display = 'block';
+        tooltip.style.visibility = 'hidden';
+        void tooltip.offsetHeight; // force layout for accurate height
+        tooltip.style.visibility = '';
+
+        const rect = icon.getBoundingClientRect();
+        const tw = 240;
+        let left = rect.left + rect.width / 2 - tw / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+        const th = tooltip.offsetHeight;
+
+        if (rect.top > th + 20) {
+            tooltip.style.top = (rect.top - th - 8) + 'px';
+            tooltip.setAttribute('data-dir', 'down');
+        } else {
+            tooltip.style.top = (rect.bottom + 8) + 'px';
+            tooltip.setAttribute('data-dir', 'up');
+        }
+        tooltip.style.left = left + 'px';
+        tooltip.style.width = tw + 'px';
+        activeIcon = icon;
+    }
+
+    function hide() {
+        tooltip.style.display = 'none';
+        activeIcon = null;
+    }
+
+    document.addEventListener('mouseover', (e) => {
+        const icon = e.target.closest('.info-icon');
+        if (icon) show(icon);
+    });
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.closest('.info-icon')) hide();
+    });
+    document.addEventListener('touchstart', (e) => {
+        const icon = e.target.closest('.info-icon');
+        if (icon) {
+            e.preventDefault();
+            activeIcon === icon ? hide() : show(icon);
+        } else if (activeIcon) {
+            hide();
+        }
+    }, { passive: false });
+}
+
 // Soft low-pitched ding when a task is checked
 function playCheckSound() {
     try {
@@ -255,7 +316,7 @@ window.renderAll = function() {
 
 // Loomi icon and helpers
 function getLoomiIconHtml() {
-    return `<span class="loomi-icon"></span>`;
+    return `<span class="material-symbols-rounded loomi-star">grade</span>`;
 }
 
 function getLoomiText(count) {
@@ -517,32 +578,51 @@ function renderChildPage(childIndex) {
     
     const colorClass = getChildColorByName(child.name);
     
-    // Update header with title, loomis (if enabled), and back button
+    // Update header with title and back button
     if (headerEl) {
-        const loomisHtml = isLoomisEnabled() ? `
-            <div class="header-loomis">
-                <span class="header-loomis-count">${child.loomis || 0}</span>
-                <img src="loomi-icon.png" class="header-loomis-icon" alt="loomis">
-            </div>
-        ` : '';
         headerEl.innerHTML = `
             <h2 style="margin:0;">${getLang() === 'he' ? t('childPageOf') + ' ' + child.name : child.name + t('childPageOf')}</h2>
-            ${loomisHtml}
             <button onclick="showView('home')" class="back-btn">${t('back')}</button>
         `;
     }
     
     contentEl.innerHTML = `
         <div class="child-page-grid">
-            <!-- Virtual Bank Card -->
+            ${isLoomisEnabled() ? `
+            <!-- Stars Card -->
+            <div class="child-page-card stars-card ${colorClass}">
+                <h3><span class="material-symbols-rounded">grade</span> ${t('loomiPlural')}</h3>
+                <div class="stars-display">
+                    <span class="stars-big-count">${child.loomis || 0}</span>
+                </div>
+            </div>
+            ` : ''}
+
+            <!-- Memos Card -->
+            <div class="child-page-card memos-card ${colorClass}">
+                <h3><span class="material-symbols-rounded">sticky_note_2</span> ${t('reminders')} ${infoIcon('tooltipMemo')}</h3>
+                <div class="memo-input-row">
+                    <input type="text" id="new-memo-text" placeholder="${t('whatToRemember')}" class="memo-input">
+                    <div class="memo-date-wrapper">
+                        <input type="date" id="new-memo-date" class="memo-date-input" onchange="updateMemoDatePlaceholder(this);" onfocus="updateMemoDatePlaceholder(this);" onblur="updateMemoDatePlaceholder(this);">
+                        <span class="memo-date-placeholder">${t('addDateOptional')}</span>
+                    </div>
+                </div>
+                <button onclick="addMemo(${childIndex})" class="memo-add-btn">${t('add')}</button>
+                <div class="memos-list">
+                    ${renderMemosList(child, childIndex)}
+                </div>
+            </div>
+
+            <!-- Bank Card -->
             <div class="child-page-card bank-card ${colorClass}">
-                <h3><span class="material-symbols-rounded">savings</span> ${t('bank')}<br><span class="card-subtitle">${t('bankSubtitle')}</span></h3>
+                <h3><span class="material-symbols-rounded">savings</span> ${t('bank')} ${infoIcon('tooltipBank')}<br><span class="card-subtitle">${t('bankSubtitle')}</span></h3>
                 <div class="bank-display">
                     <span class="bank-currency">₪</span>
-                    <input type="number" class="bank-amount-input" value="${child.bank || 0}" 
-                           onchange="setChildBank(${childIndex}, this.value)" 
+                    <input type="number" class="bank-amount-input" value="${child.bank || 0}"
+                           onchange="setChildBank(${childIndex}, this.value)"
                            onclick="this.select()">
-                    </div>
+                </div>
                 <div class="bank-controls">
                     <button onclick="updateChildBank(${childIndex}, 100)" class="bank-btn plus">+100</button>
                     <button onclick="updateChildBank(${childIndex}, 10)" class="bank-btn plus">+10</button>
@@ -550,22 +630,6 @@ function renderChildPage(childIndex) {
                     <button onclick="updateChildBank(${childIndex}, -1)" class="bank-btn minus">-1</button>
                     <button onclick="updateChildBank(${childIndex}, -10)" class="bank-btn minus">-10</button>
                     <button onclick="updateChildBank(${childIndex}, -100)" class="bank-btn minus">-100</button>
-                </div>
-                </div>
-
-            <!-- Memos Card -->
-            <div class="child-page-card memos-card ${colorClass}">
-                <h3><span class="material-symbols-rounded">sticky_note_2</span> ${t('reminders')}</h3>
-                <div class="memo-input-row">
-                    <input type="text" id="new-memo-text" placeholder="${t('whatToRemember')}" class="memo-input">
-                    <div class="memo-date-wrapper">
-                        <input type="date" id="new-memo-date" class="memo-date-input" onchange="updateMemoDatePlaceholder(this);" onfocus="updateMemoDatePlaceholder(this);" onblur="updateMemoDatePlaceholder(this);">
-                        <span class="memo-date-placeholder">${t('addDateOptional')}</span>
-                </div>
-                </div>
-                <button onclick="addMemo(${childIndex})" class="memo-add-btn">${t('add')}</button>
-                <div class="memos-list">
-                    ${renderMemosList(child, childIndex)}
                 </div>
             </div>
         </div>
@@ -787,7 +851,7 @@ function renderMarketSection() {
             <div class="task-loomi-controls">
                 <button class="loomi-btn minus" onclick="updateMarketLoomis(${i}, -1)">-</button>
                 <div class="loomi-display-inline">
-                    <img src="loomi-icon.png" class="loomi-icon-medium" alt="">
+                    <span class="material-symbols-rounded loomi-star-medium">grade</span>
                     <span class="loomi-count">${loomisCount}</span>
             </div>
                 <button class="loomi-btn plus" onclick="updateMarketLoomis(${i}, 1)">+</button>
@@ -917,9 +981,10 @@ function renderChildList() {
         html += '<input type="hidden" id="chore-time-' + ci + '" value="morning">';
         // Day selection for chores
         html += '<div id="chore-days-' + ci + '" class="day-checkboxes" style="margin-bottom:8px;"></div>';
-        html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:stretch;">';
+        html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:center;">';
         html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">' + t('add') + '</button>';
         html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="flex:1;">' + t('addToAll') + '</button>';
+        html += infoIcon('tooltipAddToAll');
         html += '</div>';
         
         // Chores list
@@ -941,7 +1006,7 @@ function renderChildList() {
     html += '<div class="settings-child-card" style="display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;">';
     html += '<h3>' +
         '<i class="material-symbols-rounded" style="font-size:1.2rem;">family_restroom</i> ' +
-        t('addChild') + '</h3>';
+        t('addChild') + ' ' + infoIcon('tooltipAddChild') + '</h3>';
     html += '<input type="text" id="new-child-name" placeholder="' + t('name') + '" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;">';
     if (children.length > 0) {
         html += '<select id="copy-from-child" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e2e8f0;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;background:#F8FAFC;">';
@@ -2291,6 +2356,7 @@ window.showAppContent = function() {
     }
     // Apply language to dynamic content after rendering
     if (typeof applyLanguage === 'function') applyLanguage();
+    initTooltipEngine();
     // Build home menu grid based on active routines
     updateHomeMenuGrid();
     showView('home');

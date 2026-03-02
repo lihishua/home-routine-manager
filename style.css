@@ -118,26 +118,16 @@ body {
     }
 }
 
-/* Loomi icon using background-image */
-.loomi-icon {
-    width: 32px;
-    height: 32px;
-    background-image: url('loomi-icon.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: inline-block;
+/* Star reward icon */
+.loomi-star {
+    font-size: 1.3rem;
+    color: #FFB700;
     vertical-align: middle;
 }
 
-.loomi-icon-small {
-    width: 15px;
-    height: 15px;
-    background-image: url('loomi-icon.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: inline-block;
+.loomi-star-medium {
+    font-size: 1.5rem;
+    color: #FFB700;
     vertical-align: middle;
 }
 
@@ -577,7 +567,7 @@ header #clock {
 
 .settings-card {
     width: 100% !important;
-    height: 100% !important; /* fill the grid cell — makes both cards equal height */
+    height: 600px !important;
     min-height: 200px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1064,6 +1054,7 @@ header #clock {
     margin-bottom: 2px;
     min-height: 0;    /* allows flex shrink */
 }
+
 
 .settings-card-list .chore-edit-row {
     padding: 6px 0;
@@ -2577,16 +2568,41 @@ h4 {
     direction: ltr;
 }
 
-.header-loomis-icon {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
+.header-loomis-star {
+    font-size: 3rem;
+    color: #FFB700;
 }
 
 .header-loomis-count {
     font-size: 1.4rem;
     font-weight: 800;
     color: #134686;
+}
+
+/* Stars Card */
+.stars-card {
+    border-top-color: #FFB700;
+}
+
+.stars-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 0 10px;
+}
+
+.stars-big-icon {
+    font-size: 4rem;
+    color: #FFB700;
+}
+
+.stars-big-count {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #134686;
+    line-height: 1;
 }
 
 /* Bank Card */
@@ -3126,8 +3142,14 @@ h4 {
     transform: translateX(30px);
 }
 
-.guest-link {
+.guest-link-wrapper {
+    position: relative;
+    display: inline-block;
     margin-top: 20px;
+}
+
+.guest-link {
+    margin-top: 0;
     color: #888;
     font-size: 0.9rem;
     cursor: pointer;
@@ -3135,6 +3157,138 @@ h4 {
 }
 .guest-link:hover {
     color: #134686;
+}
+
+.guest-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #134686;
+    color: white;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    border-radius: 14px;
+    width: 240px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    pointer-events: none;
+    z-index: 100;
+}
+
+.guest-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #134686;
+}
+
+.guest-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ccc;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-inline-start: 5px;
+    vertical-align: middle;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.guest-link-wrapper:hover .guest-tooltip,
+.guest-link-wrapper.tooltip-open .guest-tooltip {
+    display: block;
+    animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── In-app info icon (reusable ? badge) ── */
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #b0c4de;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-inline-start: 4px;
+    vertical-align: middle;
+    user-select: none;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.info-icon:hover {
+    background: #134686;
+}
+
+/* Global floating tooltip */
+#app-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    background: #134686;
+    color: white;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 240px;
+    text-align: center;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    pointer-events: none;
+    animation: tooltipFadeIn2 0.18s ease;
+}
+#app-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+}
+#app-tooltip[data-dir="up"]::after {
+    bottom: 100%;
+    border-bottom-color: #134686;
+}
+#app-tooltip[data-dir="down"]::after {
+    top: 100%;
+    border-top-color: #134686;
+}
+@keyframes tooltipFadeIn2 {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Routine toggles section label */
+.routine-toggles-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 /* Mobile-friendly input styles */
