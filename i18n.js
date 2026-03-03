@@ -109,6 +109,14 @@ const TRANSLATIONS = {
         tooltipAddTask: 'הוסיפו משימות לבנק המשימות, כדי שיהיה לילדים מה לעשות כשהם משתעממים :-)',
         tooltipCollectStars: 'כשמופעל — כל משימה שמסומנת כבוצעה מעניקה לילד את מספר הכוכבים שהיא שווה. הכוכבים נצברים וניתן לראות כמה יש לכל ילד בעמודו האישי. ניתן לאפס בכרטיס הגדרות ילד.',
         routinesSection: 'שגרות',
+        feedbackTitle: 'שלחו לנו משוב',
+        feedbackBug: 'באג',
+        feedbackFeature: 'רעיון',
+        feedbackGeneral: 'כללי',
+        feedbackSent: '✓ תודה! המשוב נשלח בהצלחה',
+        feedbackError: 'שגיאה בשליחה. אנא נסו שוב.',
+        feedbackEmptyError: 'אנא כתבו הודעה לפני השליחה',
+        feedbackPlaceholder: 'כתבו כאן את המשוב שלכם...',
         emailPlaceholder: 'אימייל',
         passwordPlaceholder: 'סיסמה',
         loginFailed: 'ההתחברות נכשלה. בדוק אימייל/סיסמה.',
@@ -256,6 +264,14 @@ const TRANSLATIONS = {
         tooltipAddTask: 'Add tasks to the tasks bank, so kids will have an idea of what to do when bored :-)',
         tooltipCollectStars: 'When enabled — every completed task earns the child a star. Stars accumulate and can be redeemed in the store',
         routinesSection: 'Routines',
+        feedbackTitle: 'Send Feedback',
+        feedbackBug: 'Bug',
+        feedbackFeature: 'Feature',
+        feedbackGeneral: 'General',
+        feedbackSent: '✓ Thank you! Feedback sent successfully',
+        feedbackError: 'Error sending. Please try again.',
+        feedbackEmptyError: 'Please write a message before sending',
+        feedbackPlaceholder: 'Write your feedback here...',
         emailPlaceholder: 'Email',
         passwordPlaceholder: 'Password',
         loginFailed: 'Login failed. Check email/password.',
@@ -476,6 +492,10 @@ function applyLanguage() {
     // Loading text
     const loadingText = document.getElementById('settings-loading-text');
     if (loadingText) loadingText.textContent = t('loading');
+
+    // Feedback section
+    const feedbackTextarea = document.getElementById('feedback-message');
+    if (feedbackTextarea) feedbackTextarea.placeholder = t('feedbackPlaceholder');
     
     // Children section title
     const childrenTitle = document.querySelector('.settings-section-title');

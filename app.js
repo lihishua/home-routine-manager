@@ -2359,6 +2359,7 @@ window.showAppContent = function() {
     // Apply language to dynamic content after rendering
     if (typeof applyLanguage === 'function') applyLanguage();
     initTooltipEngine();
+    updateFeedbackSectionVisibility();
     // Build home menu grid based on active routines
     updateHomeMenuGrid();
     showView('home');
@@ -2537,4 +2538,86 @@ async function handleForgotPinClick() {
     } catch (e) {
         if (errorEl) errorEl.textContent = e.message;
     }
+}
+// ── Feedback ──────────────────────────────────────────────────────────────
+// EmailJS credentials — fill these in after setting up at https://emailjs.com
+// 1. Create free account → Add email service (Gmail) → copy Service ID below
+// 2. Create email template (use variables: {{from_email}}, {{feedback_type}}, {{message}}) → copy Template ID
+// 3. Account → API Keys → copy Public Key
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // ← replace
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // ← replace
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // ← replace
+
+let _feedbackType = 'bug';
+
+function selectFeedbackType(type) {
+    _feedbackType = type;
+    document.querySelectorAll('.feedback-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
+}
+
+async function submitFeedback() {
+    const msgEl    = document.getElementById('feedback-message');
+    const statusEl = document.getElementById('feedback-status');
+    const sendBtn  = document.getElementById('feedback-send-btn');
+    const message  = msgEl ? msgEl.value.trim() : '';
+
+    if (!message) {
+        statusEl.style.color = '#e53935';
+        statusEl.textContent = t('feedbackEmptyError');
+        return;
+    }
+
+    const user = window.currentFirebaseUser;
+    if (!user) return;
+
+    sendBtn.disabled = true;
+    statusEl.style.color = '#888';
+    statusEl.textContent = '...';
+
+    try {
+        // 1. Save to Firestore feedback collection
+        const docRef = window.firebaseDoc(window.firebaseDb, 'feedback', Date.now().toString());
+        await window.firebaseSetDoc(docRef, {
+            userId:    user.uid,
+            email:     user.email,
+            type:      _feedbackType,
+            message:   message,
+            timestamp: new Date().toISOString(),
+            lang:      getLang()
+        });
+
+        // 2. Send email notification via EmailJS
+        if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                from_email:    user.email,
+                feedback_type: _feedbackType,
+                message:       message,
+                user_id:       user.uid
+            });
+        }
+
+        msgEl.value = '';
+        statusEl.style.color = '#4caf50';
+        statusEl.textContent = t('feedbackSent');
+    } catch (err) {
+        console.error('Feedback error:', err);
+        statusEl.style.color = '#e53935';
+        statusEl.textContent = t('feedbackError');
+    } finally {
+        sendBtn.disabled = false;
+    }
+}
+
+function updateFeedbackSectionVisibility() {
+    const section = document.getElementById('feedback-section');
+    if (!section) return;
+    section.style.display = (!window.isGuestMode && window.currentFirebaseUser) ? 'block' : 'none';
+}
+
+function toggleFeedback() {
+    const card = document.querySelector('.feedback-card');
+    if (card) card.classList.toggle('feedback-collapsed');
 }

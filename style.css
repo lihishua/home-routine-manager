@@ -3602,3 +3602,86 @@ input[type="email"], input[type="password"] {
 .pin-shake {
     animation: pinShake 0.45s ease;
 }
+
+/* ── Feedback Card ── */
+.feedback-card {
+    height: auto !important;
+    min-height: 0 !important;
+    border-top: 6px solid #5A9CB5 !important;
+    padding: 14px 20px !important;
+}
+.feedback-type-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.feedback-type-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.feedback-type-btn.active {
+    border-color: #5A9CB5;
+    background: #E6F1F5;
+    color: #134686;
+}
+.feedback-textarea {
+    width: 100%;
+    min-height: 90px;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    background: #F8FAFC;
+    direction: inherit;
+}
+.feedback-textarea:focus {
+    outline: none;
+    border-color: #5A9CB5;
+    background: white;
+}
+#feedback-status {
+    text-align: center;
+    font-size: 0.85rem;
+    min-height: 20px;
+    margin-top: 4px;
+}
+
+/* Feedback card collapsed/expanded */
+.feedback-header {
+    cursor: pointer;
+    justify-content: space-between !important;
+    margin-bottom: 0 !important;
+    user-select: none;
+}
+.feedback-chevron {
+    font-size: 1.4rem !important;
+    color: #5A9CB5;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+}
+.feedback-body {
+    overflow: hidden;
+    max-height: 400px;
+    transition: max-height 0.3s ease, margin-top 0.3s ease;
+    margin-top: 14px;
+}
+.feedback-collapsed .feedback-body {
+    max-height: 0;
+    margin-top: 0;
+}
+.feedback-card:not(.feedback-collapsed) .feedback-chevron {
+    transform: rotate(180deg);
+}

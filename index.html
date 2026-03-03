@@ -509,6 +509,27 @@
             <div id="settings-loading-text" style="color:#64748b; text-align:center; padding:20px; background:white; border-radius:15px; min-width:200px;">טוען...</div>
         </div>
         
+        <!-- Feedback section — registered users only, shown/hidden by JS -->
+        <div id="feedback-section" style="display:none; padding: 0 10px; margin-bottom: 20px;">
+            <div class="settings-card feedback-card feedback-collapsed">
+                <h3 class="feedback-header" onclick="toggleFeedback()">
+                    <i class="material-symbols-rounded">feedback</i>
+                    <span data-i18n="feedbackTitle">שלחו לנו משוב</span>
+                    <span class="material-symbols-rounded feedback-chevron">expand_more</span>
+                </h3>
+                <div class="feedback-body">
+                    <div class="feedback-type-row">
+                        <button class="feedback-type-btn active" data-type="bug" onclick="selectFeedbackType('bug')">🐛 <span data-i18n="feedbackBug">באג</span></button>
+                        <button class="feedback-type-btn" data-type="feature" onclick="selectFeedbackType('feature')">💡 <span data-i18n="feedbackFeature">רעיון</span></button>
+                        <button class="feedback-type-btn" data-type="general" onclick="selectFeedbackType('general')">💬 <span data-i18n="feedbackGeneral">כללי</span></button>
+                    </div>
+                    <textarea id="feedback-message" class="feedback-textarea" placeholder="כתבו כאן את המשוב שלכם..."></textarea>
+                    <button onclick="submitFeedback()" class="settings-card-btn" id="feedback-send-btn" data-i18n="send">שלח</button>
+                    <div id="feedback-status"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="settings-bottom-bar">
             <div class="settings-lock-row">
                 <span class="material-symbols-rounded settings-lock-icon">lock</span>
@@ -531,6 +552,9 @@
 
     <div id="app-tooltip" class="app-tooltip"></div>
 
+    <!-- EmailJS — for sending feedback to loomi's Gmail -->
+    <!-- Setup: https://emailjs.com → free account → connect Gmail → get IDs → fill in app.js EMAILJS_* constants -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="i18n.js?v=2"></script>
     <script src="data.js?v=125"></script>
     <script src="app.js?v=151"></script>
