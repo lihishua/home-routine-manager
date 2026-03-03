@@ -95,7 +95,7 @@ const TRANSLATIONS = {
         signUp: 'הרשמה',
         forgotPassword: 'שכחתי סיסמא',
         guestEntry: 'כניסה כאורח',
-        guestTooltip: 'השתמשו באפליקציה ללא הרשמה. כמה זמן שתרצו. כל המידע יישמר במכשיר שלכם בלבד.',
+        guestTooltip: 'השתמשו באפליקציה ללא הרשמה. כמה זמן שתרצו. כל המידע יישמר. אבל במכשיר זה בלבד. על מנת לסנכרן בין מכשירים (להוסיף משימות מהטלפון בדרך לעבודה, כשהילדים מסמנים משימות על האייפד בבית) - יש צורך בהרשמה.',
         tooltipAddToAll: 'מוסיף את המשימה הזו לכל הילדים בו זמנית',
         tooltipRoutineToggles: 'שגרות הן רשימות משימות לפי שעות היום — בוקר, צהריים וערב. הפעילו רק את השגרות הרלוונטיות למשפחה שלכם',
         tooltipEvents: 'אירועים הם פעילויות מתוזמנות כמו חוגים. הם מופיעים בלוח השבועי של כל ילד',
@@ -106,6 +106,8 @@ const TRANSLATIONS = {
         tooltipMemo: 'הוסיפו תזכורת שתופיע כאן. אם תוסיפו תאריך — היא תופיע גם בשבוע הרלוונטי בלוח השנה',
         tooltipEventWeekly: 'אירוע שחוזר על עצמו כל שבוע — למשל חוג קבוע ביום מסוים',
         tooltipEventOnce: 'יופיע בלוח השנה בשבוע הנכון, כשיגיע הזמן :-)',
+        tooltipAddTask: 'הוסיפו משימות לבנק המשימות, כדי שיהיה לילדים מה לעשות כשהם משתעממים :-)',
+        tooltipCollectStars: 'כשמופעל — כל משימה שמסומנת כ"בוצעה" מעניקה לילד את מספר הכוכבים שהיא שווה. הכוכבים נצברים וניתן לראות כמה יש לכל ילד בעמוד האישי. ניתן לאפס בכרטיס הגדרות ילד.',
         routinesSection: 'שגרות',
         emailPlaceholder: 'אימייל',
         passwordPlaceholder: 'סיסמה',
@@ -251,6 +253,8 @@ const TRANSLATIONS = {
         tooltipMemo: 'Add a reminder that will appear here. Add a date and it will also show up in the relevant week on the calendar',
         tooltipEventWeekly: 'A recurring event that repeats every week — like a regular class on a fixed day',
         tooltipEventOnce: 'Will appear on the calendar in the right week, when the moment comes :-)',
+        tooltipAddTask: 'Add tasks to the tasks bank, so kids will have an idea of what to do when bored :-)',
+        tooltipCollectStars: 'When enabled — every completed task earns the child a star. Stars accumulate and can be redeemed in the store',
         routinesSection: 'Routines',
         emailPlaceholder: 'Email',
         passwordPlaceholder: 'Password',
@@ -375,8 +379,7 @@ function applyLanguage() {
     if (guestLink) guestLink.textContent = t('guestEntry');
     const guestTooltip = document.getElementById('guest-tooltip');
     if (guestTooltip) guestTooltip.textContent = t('guestTooltip');
-    const routinesLabel = document.querySelector('.routine-toggles-label [data-i18n="routinesSection"]');
-    if (routinesLabel) routinesLabel.textContent = t('routinesSection');
+    // routine toggles label removed — ? is now inline with morning toggle label
     
     // Home page menu (use data attributes for reliable translation)
     document.querySelectorAll('.menu-card[data-i18n-key]').forEach(card => {
@@ -416,7 +419,7 @@ function applyLanguage() {
     if (logoutBtn) logoutBtn.textContent = t('logout');
     
     const addEventTitle = document.querySelector('.add-event-card h3');
-    if (addEventTitle) addEventTitle.textContent = t('addEvent');
+    if (addEventTitle) addEventTitle.innerHTML = '<i class="material-symbols-rounded" style="color:#5A9CB5;">event</i> ' + t('addEvent');
     
     const weeklyBtn = document.getElementById('btn-weekly');
     const onceBtn = document.getElementById('btn-once');
@@ -440,7 +443,7 @@ function applyLanguage() {
     
     // Loomis toggle (in settings, not the lang toggle on login page)
     const loomisLabel = document.querySelector('.loomis-toggle-container .loomis-toggle-label');
-    if (loomisLabel) loomisLabel.textContent = t('collectLoomis');
+    if (loomisLabel) loomisLabel.innerHTML = t('collectLoomis') + ' <span class="info-icon" data-tooltip-key="tooltipCollectStars">?</span>';
     
     // Routine toggles
     const morningToggleLabel = document.getElementById('morning-toggle-label');
@@ -452,7 +455,7 @@ function applyLanguage() {
     
     // Task card
     const taskCardTitle = document.querySelector('#settings-market-section h3');
-    if (taskCardTitle) taskCardTitle.innerHTML = '<i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> ' + t('addTask');
+    if (taskCardTitle) taskCardTitle.innerHTML = '<i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> ' + t('addTask') + '<span class="info-icon" data-tooltip-key="tooltipAddTask" style="position:absolute;top:50%;left:0;transform:translateY(-50%);">?</span>';
     
     const taskInput = document.getElementById('new-market-name');
     if (taskInput) taskInput.placeholder = t('whatToDo');
@@ -480,7 +483,7 @@ function applyLanguage() {
 
     // Settings lock label
     const lockLabel = document.querySelector('.settings-lock-label');
-    if (lockLabel) lockLabel.textContent = t('settingsLock');
+    if (lockLabel) lockLabel.innerHTML = t('settingsLock') + ' <span class="info-icon" data-tooltip-key="tooltipPinLock">?</span>';
 }
 
 // Update the language toggle button visual (active/right = Hebrew side)

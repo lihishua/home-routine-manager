@@ -418,14 +418,18 @@
             <div class="settings-column">
                 <!-- Event planner card -->
                 <div class="settings-card settings-card-purple add-event-card">
-                    <h3>הוסף אירוע <span class="info-icon" data-tooltip-key="tooltipEvents">?</span></h3>
+                    <h3><i class="material-symbols-rounded">event</i> הוסף אירוע</h3>
                     <input type="hidden" id="edit-event-idx" value="-1">
                     
                     <div class="type-toggle">
-                        <button type="button" id="btn-weekly" class="active" onclick="setEventMode('weekly')">שבועי</button>
-                        <span class="info-icon" data-tooltip-key="tooltipEventWeekly">?</span>
-                        <button type="button" id="btn-once" onclick="setEventMode('once')">תאריך ספציפי</button>
-                        <span class="info-icon" data-tooltip-key="tooltipEventOnce">?</span>
+                        <div style="position:relative;flex:1;display:flex">
+                            <button type="button" id="btn-weekly" class="active" onclick="setEventMode('weekly')" style="flex:1">שבועי</button>
+                            <span class="info-icon" data-tooltip-key="tooltipEventWeekly" style="position:absolute;top:3px;right:3px">?</span>
+                        </div>
+                        <div style="position:relative;flex:1;display:flex">
+                            <button type="button" id="btn-once" onclick="setEventMode('once')" style="flex:1">תאריך ספציפי</button>
+                            <span class="info-icon" data-tooltip-key="tooltipEventOnce" style="position:absolute;top:3px;left:3px">?</span>
+                        </div>
                     </div>
                     
                     <!-- Row 1: Event name + Kid selector -->
@@ -460,7 +464,7 @@
                 <div class="settings-card settings-card-green" id="settings-market-section">
                     <h3><i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> הוסף משימה</h3>
                     <div class="loomis-toggle-container" style="margin-bottom:10px;">
-                        <span class="loomis-toggle-label">איסוף לומים</span>
+                        <span class="loomis-toggle-label">איסוף כוכבים <span class="info-icon" data-tooltip-key="tooltipCollectStars">?</span></span>
                         <button id="loomis-toggle-btn" class="loomis-toggle-btn" onclick="toggleCollectLoomis()">
                             <span class="toggle-slider"></span>
                         </button>
@@ -478,11 +482,7 @@
         <h3 class="settings-section-title" data-i18n="childrenSection">ילדים</h3>
         
         <!-- Routine toggles (horizontal) -->
-        <div class="routine-toggles-label">
-            <span data-i18n="routinesSection">שגרות</span>
-            <span class="info-icon" data-tooltip-key="tooltipRoutineToggles">?</span>
-        </div>
-        <div class="routine-toggles-row">
+        <div class="routine-toggles-row" style="position:relative">
             <div class="routine-toggle-item">
                 <span id="morning-toggle-label" class="routine-toggle-label">שגרת בוקר</span>
                 <button id="morning-toggle-btn" class="loomis-toggle-btn active" onclick="toggleRoutine('morning')">
@@ -501,6 +501,7 @@
                     <span class="toggle-slider"></span>
                 </button>
             </div>
+            <span class="info-icon" data-tooltip-key="tooltipRoutineToggles" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)">?</span>
         </div>
 
         <!-- Bottom row: child cards horizontal scroll -->
@@ -511,8 +512,7 @@
         <div class="settings-bottom-bar">
             <div class="settings-lock-row">
                 <span class="material-symbols-rounded settings-lock-icon">lock</span>
-                <span class="settings-lock-label">נעילת הגדרות</span>
-                <span class="info-icon" data-tooltip-key="tooltipPinLock">?</span>
+                <span class="settings-lock-label">נעילת הגדרות <span class="info-icon" data-tooltip-key="tooltipPinLock">?</span></span>
                 <button id="settings-lock-btn" class="loomis-toggle-btn" onclick="toggleSettingsLock()">
                     <span class="toggle-slider"></span>
                 </button>

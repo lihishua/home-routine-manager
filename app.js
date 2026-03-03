@@ -943,11 +943,11 @@ function renderChildList() {
             const editFunc = `editChore(${ci}, '${taskTextEscaped}')`;
             
             choresHtml += '<div class="chore-edit-row event-list-row">';
+            choresHtml += '<span class="event-list-info">' + icon + ' ' + taskText + daysDisplay + '</span>';
             choresHtml += '<span class="event-list-actions">';
             choresHtml += '<button onclick="' + editFunc + '" style="color:#5A9CB5;font-size:1.2rem;background:none;border:none;cursor:pointer;" title="' + t('edit') + '">✎</button>';
             choresHtml += '<button class="del-chore-btn" onclick="' + deleteFunc + '" style="color:#FA6868;font-size:1.2rem;background:none;border:none;cursor:pointer;">✕</button>';
             choresHtml += '</span>';
-            choresHtml += '<span class="event-list-info">' + icon + ' ' + taskText + daysDisplay + '</span>';
             choresHtml += '</div>';
         });
 
@@ -983,12 +983,14 @@ function renderChildList() {
         html += '<div id="chore-days-' + ci + '" class="day-checkboxes" style="margin-bottom:8px;"></div>';
         html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:center;">';
         html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">' + t('add') + '</button>';
-        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="flex:1;">' + t('addToAll') + '</button>';
-        html += infoIcon('tooltipAddToAll');
+        html += '<div style="position:relative;flex:1;">';
+        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="width:100%;">' + t('addToAll') + '</button>';
+        html += '<span class="info-icon" data-tooltip-key="tooltipAddToAll" style="position:absolute;top:-5px;left:-5px;">?</span>';
+        html += '</div>';
         html += '</div>';
         
         // Chores list
-        html += '<div style="max-height:150px;overflow-y:auto;font-size:0.8rem">';
+        html += '<div style="max-height:150px;overflow-y:auto;font-size:0.8rem;scrollbar-gutter:stable">';
         html += choresHtml || '<div style="color:#999;text-align:center;padding:10px">' + t('noChores') + '</div>';
         html += '</div>';
         

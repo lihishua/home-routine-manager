@@ -67,12 +67,13 @@ button:active {
 /* Center the main document layout */
 body {
     /* Use a deeper version of your blue for the background to make cards POP */
-    background: linear-gradient(180deg, #5A9CB5 0%, #8FBCCB 100%); 
+    background: linear-gradient(180deg, #5A9CB5 0%, #8FBCCB 100%);
     color: var(--text-dark);
-    min-height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
 }
 
 /* Splash screen */
@@ -207,22 +208,24 @@ header #clock {
 
 #header-kids-nav {
     display: flex;
-    gap: 10px;
-    justify-content: center; /* Re-centers the names */
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
     flex-grow: 1;
     align-items: center;
+    padding: 2px 0;
 }
 
 /* The name bubbles in the header */
 .child-nav-pill,
 .child-name-pill {
-    background-color: #ffffff !important; 
+    background-color: #ffffff !important;
     color: #134686 !important; /* Deep Blue Text */
     font-weight: 900 !important;
     border: 2px solid #FAAC68 !important; /* Orange border */
     border-radius: 50px;
-    padding: 5px 20px !important;
-    margin: 0 10px;
+    padding: 5px 14px !important;
+    margin: 0;
     font-size: 0.9rem !important;
     transition: all 0.3s ease;
     white-space: nowrap;
@@ -235,11 +238,11 @@ header #clock {
 .child-pill {
     background: white !important;
     color: #134686 !important;
-    padding: 4px 18px !important;
+    padding: 4px 14px !important;
     border-radius: 20px !important;
     border: 2px solid #FAAC68 !important;
     font-weight: 800 !important;
-    margin: 0 6px !important;
+    margin: 0 !important;
 }
 
 .child-nav-pill.active {
@@ -595,6 +598,7 @@ header #clock {
     flex-shrink: 0 !important;
     visibility: visible !important;
     opacity: 1 !important;
+    position: relative !important;
 }
 
 /* Specific styling for the 'Easy Beezy' themed cards */
@@ -607,7 +611,7 @@ header #clock {
     background-color: #FDF4E3 !important; /* Cream background like add-task card */
     border-radius: 30px !important;
     border: none !important;
-    border-top: 6px solid #FAAC68 !important; /* Orange top border like add-task yellow border */
+    border-top: 6px solid #FACE68 !important; /* Same yellow as tasks card */
     box-shadow: none !important; /* No shadow */
     transition: transform 0.2s ease;
 }
@@ -617,18 +621,6 @@ header #clock {
     transform: translateY(2px);
 }
 
-.add-event-card input, .add-event-card select {
-    width: 100%;
-    max-width: 100%;
-    padding: 8px 10px;
-    margin: 0;
-    margin-bottom: 6px;
-    border-radius: 8px;
-    border: 2px solid #E6F1F5; /* Soft blue border */
-    cursor: pointer; /* Ensures the cursor looks right */
-    box-sizing: border-box;
-    font-size: 0.85rem;
-}
 /* Keep the icons inside blue to match the theme */
 .add-event-card i {
     color: #5A9CB5;
@@ -974,7 +966,7 @@ header #clock {
 /* The row with the input and the yellow Add button - use add-task-row instead */
 .add-task-input-group {
     display: flex !important;
-    flex-direction: row-reverse !important; /* Hebrew alignment */
+    flex-direction: row !important;
     align-items: center !important;
     gap: 8px !important;
     margin-bottom: 15px !important;
@@ -1007,7 +999,7 @@ header #clock {
 /* Container for the input and yellow button */
 .add-task-row {
     display: flex !important;
-    flex-direction: row-reverse !important; /* Hebrew alignment */
+    flex-direction: row !important;
     align-items: center !important;
     gap: 8px !important;
     margin-bottom: 15px !important;
