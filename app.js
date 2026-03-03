@@ -981,10 +981,10 @@ function renderChildList() {
         html += '<input type="hidden" id="chore-time-' + ci + '" value="morning">';
         // Day selection for chores
         html += '<div id="chore-days-' + ci + '" class="day-checkboxes" style="margin-bottom:8px;"></div>';
-        html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:center;">';
-        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;">' + t('add') + '</button>';
+        html += '<div style="display:flex;gap:5px;margin-bottom:8px;align-items:stretch;">';
+        html += '<button onclick="addChore(' + ci + ')" class="settings-card-btn add-btn-row" style="flex:1;margin-bottom:0!important;">' + t('add') + '</button>';
         html += '<div style="position:relative;flex:1;">';
-        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="width:100%;">' + t('addToAll') + '</button>';
+        html += '<button onclick="addChoreToAll(' + ci + ')" class="settings-card-btn add-btn-row add-btn-orange" style="width:100%;height:100%;margin-bottom:0!important;">' + t('addToAll') + '</button>';
         html += '<span class="info-icon" data-tooltip-key="tooltipAddToAll" style="position:absolute;top:-5px;left:-5px;">?</span>';
         html += '</div>';
         html += '</div>';
