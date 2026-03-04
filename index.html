@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=282">
+    <link rel="stylesheet" href="style.css?v=286">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -343,6 +343,7 @@
 
     <!-- Top bar with kids nav -->
     <header>
+        <div id="account-chip"></div>
         <div id="header-kids-nav" class="beez-summary"></div>
     </header>
 
@@ -411,6 +412,14 @@
         <!-- Save button above both columns -->
         <div style="display:flex;justify-content:center;margin-bottom:15px;">
             <button onclick="showView('home')" class="save-btn">שמור וסגור</button>
+        </div>
+        <!-- PIN lock row at top -->
+        <div class="settings-lock-row" style="margin:0 10px 15px;">
+            <span class="material-symbols-rounded settings-lock-icon">lock</span>
+            <span class="settings-lock-label">נעילת הגדרות <span class="info-icon" data-tooltip-key="tooltipPinLock">?</span></span>
+            <button id="settings-lock-btn" class="loomis-toggle-btn" onclick="toggleSettingsLock()">
+                <span class="toggle-slider"></span>
+            </button>
         </div>
         <!-- Two-column layout -->
         <div class="settings-two-columns">
@@ -531,13 +540,6 @@
         </div>
 
         <div class="settings-bottom-bar">
-            <div class="settings-lock-row">
-                <span class="material-symbols-rounded settings-lock-icon">lock</span>
-                <span class="settings-lock-label">נעילת הגדרות <span class="info-icon" data-tooltip-key="tooltipPinLock">?</span></span>
-                <button id="settings-lock-btn" class="loomis-toggle-btn" onclick="toggleSettingsLock()">
-                    <span class="toggle-slider"></span>
-                </button>
-            </div>
             <button onclick="handleLogout()" class="logout-btn-small">התנתק</button>
         </div>
     </section>

@@ -88,6 +88,7 @@ const TRANSLATIONS = {
         nameExists: 'שם זה כבר קיים! אנא בחר שם אחר.',
         pleaseSelectDate: 'נא לבחור תאריך',
         logout: 'התנתק',
+        guest: 'אורח',
         loading: 'טוען...',
         
         // Auth
@@ -243,6 +244,7 @@ const TRANSLATIONS = {
         nameExists: 'This name already exists! Please choose a different name.',
         pleaseSelectDate: 'Please select a date',
         logout: 'Logout',
+        guest: 'Guest',
         loading: 'Loading...',
         
         // Auth

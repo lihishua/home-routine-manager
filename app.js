@@ -2360,6 +2360,7 @@ window.showAppContent = function() {
     if (typeof applyLanguage === 'function') applyLanguage();
     initTooltipEngine();
     updateFeedbackSectionVisibility();
+    updateAccountChip();
     // Build home menu grid based on active routines
     updateHomeMenuGrid();
     showView('home');
@@ -2617,6 +2618,17 @@ function updateFeedbackSectionVisibility() {
     const section = document.getElementById('feedback-section');
     if (!section) return;
     section.style.display = (!window.isGuestMode && window.currentFirebaseUser) ? 'block' : 'none';
+}
+
+function updateAccountChip() {
+    const chip = document.getElementById('account-chip');
+    if (!chip) return;
+    const isGuest = window.isGuestMode || !window.currentFirebaseUser;
+    const username = isGuest ? (t('guest') || 'אורח') : window.currentFirebaseUser.email.split('@')[0];
+    const logoutTitle = t('logout') || 'התנתק';
+    chip.innerHTML =
+        '<span class="account-chip-label"><i class="material-symbols-rounded" style="font-size:13px;line-height:1;vertical-align:middle;">person</i> ' + username + '</span>' +
+        '<button class="account-chip-logout" onclick="handleLogout()" title="' + logoutTitle + '"><i class="material-symbols-rounded">logout</i></button>';
 }
 
 function toggleFeedback() {
