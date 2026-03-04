@@ -2576,9 +2576,9 @@ async function submitFeedback() {
     statusEl.style.color = '#888';
     statusEl.textContent = '...';
 
+    // 1. Firestore — fire and forget (may fail if rules not set, non-critical)
     try {
-        // 1. Save to Firestore feedback collection
-        const docRef = window.firebaseDoc(window.firebaseDb, 'feedback', Date.now().toString());
+        const docRef = window.firebaseDoc(window.firebaseDb, 'users', user.uid, 'feedback', Date.now().toString());
         await window.firebaseSetDoc(docRef, {
             userId:    user.uid,
             email:     user.email,
@@ -2587,17 +2587,19 @@ async function submitFeedback() {
             timestamp: new Date().toISOString(),
             lang:      getLang()
         });
+    } catch (fsErr) {
+        console.warn('Firestore feedback save skipped:', fsErr.code);
+    }
 
-        // 2. Send email notification via EmailJS
-        if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                from_email:    user.email,
-                feedback_type: _feedbackType,
-                message:       message,
-                user_id:       user.uid
-            });
-        }
+    try {
+        // 2. Send email via EmailJS
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            from_email:    user.email,
+            feedback_type: _feedbackType,
+            message:       message,
+            user_id:       user.uid
+        });
 
         msgEl.value = '';
         statusEl.style.color = '#4caf50';
