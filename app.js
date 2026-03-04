@@ -2544,9 +2544,9 @@ async function handleForgotPinClick() {
 // 1. Create free account → Add email service (Gmail) → copy Service ID below
 // 2. Create email template (use variables: {{from_email}}, {{feedback_type}}, {{message}}) → copy Template ID
 // 3. Account → API Keys → copy Public Key
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // ← replace
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // ← replace
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // ← replace
+const EMAILJS_SERVICE_ID  = 'service_iri3j9e';
+const EMAILJS_TEMPLATE_ID = 'template_lmmo77s';
+const EMAILJS_PUBLIC_KEY  = '29mo-WXRoen-LIGxf';
 
 let _feedbackType = 'bug';
 
