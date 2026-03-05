@@ -2549,7 +2549,7 @@ const EMAILJS_SERVICE_ID  = 'service_iri3j9e';
 const EMAILJS_TEMPLATE_ID = 'template_lmmo77s';
 const EMAILJS_PUBLIC_KEY  = '29mo-WXRoen-LIGxf';
 
-let _feedbackType = 'bug';
+let _feedbackType = 'general';
 
 function selectFeedbackType(type) {
     _feedbackType = type;
@@ -2627,7 +2627,10 @@ function updateAccountChip() {
     const username = isGuest ? (t('guest') || 'אורח') : window.currentFirebaseUser.email.split('@')[0];
     const logoutTitle = t('logout') || 'התנתק';
     chip.innerHTML =
-        '<span class="account-chip-label"><i class="material-symbols-rounded" style="font-size:13px;line-height:1;vertical-align:middle;">person</i> ' + username + '</span>' +
+        '<span class="account-chip-label">' +
+            '<i class="material-symbols-rounded account-chip-icon">person</i>' +
+            '<span class="account-chip-username">' + username + '</span>' +
+        '</span>' +
         '<button class="account-chip-logout" onclick="handleLogout()" title="' + logoutTitle + '"><i class="material-symbols-rounded">logout</i></button>';
 }
 

@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=286">
+    <link rel="stylesheet" href="style.css?v=290">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -528,9 +528,9 @@
                 </h3>
                 <div class="feedback-body">
                     <div class="feedback-type-row">
-                        <button class="feedback-type-btn active" data-type="bug" onclick="selectFeedbackType('bug')">🐛 <span data-i18n="feedbackBug">באג</span></button>
+                        <button class="feedback-type-btn active" data-type="general" onclick="selectFeedbackType('general')">💬 <span data-i18n="feedbackGeneral">כללי</span></button>
                         <button class="feedback-type-btn" data-type="feature" onclick="selectFeedbackType('feature')">💡 <span data-i18n="feedbackFeature">רעיון</span></button>
-                        <button class="feedback-type-btn" data-type="general" onclick="selectFeedbackType('general')">💬 <span data-i18n="feedbackGeneral">כללי</span></button>
+                        <button class="feedback-type-btn" data-type="bug" onclick="selectFeedbackType('bug')">🐛 <span data-i18n="feedbackBug">באג</span></button>
                     </div>
                     <textarea id="feedback-message" class="feedback-textarea" placeholder="כתבו כאן את המשוב שלכם..."></textarea>
                     <button onclick="submitFeedback()" class="settings-card-btn" id="feedback-send-btn" data-i18n="send">שלח</button>
