@@ -19,6 +19,7 @@ if (currentFamily.collectLoomis === undefined) currentFamily.collectLoomis = tru
 // so each device (iPad / iPhone) can independently decide whether to lock settings.
 let pinLock = JSON.parse(localStorage.getItem('loomi-pin-lock') || 'null') || { enabled: false, pin: '' };
 function savePinLock() { localStorage.setItem('loomi-pin-lock', JSON.stringify(pinLock)); }
+let _pinAttempts = 0;
 
 // Default routine toggles: morning ON, noon OFF, evening ON
 if (!currentFamily.routineToggles) {
@@ -464,14 +465,18 @@ function showView(viewId) {
     if (viewId === 'settings') {
         const lock = pinLock;
         if (lock && lock.enabled && lock.pin) {
-            showPinOverlay(t('enterPin'), function(enteredPin, reset) {
+            _pinAttempts = 0;
+            showPinOverlay(t('enterPin'), function(enteredPin) {
                 if (enteredPin === lock.pin) {
+                    _pinAttempts = 0;
                     closePinOverlay();
                     _doShowView('settings');
                 } else {
+                    _pinAttempts++;
                     if (window._pinShowError) window._pinShowError(t('wrongPin'));
+                    if (_pinAttempts >= 3) _showPinEmailOption();
                 }
-            }, true);
+            }, false);
             return;
         }
     }
@@ -2480,6 +2485,82 @@ function showPinOverlay(title, onPinComplete, showForgot) {
     };
 }
 
+// Show "send PIN to email" button after 3 failed attempts
+function _showPinEmailOption() {
+    const modal = document.querySelector('.pin-modal');
+    if (!modal || document.getElementById('pin-email-btn')) return; // don't add twice
+    const btn = document.createElement('button');
+    btn.id = 'pin-email-btn';
+    btn.className = 'pin-forgot-btn';
+    btn.textContent = t('pinSendEmail') || 'שלח את הקוד למייל';
+    btn.onclick = sendPinToEmail;
+    const cancelBtn = modal.querySelector('.pin-cancel-btn');
+    if (cancelBtn) modal.insertBefore(btn, cancelBtn);
+    else modal.appendChild(btn);
+}
+
+async function sendPinToEmail() {
+    const btn = document.getElementById('pin-email-btn');
+    if (!btn) return;
+
+    // Guest mode — show inline email input instead of sending directly
+    if (window.isGuestMode || !window.currentFirebaseUser) {
+        if (document.getElementById('pin-guest-email-row')) return;
+        btn.style.display = 'none';
+        const row = document.createElement('div');
+        row.id = 'pin-guest-email-row';
+        row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px;direction:rtl;';
+        row.innerHTML =
+            '<input id="pin-guest-email" type="email" placeholder="your@email.com" style="flex:1;padding:6px 10px;border-radius:20px;border:1.5px solid #ddd;font-size:12px;direction:ltr;text-align:left;outline:none;">' +
+            '<button id="pin-guest-send" onclick="sendPinToGuestEmail()" style="background:#134686;color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:Assistant,sans-serif;white-space:nowrap;">' + (t('send') || 'שלח') + '</button>';
+        btn.parentNode.insertBefore(row, btn.nextSibling);
+        document.getElementById('pin-guest-email').focus();
+        return;
+    }
+
+    // Registered user — send directly to their account email
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_PIN_TEMPLATE_ID, {
+            to_email: window.currentFirebaseUser.email,
+            message:  pinLock.pin
+        });
+        btn.textContent = t('pinEmailSent') || '📧 נשלח! בדוק את המייל שלך';
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = t('pinEmailError') || 'שגיאה בשליחה, נסה שוב';
+    }
+}
+
+async function sendPinToGuestEmail() {
+    const emailInput = document.getElementById('pin-guest-email');
+    const sendBtn = document.getElementById('pin-guest-send');
+    if (!emailInput || !sendBtn) return;
+    const email = emailInput.value.trim();
+    if (!email || !email.includes('@')) {
+        emailInput.style.borderColor = '#FA6868';
+        emailInput.focus();
+        return;
+    }
+    sendBtn.disabled = true;
+    sendBtn.textContent = '...';
+    try {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_PIN_TEMPLATE_ID, {
+            to_email: email,
+            message:  pinLock.pin
+        });
+        const row = document.getElementById('pin-guest-email-row');
+        if (row) row.innerHTML = '<span style="font-size:12px;color:#5A9CB5;text-align:center;width:100%;">' + (t('pinEmailSent') || 'נשלח! בדוק את המייל שלך') + '</span>';
+    } catch (err) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = t('send') || 'שלח';
+        emailInput.style.borderColor = '#FA6868';
+    }
+}
+
 // Remove the PIN overlay from the DOM
 function closePinOverlay() {
     const overlay = document.getElementById('pin-overlay');
@@ -2545,9 +2626,10 @@ async function handleForgotPinClick() {
 // 1. Create free account → Add email service (Gmail) → copy Service ID below
 // 2. Create email template (use variables: {{from_email}}, {{feedback_type}}, {{message}}) → copy Template ID
 // 3. Account → API Keys → copy Public Key
-const EMAILJS_SERVICE_ID  = 'service_iri3j9e';
-const EMAILJS_TEMPLATE_ID = 'template_lmmo77s';
-const EMAILJS_PUBLIC_KEY  = '29mo-WXRoen-LIGxf';
+const EMAILJS_SERVICE_ID       = 'service_iri3j9e';
+const EMAILJS_TEMPLATE_ID      = 'template_lmmo77s'; // feedback → sends to Lihi
+const EMAILJS_PIN_TEMPLATE_ID  = 'template_ibl2pv6'; // PIN recovery → sends to user (To: {{to_email}})
+const EMAILJS_PUBLIC_KEY       = '29mo-WXRoen-LIGxf';
 
 let _feedbackType = 'general';
 
@@ -2627,11 +2709,31 @@ function updateAccountChip() {
     const username = isGuest ? (t('guest') || 'אורח') : window.currentFirebaseUser.email.split('@')[0];
     const logoutTitle = t('logout') || 'התנתק';
     chip.innerHTML =
-        '<span class="account-chip-label">' +
+        '<span class="account-chip-label" onclick="toggleAccountDropdown(event)">' +
             '<i class="material-symbols-rounded account-chip-icon">person</i>' +
             '<span class="account-chip-username">' + username + '</span>' +
         '</span>' +
-        '<button class="account-chip-logout" onclick="handleLogout()" title="' + logoutTitle + '"><i class="material-symbols-rounded">logout</i></button>';
+        '<div class="account-dropdown" id="account-dropdown" style="display:none;">' +
+            '<button class="account-dropdown-item" onclick="handleLogout()">' +
+                '<i class="material-symbols-rounded">logout</i> ' + logoutTitle +
+            '</button>' +
+        '</div>';
+}
+
+function toggleAccountDropdown(e) {
+    if (e) e.stopPropagation();
+    const dd = document.getElementById('account-dropdown');
+    if (!dd) return;
+    const isOpen = dd.style.display !== 'none';
+    dd.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) {
+        document.addEventListener('click', _closeAccountDropdown, { once: true });
+    }
+}
+
+function _closeAccountDropdown() {
+    const dd = document.getElementById('account-dropdown');
+    if (dd) dd.style.display = 'none';
 }
 
 function toggleFeedback() {

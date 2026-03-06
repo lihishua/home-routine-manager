@@ -182,67 +182,82 @@ header .icon-btn {
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
+    z-index: 1001;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    z-index: 1001;
+    align-items: flex-end;
+    gap: 4px;
 }
 .account-chip-label {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1px;
+    gap: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 10px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
 }
 .account-chip-icon {
-    font-size: 20px !important;
+    font-size: 14px !important;
     color: rgba(255,255,255,0.9);
     line-height: 1;
 }
 .account-chip-username {
-    font-size: 9px;
+    font-size: 11px;
     font-family: 'Assistant', sans-serif;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.9);
     white-space: nowrap;
     line-height: 1;
 }
 
-/* Desktop / iPad — horizontal layout */
-@media (min-width: 768px) {
-    #account-chip {
-        flex-direction: row;
-        align-items: center;
-        gap: 6px;
-    }
+/* Mobile — stack icon above username inside the pill */
+@media (max-width: 767px) {
     .account-chip-label {
-        flex-direction: row;
-        align-items: center;
-        gap: 4px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 20px;
-        padding: 3px 10px;
+        flex-direction: column;
+        gap: 0px;
+        padding: 4px 8px;
     }
     .account-chip-icon {
-        font-size: 14px !important;
+        font-size: 16px !important;
     }
     .account-chip-username {
-        font-size: 11px;
+        font-size: 9px;
     }
 }
-.account-chip-logout {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.8);
-    cursor: pointer;
-    padding: 0;
-    width: 22px;
-    height: 22px;
+
+/* Dropdown — transparent wrapper, button styled as matching pill */
+.account-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 1002;
+}
+.account-dropdown-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: 'Assistant', sans-serif;
+    cursor: pointer;
+    color: #FA6868;
+    border: none;
+    background: #ffffff;
+    border-radius: 20px;
+    white-space: nowrap;
+    direction: rtl;
     transition: background 0.2s, color 0.2s;
-    align-self: center;
+    font-weight: 600;
+}
+.account-dropdown-item:hover, .account-dropdown-item:active {
+    background: #fff5f5;
+    color: #e04444;
+}
+.account-dropdown-item .material-symbols-rounded {
+    font-size: 14px;
+    color: inherit;
 }
 .account-chip-logout:hover, .account-chip-logout:active {
     background: rgba(255,255,255,0.22);

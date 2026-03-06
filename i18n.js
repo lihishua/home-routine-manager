@@ -135,6 +135,10 @@ const TRANSLATIONS = {
         pinForgotSent: 'נשלח מייל לאיפוס סיסמה',
         pinForgotGuest: 'לא ניתן לאפס קוד במצב אורח',
         disablePin: 'הזן קוד לכיבוי הנעילה',
+        pinSendEmail: 'שלח את הקוד למייל שלי',
+        pinEmailSent: 'נשלח! בדוק את המייל שלך',
+        pinEmailError: 'שגיאה בשליחה, נסה שוב',
+        pinEmailNoUser: 'לא זמין במצב אורח',
         
         // Task icon keywords (Hebrew)
         taskKeywords: [
@@ -291,6 +295,10 @@ const TRANSLATIONS = {
         pinForgotSent: 'Password reset email sent',
         pinForgotGuest: 'Cannot reset PIN in guest mode',
         disablePin: 'Enter PIN to disable lock',
+        pinSendEmail: 'Send PIN to my email',
+        pinEmailSent: 'Sent! Check your email',
+        pinEmailError: 'Failed to send, try again',
+        pinEmailNoUser: 'Not available in guest mode',
         
         // Task icon keywords (English)
         taskKeywords: [
