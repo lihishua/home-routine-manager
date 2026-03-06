@@ -32,12 +32,33 @@ The app is currently split into two primary phases, optimized for the Israeli fa
 
 ---
 
+## 🌐 External Services
+
+| Service | Purpose | Dashboard |
+|---|---|---|
+| **Firebase Auth** | User login, registration, password reset | [console.firebase.google.com](https://console.firebase.google.com) |
+| **Firestore** | Real-time cloud sync of family data across devices | same Firebase console |
+| **Cloudflare** | Domain DNS management for loomi-home.com | [dash.cloudflare.com](https://dash.cloudflare.com) |
+| **EmailJS** | Sending emails from the browser (no backend needed) — used for: feedback form → Lihi's Gmail, PIN recovery → user's email | [emailjs.com](https://emailjs.com) |
+| **Google Fonts** | Assistant, Fredoka, Varela Round + Material Symbols Rounded icons | auto-loaded via CDN |
+| **canvas-confetti** | Celebration animation when routine is fully completed | auto-loaded via CDN |
+
+### EmailJS Configuration
+| Constant | Value | Used for |
+|---|---|---|
+| `EMAILJS_SERVICE_ID` | `service_iri3j9e` | Gmail service connection |
+| `EMAILJS_TEMPLATE_ID` | `template_lmmo77s` | Feedback form → sends to Lihi |
+| `EMAILJS_PIN_TEMPLATE_ID` | `template_ibl2pv6` | PIN recovery → sends to user |
+| `EMAILJS_PUBLIC_KEY` | `29mo-WXRoen-LIGxf` | Public key for browser SDK |
+
+---
+
 ## 📦 Technical Architecture
 This project is built with a minimalist, high-performance stack:
 * **Frontend:** HTML5, CSS3, JavaScript (ES6+).
-* **Backend:** Google Firebase (Auth + NoSQL Database).
+* **Backend:** Google Firebase (Auth + Firestore NoSQL Database).
 * **Typography:** Assistant, Fredoka, and Varela Round (optimizing Hebrew/English readability).
-* **Legal:** Includes TM (Trademark) notice and privacy policy placeholders for public use.
+* **Legal:** Includes TM (Trademark) notice and privacy policy accessible via the in-app Settings menu.
 
 ---
 
