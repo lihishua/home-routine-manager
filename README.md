@@ -1,34 +1,56 @@
-# LOOMI™ | Home Routine Manager 🏠
-**The ultimate family synchronization tool for morning and evening routines.**
+# LOOMI™ | Home Routine Manager
 
-LOOMI is designed to empower children through involvement, independence, and responsibility. By turning the "daily grind" into a visual, interactive experience, families can stay organized across all devices in real-time.
+**A bilingual Hebrew/English family PWA for managing daily routines, chores, and schedules.**
 
-[Visit the Live Site](https://lihishua.github.io/home-routine-manager/)
+LOOMI helps kids take ownership of their daily routine through a fun, visual, interactive experience — while giving parents full control behind the scenes. Designed for the whole family: kids use it on the iPad, parents manage it from their phone.
 
----
-
-## 🛠️ Project Evolution & Features
-We have transitioned from a local static list to a full-scale cloud-synced web application.
-
-- **Multi-User Cloud Sync:** Powered by **Firebase & Firestore**, allowing multiple family members to check off tasks on iPhones and iPads simultaneously.
-- **Secure Authentication:** Private accounts for every family with "Forgot Password" functionality.
-- **Versatile UI/UX:** A responsive "Mobile-First" design with a custom-designed splash screen and nested branding.
-- **Celebratory UI:** Integrated `canvas-confetti` to celebrate when the routine is complete.
-- **Automatic Midnight Reset:** Logic to clear tasks every night so every morning starts fresh.
+[Visit the Live Site](https://loomi-home.com)
 
 ---
 
-## 📅 The Routine Structure
-The app is currently split into two primary phases, optimized for the Israeli family schedule:
+## ✨ Features
 
-### ☀️ Morning Routine (בוקר)
-* Organized tasks for school/work preparation.
-* High-visibility checkboxes for easy use on mobile.
-* Integrated "Yom Tov" greeting logic (optional/customizable).
+### 👨‍👩‍👧‍👦 Multi-Child Support
+- Each child has a personal page with their own routine, chores, and progress
+- Per-child progress bar showing how many tasks are done
+- "Done today" badge appears next to the child's name when all tasks are complete
+- Stars reward system — kids earn stars (כוכבים) for completing chores
 
-### 🌙 Evening Routine (ערב)
-* Calming dark-mode aesthetics for the end of the day.
-* Step-by-step bedtime and organization tasks.
+### 📅 Routines
+- Three configurable routines: **Morning / Noon / Evening** (בוקר / צהריים / ערב)
+- Each routine can be toggled on/off per family in Settings
+- Routine cards on the home screen show a completion badge when all tasks are done
+- Celebration animation (confetti) + sound when a routine is fully completed
+- Automatic reset every midnight so every day starts fresh
+
+### 🗓️ Weekly Calendar
+- Family events displayed in a weekly view
+- Events can be one-time (specific date) or recurring (day of week)
+- Managed from the Settings page
+
+### 🏦 Task Bank
+- Shared pool of chore ideas that children can pick from when they're bored
+- Add tasks with optional day assignments
+- "Add to All" button to assign a task to every child at once
+
+### ⚙️ Settings
+- Add/remove children, manage their routines and chores
+- Toggle morning / noon / evening routines on or off
+- Stars collection toggle per child
+- **PIN Lock** — optional per-device lock for the Settings page (so kids can't change settings)
+  - PIN recovery by email after 3 failed attempts
+- Feedback/suggestion box (registered users only) — sends directly to the LOOMI team
+
+### 👤 Account
+- Account chip in the top-right header corner: shows username or "אורח" (guest)
+- Click to open dropdown with sign-out button
+- Guest mode: full app access without an account (data saved locally only)
+- Registered mode: data synced in real-time across all family devices via Firebase
+
+### 🌐 Bilingual
+- Full Hebrew (RTL) and English support
+- Language toggle available in the app
+- All UI text managed via `i18n.js`
 
 ---
 
@@ -37,41 +59,45 @@ The app is currently split into two primary phases, optimized for the Israeli fa
 | Service | Purpose | Dashboard |
 |---|---|---|
 | **Firebase Auth** | User login, registration, password reset | [console.firebase.google.com](https://console.firebase.google.com) |
-| **Firestore** | Real-time cloud sync of family data across devices | same Firebase console |
+| **Firestore** | Real-time cloud sync of family data across all devices | same Firebase console |
 | **Cloudflare** | Domain DNS management for loomi-home.com | [dash.cloudflare.com](https://dash.cloudflare.com) |
-| **EmailJS** | Sending emails from the browser (no backend needed) — used for: feedback form → Lihi's Gmail, PIN recovery → user's email | [emailjs.com](https://emailjs.com) |
-| **Google Fonts** | Assistant, Fredoka, Varela Round + Material Symbols Rounded icons | auto-loaded via CDN |
-| **canvas-confetti** | Celebration animation when routine is fully completed | auto-loaded via CDN |
+| **EmailJS** | Browser-side email sending (no backend needed) — feedback form + PIN recovery | [emailjs.com](https://emailjs.com) |
+| **Google Fonts** | Assistant, Fredoka, Varela Round fonts + Material Symbols Rounded icons | CDN |
+| **canvas-confetti** | Celebration animation on routine completion | CDN |
 
-### EmailJS Configuration
-| Constant | Value | Used for |
+### EmailJS Configuration (stored in `app.js`)
+| Constant | Value | Purpose |
 |---|---|---|
 | `EMAILJS_SERVICE_ID` | `service_iri3j9e` | Gmail service connection |
-| `EMAILJS_TEMPLATE_ID` | `template_lmmo77s` | Feedback form → sends to Lihi |
-| `EMAILJS_PIN_TEMPLATE_ID` | `template_ibl2pv6` | PIN recovery → sends to user |
+| `EMAILJS_TEMPLATE_ID` | `template_lmmo77s` | Feedback form → sends to Lihi's Gmail |
+| `EMAILJS_PIN_TEMPLATE_ID` | `template_ibl2pv6` | PIN recovery → sends to user's email (`To: {{to_email}}`, body: `{{message}}` = PIN) |
 | `EMAILJS_PUBLIC_KEY` | `29mo-WXRoen-LIGxf` | Public key for browser SDK |
 
 ---
 
-## 📦 Technical Architecture
-This project is built with a minimalist, high-performance stack:
-* **Frontend:** HTML5, CSS3, JavaScript (ES6+).
-* **Backend:** Google Firebase (Auth + Firestore NoSQL Database).
-* **Typography:** Assistant, Fredoka, and Varela Round (optimizing Hebrew/English readability).
-* **Legal:** Includes TM (Trademark) notice and privacy policy accessible via the in-app Settings menu.
+## 📦 Technical Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | HTML5, CSS3, Vanilla JavaScript (ES6+) |
+| Auth & Database | Firebase Auth + Firestore (real-time sync) |
+| Hosting | loomi-home.com via Cloudflare |
+| Email | EmailJS (browser SDK, no server needed) |
+| Icons | Material Symbols Rounded (Google CDN) |
+| Fonts | Google Fonts — Assistant, Fredoka, Varela Round |
+| Animations | Web Audio API (sounds), canvas-confetti (celebrations) |
+
+### Key Files
+| File | Role |
+|---|---|
+| `index.html` | App shell, all views, Firebase SDK setup |
+| `app.js` | All logic — rendering, data, auth, PIN, sounds, email |
+| `style.css` | All styles (versioned via `?v=N` query param) |
+| `i18n.js` | Translations (Hebrew + English) + task icon keyword map |
+| `data.js` | Default data structures |
 
 ---
 
-## 🚀 How to Customize
-1. **Clone & Install:**
-   ```bash
-   git clone [https://github.com/lihishua/home-routine-manager.git](https://github.com/lihishua/home-routine-manager.git)
-
-2. Update Tasks: Edit the task IDs and labels in index.html to fit your specific family needs.
-
-3. Deploy: Push to GitHub Pages for instant hosting.
-
-⚖️ Legal & Privacy
-© 2026 LOOMI™ Home Routine. This project is protected under common law trademark. The Privacy Policy and Terms of Service are accessible via the in-app Settings menu.
-
----
+## ⚖️ Legal & Privacy
+© 2026 LOOMI™. All rights reserved.
+Privacy Policy and Terms of Service are accessible via the in-app Settings menu.
