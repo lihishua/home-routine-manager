@@ -25,12 +25,12 @@
     --accent-coral: var(--loomi-coral);
     --honey: var(--loomi-coral);
     
-    /* The 10 Kid Colors - Rich & Harmonious */
-    --kid-1: #5A9CB5; /* Your Bee Blue */
-    --kid-2: #FA6868; /* Your Bee Coral */
-    --kid-3: #FACE68; /* Your Bee Yellow */
-    --kid-4: #8BC34A; /* Leafy Green (Like Lori's tag) */
-    --kid-5: #9C27B0; /* Deep Grape (Like Lani's tag) */
+    /* The 10 Kid Colors - matching home page card colors first */
+    --kid-1: #90D5C8; /* Morning Mint */
+    --kid-2: #FACE68; /* Noon Yellow */
+    --kid-3: #B59CD8; /* Evening Purple */
+    --kid-4: #FAAC68; /* Tasks Bank Orange */
+    --kid-5: #FA6868; /* Calendar Coral */
     --kid-6: #FF9800; /* Honey Orange */
     --kid-7: #00BCD4; /* Bright Teal */
     --kid-8: #795548; /* Earthy Brown */
@@ -66,8 +66,8 @@ button:active {
 
 /* Center the main document layout */
 body {
-    /* Use a deeper version of your blue for the background to make cards POP */
-    background: linear-gradient(180deg, #5A9CB5 0%, #8FBCCB 100%);
+    /* Offwhite background */
+    background: #FDF4E3;
     color: var(--text-dark);
     min-height: 100vh;
     display: flex;
@@ -242,18 +242,18 @@ header .icon-btn {
     font-size: 11px;
     font-family: 'Assistant', sans-serif;
     cursor: pointer;
-    color: #FA6868;
+    color: #134686;
     border: none;
-    background: #ffffff;
+    background: #FA6868;
     border-radius: 20px;
     white-space: nowrap;
     direction: rtl;
     transition: background 0.2s, color 0.2s;
-    font-weight: 600;
+    font-weight: 400;
 }
 .account-dropdown-item:hover, .account-dropdown-item:active {
-    background: #fff5f5;
-    color: #e04444;
+    background: #e04444;
+    color: #ffffff;
 }
 .account-dropdown-item .material-symbols-rounded {
     font-size: 14px;
@@ -546,35 +546,35 @@ header #clock {
     padding: 15px 5px;
 }
 
-/* Morning Button - Yellow */
-.morning { 
-    background-color: #FACE68 !important; 
-    color: #134686 !important; 
-}
-
-/* Noon Button - Mint/Turquoise */
-.noon-card {
+/* Morning Button - Mint/Turquoise */
+.morning {
     background-color: #90D5C8 !important;
     color: #134686 !important;
 }
 
-/* Evening Button - Orange */
-.evening { 
-    background-color: #FAAC68 !important; 
-    color: #134686 !important; 
-}
-
-/* Market/Chores Bank - Red */
-.market-card {
-    background-color: #FA6868 !important; /* Coral */
-    color: #ffffff !important;
-}
-
-/* Weekly Schedule Button */
-.week {
-    background-color: #FDF4E3 !important; /* Cream */
+/* Noon Button - Yellow */
+.noon-card {
+    background-color: #FACE68 !important;
     color: #134686 !important;
-    border: 3px solid #5A9CB5; /* Blue border */
+}
+
+/* Evening Button - Purple */
+.evening {
+    background-color: #B59CD8 !important;
+    color: #134686 !important;
+}
+
+/* Market/Chores Bank - Orange */
+.market-card {
+    background-color: #FAAC68 !important;
+    color: #134686 !important;
+}
+
+/* Weekly Schedule Button - Coral/Red */
+.week {
+    background-color: #FA6868 !important;
+    color: #ffffff !important;
+    border: none;
 }
 .menu-icon { 
     font-size: 3.5rem !important; 
@@ -677,10 +677,10 @@ header #clock {
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important; /* needed so inner list can scroll */
-    background-color: #FDF4E3 !important;
+    background-color: #ffffff !important;
     border-radius: 30px !important;
     padding: 20px !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow) !important;
     margin: 0 !important;
     box-sizing: border-box;
 }
@@ -710,11 +710,11 @@ header #clock {
 }
 /* Target the specific Event Card */
 .add-event-card {
-    background-color: #FDF4E3 !important; /* Cream background like add-task card */
+    background-color: #ffffff !important;
     border-radius: 30px !important;
     border: none !important;
     border-top: 6px solid #FACE68 !important; /* Same yellow as tasks card */
-    box-shadow: none !important; /* No shadow */
+    box-shadow: var(--shadow) !important;
     transition: transform 0.2s ease;
 }
 
@@ -1356,11 +1356,11 @@ header #clock {
 .settings-child-card {
     flex: 0 0 280px;
     scroll-snap-align: start;
-    background: var(--hive-cream);
+    background: #ffffff;
     border-top: 10px solid var(--loomi-coral) !important; /* Uniform coral top for ALL kids */
     border-radius: 30px;
     padding: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow);
 }
 
 .settings-child-card h4 {
@@ -2184,6 +2184,10 @@ h4 {
     margin-top: 20px;
     padding: 12px 30px;
     font-size: 1rem;
+    background-color: #FDF4E3 !important;
+    color: #134686 !important;
+    border: 2px solid #134686 !important;
+    box-shadow: none !important;
 }
 
 /* Loomis toggle */
@@ -2628,10 +2632,10 @@ h4 {
 }
 
 .child-page-card {
-    background: #FDF4E3;
+    background: #ffffff;
     border-radius: 25px;
     padding: 20px;
-    box-shadow: 0 8px 0px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow);
     border-top: 6px solid #5A9CB5;
 }
 
@@ -3030,11 +3034,11 @@ h4 {
 }
 
 /* Color variants for child page cards */
-.child-page-card.kid-color-1 { border-top-color: #5A9CB5; }
-.child-page-card.kid-color-2 { border-top-color: #FA6868; }
-.child-page-card.kid-color-3 { border-top-color: #FACE68; }
-.child-page-card.kid-color-4 { border-top-color: #8BC34A; }
-.child-page-card.kid-color-5 { border-top-color: #9C27B0; }
+.child-page-card.kid-color-1 { border-top-color: #90D5C8; }
+.child-page-card.kid-color-2 { border-top-color: #FACE68; }
+.child-page-card.kid-color-3 { border-top-color: #B59CD8; }
+.child-page-card.kid-color-4 { border-top-color: #FAAC68; }
+.child-page-card.kid-color-5 { border-top-color: #FA6868; }
 .child-page-card.kid-color-6 { border-top-color: #FF9800; }
 .child-page-card.kid-color-7 { border-top-color: #00BCD4; }
 .child-page-card.kid-color-8 { border-top-color: #795548; }
@@ -3324,16 +3328,16 @@ h4 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 15px;
-    height: 15px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: #b0c4de;
     color: white;
-    font-size: 0.65rem;
+    font-size: 0.55rem;
     font-weight: bold;
     cursor: pointer;
     margin-inline-start: 4px;
-    vertical-align: middle;
+    vertical-align: text-top;
     user-select: none;
     flex-shrink: 0;
     transition: background 0.15s;

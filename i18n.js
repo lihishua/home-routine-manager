@@ -481,7 +481,7 @@ function applyLanguage() {
     
     // Task card
     const taskCardTitle = document.querySelector('#settings-market-section h3');
-    if (taskCardTitle) taskCardTitle.innerHTML = '<i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> ' + t('addTask') + '<span class="info-icon" data-tooltip-key="tooltipAddTask" style="position:absolute;top:50%;left:0;transform:translateY(-50%);">?</span>';
+    if (taskCardTitle) taskCardTitle.innerHTML = '<i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> ' + t('addTask') + ' <span class="info-icon" data-tooltip-key="tooltipAddTask">?</span>';
     
     const taskInput = document.getElementById('new-market-name');
     if (taskInput) taskInput.placeholder = t('whatToDo');
