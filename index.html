@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=294">
+    <link rel="stylesheet" href="style.css?v=305">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -464,6 +464,12 @@
                     <button onclick="updateEvent()" class="settings-card-btn hidden" id="btn-update-event">עדכון</button>
                     <button onclick="cancelEditEvent()" class="settings-card-btn cancel-btn hidden" id="btn-cancel-edit">ביטול</button>
                     <div id="settings-event-list" class="settings-card-list"></div>
+                    <div class="loomis-toggle-container" style="margin-top:8px;flex-shrink:0;justify-content:center;">
+                        <span class="loomis-toggle-label">שמור אירועים ישנים <span class="info-icon" data-tooltip-key="tooltipSavePastEvents">?</span></span>
+                        <button id="save-past-events-btn" class="loomis-toggle-btn" onclick="toggleSavePastEvents()">
+                            <span class="toggle-slider"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -472,7 +478,7 @@
                 <!-- Market chore card -->
                 <div class="settings-card settings-card-green" id="settings-market-section">
                     <h3><i class="material-symbols-rounded" style="color:#5A9CB5;">checklist</i> הוסף משימה</h3>
-                    <div class="loomis-toggle-container" style="margin-bottom:10px;">
+                    <div class="loomis-toggle-container" style="margin-bottom:10px;justify-content:center;">
                         <span class="loomis-toggle-label">איסוף כוכבים <span class="info-icon" data-tooltip-key="tooltipCollectStars">?</span></span>
                         <button id="loomis-toggle-btn" class="loomis-toggle-btn" onclick="toggleCollectLoomis()">
                             <span class="toggle-slider"></span>
@@ -490,28 +496,6 @@
         <!-- Title for kids section -->
         <h3 class="settings-section-title" data-i18n="childrenSection">ילדים</h3>
         
-        <!-- Routine toggles (horizontal) -->
-        <div class="routine-toggles-row" style="position:relative">
-            <div class="routine-toggle-item">
-                <span id="morning-toggle-label" class="routine-toggle-label">שגרת בוקר</span>
-                <button id="morning-toggle-btn" class="loomis-toggle-btn active" onclick="toggleRoutine('morning')">
-                    <span class="toggle-slider"></span>
-                </button>
-            </div>
-            <div class="routine-toggle-item">
-                <span id="noon-toggle-label" class="routine-toggle-label">שגרת צהריים</span>
-                <button id="noon-toggle-btn" class="loomis-toggle-btn" onclick="toggleRoutine('noon')">
-                    <span class="toggle-slider"></span>
-                </button>
-            </div>
-            <div class="routine-toggle-item">
-                <span id="evening-toggle-label" class="routine-toggle-label">שגרת ערב</span>
-                <button id="evening-toggle-btn" class="loomis-toggle-btn active" onclick="toggleRoutine('evening')">
-                    <span class="toggle-slider"></span>
-                </button>
-            </div>
-            <span class="info-icon" data-tooltip-key="tooltipRoutineToggles" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)">?</span>
-        </div>
 
         <!-- Bottom row: child cards horizontal scroll -->
         <div id="settings-child-list" class="settings-child-slider">

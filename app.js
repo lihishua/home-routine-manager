@@ -185,15 +185,19 @@ function updateRoutineTogglesUI() {
     });
 }
 
-// Get array of active routine types
+// Get array of active routine types based on which routines have chores.
+// If no children yet → return all 3 (empty/placeholder state).
 function getActiveRoutines() {
-    const toggles = currentFamily.routineToggles || { morning: true, noon: false, evening: true };
-    return ['morning', 'noon', 'evening'].filter(key => toggles[key]);
+    const children = currentFamily.children || [];
+    if (children.length === 0) return ['morning', 'noon', 'evening'];
+    return ['morning', 'noon', 'evening'].filter(type =>
+        children.some(c => (c[type] || []).length > 0)
+    );
 }
 
-// Check if all children have completed all of today's visible tasks for a routine
+// Check if all children (who have chores) completed all visible tasks for a routine
 function isRoutineDoneForAll(type) {
-    const children = currentFamily.children || [];
+    const children = (currentFamily.children || []).filter(c => (c[type] || []).length > 0);
     if (children.length === 0) return false;
     const today = new Date().getDay();
     return children.every(child => {
@@ -202,7 +206,7 @@ function isRoutineDoneForAll(type) {
             if (task.days && task.days.length > 0) return task.days.includes(today);
             return true;
         });
-        if (visibleTasks.length === 0) return true; // child has no tasks today → skip them
+        if (visibleTasks.length === 0) return true;
         return visibleTasks.every(task => task.completed);
     });
 }
@@ -211,24 +215,25 @@ function isRoutineDoneForAll(type) {
 function updateHomeMenuGrid() {
     const grid = document.querySelector('.menu-grid');
     if (!grid) return;
-    
+
     const active = getActiveRoutines();
+    const hasKids = (currentFamily.children || []).length > 0;
     const iconMap = { morning: 'wb_twilight', noon: 'wb_sunny', evening: 'dark_mode' };
     const i18nMap = { morning: 'morning', noon: 'noon', evening: 'evening' };
     const classMap = { morning: 'morning', noon: 'noon-card', evening: 'evening' };
-    
-    // Build routine buttons HTML
+
     let routineHtml = '';
     active.forEach(type => {
-        const done = isRoutineDoneForAll(type);
-        routineHtml += `<button onclick="showView('${type}')" class="menu-card ${classMap[type]}${done ? ' routine-done' : ''}" data-i18n-key="${i18nMap[type]}" data-routine-btn="${type}">
+        const hasChores = hasKids && (currentFamily.children || []).some(c => (c[type] || []).length > 0);
+        const isEmpty = !hasChores;
+        const done = hasChores && isRoutineDoneForAll(type);
+        routineHtml += `<button onclick="showView('${type}')" class="menu-card ${classMap[type]}${done ? ' routine-done' : ''}${isEmpty ? ' routine-empty' : ''}" data-i18n-key="${i18nMap[type]}" data-routine-btn="${type}">
             ${done ? '<span class="routine-done-badge"><span class="material-symbols-rounded">verified</span></span>' : ''}
             <span class="material-symbols-rounded menu-icon">${iconMap[type]}</span>
             <span class="menu-text">${t(i18nMap[type])}</span>
         </button>`;
     });
-    
-    // Fixed buttons
+
     const fixedHtml = `
         <button onclick="showView('market')" class="menu-card market-card" data-i18n-key="taskBank">
             <span class="material-symbols-rounded menu-icon">emoji_events</span>
@@ -238,10 +243,8 @@ function updateHomeMenuGrid() {
             <span class="material-symbols-rounded menu-icon">calendar_month</span>
             <span class="menu-text">${t('weekView')}</span>
         </button>`;
-    
+
     grid.innerHTML = routineHtml + fixedHtml;
-    
-    // Update grid CSS class based on count
     grid.classList.remove('routines-1', 'routines-2', 'routines-3');
     grid.classList.add(`routines-${active.length}`);
 }
@@ -824,8 +827,9 @@ function renderSettings() {
     }
 
     updateLoomisToggleUI();
-    updateRoutineTogglesUI();
     updateSettingsLockUI();
+    updateSavePastEventsUI();
+    cleanupPastEvents();
     renderEventsList();
     renderMarketSection();
     renderChildList();
@@ -1392,11 +1396,36 @@ function sortChores() {
     });
 }
 
+// Auto-delete past one-time events unless savePastEvents is enabled (default false)
+function cleanupPastEvents() {
+    if (currentFamily.savePastEvents === true) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const before = (currentFamily.events || []).length;
+    currentFamily.events = (currentFamily.events || []).filter(ev =>
+        !(ev.repeat === false && ev.date && new Date(ev.date) < today)
+    );
+    if (currentFamily.events.length !== before) saveData();
+}
+
+function toggleSavePastEvents() {
+    currentFamily.savePastEvents = !currentFamily.savePastEvents;
+    saveData();
+    updateSavePastEventsUI();
+    if (!currentFamily.savePastEvents) { cleanupPastEvents(); renderEventsList(); }
+}
+
+function updateSavePastEventsUI() {
+    const btn = document.getElementById('save-past-events-btn');
+    if (!btn) return;
+    btn.classList.toggle('active', currentFamily.savePastEvents === true);
+}
+
 // Rebuild the list of scheduled events in settings.
 function renderEventsList() {
     const list = document.getElementById('settings-event-list');
     if (!list) return;
-    
+
     const events = currentFamily.events || [];
 
     if (events.length === 0) {
@@ -1406,8 +1435,6 @@ function renderEventsList() {
 
     list.innerHTML = events.map((ev, i) => {
         const child = currentFamily.children.find(c => c.id === ev.target);
-        
-        // Show date for one-time events, day for weekly events
         let dateDisplay;
         if (ev.repeat === false && ev.date) {
             const d = new Date(ev.date);
@@ -1415,7 +1442,6 @@ function renderEventsList() {
         } else {
             dateDisplay = getDays()[ev.day] + "'";
         }
-        
         return `
             <div class="chore-edit-row event-list-row">
                 <span class="event-list-info">
@@ -2137,7 +2163,12 @@ function renderRoutine(type) {
     const container = document.getElementById('child-slider');
     if (!container) return;
 
-    container.innerHTML = currentFamily.children.map((child, ci) => {
+    // Only show children who have at least one chore in this routine
+    const childrenForRoutine = currentFamily.children
+        .map((child, ci) => ({ child, ci }))
+        .filter(({ child }) => (child[type] || []).length > 0);
+
+    container.innerHTML = childrenForRoutine.map(({ child, ci }) => {
         const colorClass = getChildColorByName(child.name);
         const colorValue = getChildColorValueByName(child.name);
         const tasks = child[type] || [];

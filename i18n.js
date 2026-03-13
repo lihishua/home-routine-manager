@@ -69,6 +69,8 @@ const TRANSLATIONS = {
         edit: 'עריכה',
         cancel: 'ביטול',
         noEvents: 'אין אירועים',
+        savePastEventsLabel: 'שמור אירועים ישנים',
+        tooltipSavePastEvents: 'כשמופעל — אירועים חד-פעמיים שתאריכם עבר לא יימחקו',
         addTask: 'הוספת משימה לבנק משימות',
         whatToDo: 'מה שעושים?',
         noTasks: 'אין משימות',
@@ -229,6 +231,8 @@ const TRANSLATIONS = {
         edit: 'Edit',
         cancel: 'Cancel',
         noEvents: 'No events',
+        savePastEventsLabel: 'Keep old events',
+        tooltipSavePastEvents: 'When on — one-time events past their date will not be deleted',
         addTask: 'Add Task',
         whatToDo: 'What to do?',
         noTasks: 'No tasks',
@@ -467,17 +471,13 @@ function applyLanguage() {
     // Refresh day checkboxes with translated day names
     if (typeof renderDayCheckboxes === 'function') renderDayCheckboxes();
     
-    // Loomis toggle (in settings, not the lang toggle on login page)
-    const loomisLabel = document.querySelector('.loomis-toggle-container .loomis-toggle-label');
+    // Loomis toggle (tasks card only)
+    const loomisLabel = document.querySelector('#settings-market-section .loomis-toggle-label');
     if (loomisLabel) loomisLabel.innerHTML = t('collectLoomis') + ' <span class="info-icon" data-tooltip-key="tooltipCollectStars">?</span>';
-    
-    // Routine toggles
-    const morningToggleLabel = document.getElementById('morning-toggle-label');
-    const noonToggleLabel = document.getElementById('noon-toggle-label');
-    const eveningToggleLabel = document.getElementById('evening-toggle-label');
-    if (morningToggleLabel) morningToggleLabel.textContent = t('morningToggle');
-    if (noonToggleLabel) noonToggleLabel.textContent = t('noonToggle');
-    if (eveningToggleLabel) eveningToggleLabel.textContent = t('eveningToggle');
+
+    // Save past events toggle (events card)
+    const savePastLabel = document.querySelector('.add-event-card .loomis-toggle-label');
+    if (savePastLabel) savePastLabel.innerHTML = t('savePastEventsLabel') + ' <span class="info-icon" data-tooltip-key="tooltipSavePastEvents">?</span>';
     
     // Task card
     const taskCardTitle = document.querySelector('#settings-market-section h3');
