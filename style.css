@@ -322,8 +322,8 @@ header #clock {
     transition: all 0.3s ease;
     white-space: nowrap;
     visibility: visible !important;
-    display: block !important;
-    align-items: center;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center;
 }
 
@@ -1130,6 +1130,14 @@ header #clock {
     margin: 0 !important;
     border-radius: 12px !important;
 }
+.add-btn-row {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    margin-bottom: 0 !important;
+}
+
 .settings-card-btn:active, .action-btn-green:active, .action-btn-yellow:active, .add-to-all-btn:active {
     transform: translateY(3px);
     box-shadow: 0 2px 0px #E5B959 !important;
@@ -1928,7 +1936,8 @@ h4 {
     transform: translateY(-1px);
 }
 .task-bank-item {
-    background-color: #FDF4E3 !important; /* Warm Cream background */
+    background-color: #ffffff !important;
+    box-shadow: var(--shadow);
     border-left: 10px solid #FA6868; /* Use Coral only as a side accent */
     color: #134686; /* Deep Blue text */
     margin-bottom: 12px;
@@ -2005,14 +2014,21 @@ h4 {
 }
 /* Danger Pill for Delete */
 .delete-child-pill {
-    background-color: #FA6868 !important;
-    color: white !important;
-    border-radius: 20px;
-    padding: 2px 12px;
-    font-size: 0.8rem;
+    background: transparent !important;
+    color: #FA6868 !important;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    border: none;
-    font-weight: 700;
+    border: 2px solid #FA6868 !important;
+    flex-shrink: 0;
+}
+.delete-child-pill .material-symbols-rounded {
+    font-size: 1.2rem;
+    color: #FA6868 !important;
 }
 
 /* Pill for adjusting market beez cost */
@@ -3797,4 +3813,87 @@ input[type="email"], input[type="password"] {
 }
 .feedback-card:not(.feedback-collapsed) .feedback-chevron {
     transform: rotate(180deg);
+}
+
+/* ===== ACHIEVEMENT BADGES ===== */
+
+/* Great Day / Perfect Week popup overlay */
+.great-day-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9997;
+    animation: gdFadeIn 0.3s ease;
+}
+.great-day-card {
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 40px 50px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: gdPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    direction: rtl;
+}
+.great-day-icon {
+    font-size: 5rem !important;
+    color: #FFB700;
+    display: block;
+    margin-bottom: 10px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48 !important;
+}
+.great-day-name {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #134686;
+    margin: 0 0 6px;
+}
+.great-day-text {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #134686;
+    margin: 0 0 8px;
+}
+.great-day-streak {
+    font-size: 1.1rem;
+    color: #FAAC68;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Kid pill achievement badges */
+.kid-pill-badge {
+    font-size: 0.85rem !important;
+    margin-right: 7px;
+    color: #134686;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
+    line-height: 1;
+}
+
+/* Streak banner on child page */
+.streak-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #134686;
+    direction: rtl;
+}
+.streak-icon {
+    font-size: 1.4rem !important;
+    color: #134686;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+}
+
+@keyframes gdFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes gdPopIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }

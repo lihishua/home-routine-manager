@@ -543,11 +543,16 @@ function renderHeaderNav() {
         return true;
     });
     
+    const todayISO = new Date().toISOString().split('T')[0];
     nav.innerHTML = uniqueChildren.map((child, index) => {
         const colorClass = getChildColorByName(child.name);
         const childIndex = currentFamily.children.findIndex(c => c.id === child.id);
+        const hasGreatDay = currentFamily.trophyEnabled !== false && child.greatDayDate === todayISO;
+        const badge = hasGreatDay
+            ? `<span class="material-symbols-rounded kid-pill-badge">emoji_events</span>`
+            : '';
         return `<div class="child-nav-pill child-pill-assigned ${colorClass}" onclick="openChildPage(${childIndex})" style="cursor:pointer;">
-            ${child.name}
+            ${child.name}${badge}
         </div>`;
     }).join('');
 }
@@ -594,8 +599,18 @@ function renderChildPage(childIndex) {
         `;
     }
     
+    const streak = child.streak || 0;
+    const todayISO = new Date().toISOString().split('T')[0];
+    const hasGreatDayToday = currentFamily.trophyEnabled !== false && child.greatDayDate === todayISO;
+    const streakBanner = hasGreatDayToday ? `
+        <div class="streak-banner child-page-card ${colorClass}">
+            <span class="material-symbols-rounded streak-icon">emoji_events</span>
+            <span>${getLang() === 'he' ? `סיימתי את כל מטלות השגרה כבר ${streak} ימים ברצף` : `Completed all routine chores for ${streak} ${streak === 1 ? 'day' : 'days'} in a row!`}</span>
+        </div>` : '';
+
     contentEl.innerHTML = `
         <div class="child-page-grid">
+            ${streakBanner}
             ${isLoomisEnabled() ? `
             <!-- Stars Card -->
             <div class="child-page-card stars-card ${colorClass}">
@@ -829,6 +844,7 @@ function renderSettings() {
     updateLoomisToggleUI();
     updateSettingsLockUI();
     updateSavePastEventsUI();
+    updateTrophyToggleUI();
     cleanupPastEvents();
     renderEventsList();
     renderMarketSection();
@@ -932,9 +948,9 @@ function renderChildList() {
             
             // Build routine icons
             let icon = '';
-            if (hasMorning) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#FACE68;vertical-align:middle;">wb_twilight</i>';
-            if (hasNoon) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#90D5C8;vertical-align:middle;">wb_sunny</i>';
-            if (hasEvening) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#FAAC68;vertical-align:middle;">dark_mode</i>';
+            if (hasMorning) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#90D5C8;vertical-align:middle;">wb_twilight</i>';
+            if (hasNoon) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#FACE68;vertical-align:middle;">wb_sunny</i>';
+            if (hasEvening) icon += '<i class="material-symbols-rounded" style="font-size:0.85rem;color:#B59CD8;vertical-align:middle;">dark_mode</i>';
             
             // Build days display if exists
             let daysDisplay = '';
@@ -962,10 +978,12 @@ function renderChildList() {
 
         html += '<div class="settings-child-card">';
         
-        // Header with name, loomis count beneath name (if enabled), delete button
-        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
-        html += '<div style="display:flex;flex-direction:column;gap:4px">';
+        // Header with name + delete button inline, loomis count beneath
+        html += '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">';
+        html += '<div style="display:flex;align-items:center;gap:8px">';
+        html += '<button onclick="confirmDeleteChild(' + ci + ')" class="delete-child-pill"><span class="material-symbols-rounded">delete_forever</span></button>';
         html += '<span style="font-weight:800;font-size:1.1rem">' + name + '</span>';
+        html += '</div>';
         if (isLoomisEnabled()) {
             html += '<div class="loomi-display-row">';
             html += '<span class="loomi-number">' + loomis + '</span>';
@@ -973,8 +991,6 @@ function renderChildList() {
             html += '<span class="reset-loomi-text" onclick="currentFamily.children[' + ci + '].loomis=0;saveData();renderSettings()">' + t('resetLoomis') + '</span>';
             html += '</div>';
         }
-        html += '</div>';
-        html += '<button onclick="confirmDeleteChild(' + ci + ')" class="delete-child-pill">' + t('deleteChild') + '</button>';
         html += '</div>';
         
         // Add chore input
@@ -1419,6 +1435,19 @@ function updateSavePastEventsUI() {
     const btn = document.getElementById('save-past-events-btn');
     if (!btn) return;
     btn.classList.toggle('active', currentFamily.savePastEvents === true);
+}
+
+function toggleTrophyEnabled() {
+    currentFamily.trophyEnabled = !(currentFamily.trophyEnabled !== false);
+    saveData();
+    updateTrophyToggleUI();
+    renderHeaderNav(); // refresh badges
+}
+
+function updateTrophyToggleUI() {
+    const btn = document.getElementById('trophy-toggle-btn');
+    if (!btn) return;
+    btn.classList.toggle('active', currentFamily.trophyEnabled !== false);
 }
 
 // Rebuild the list of scheduled events in settings.
@@ -2257,6 +2286,8 @@ function toggleTask(childIdx, type, taskIdx, element) {
 
         // Check if ALL visible tasks for this child are now completed
         checkAllTasksDone(childIdx, type);
+        // Check if ALL routines for this child are done today (Great Day)
+        checkGreatDay(childIdx);
     }
 
     // Update progress bar for this child's card live
@@ -2341,6 +2372,71 @@ function checkAllTasksDone(childIdx, type) {
         // Play a celebration sound
         playCelebrationSound();
     }, 400);
+}
+
+// Check if a child has completed ALL their routines today → Trophy achievement
+function checkGreatDay(childIdx) {
+    const child = currentFamily.children[childIdx];
+    if (!child) return;
+    if (currentFamily.trophyEnabled === false) return; // feature disabled
+
+    const today = new Date().toISOString().split('T')[0];
+    if (child.greatDayDate === today) return; // already awarded today
+
+    const activeRoutines = getActiveRoutines();
+    const childRoutines = activeRoutines.filter(type => (child[type] || []).length > 0);
+    if (childRoutines.length === 0) return;
+
+    const dayOfWeek = new Date().getDay();
+    const allDone = childRoutines.every(type => {
+        const tasks = (child[type] || []).filter(task => {
+            if (task.days && task.days.length > 0) return task.days.includes(dayOfWeek);
+            return true;
+        });
+        return tasks.length > 0 && tasks.every(t => t.completed);
+    });
+
+    if (!allDone) return;
+
+    // Update streak: check if yesterday was also a Great Day
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    child.streak = (child.greatDayDate === yesterday) ? (child.streak || 1) + 1 : 1;
+    child.greatDayDate = today;
+    saveData();
+    renderHeaderNav();
+    updateHomeMenuGrid();
+    // Show popup right after the routine celebration finishes (~3.6s)
+    setTimeout(() => showGreatDayPopup(child), 3600);
+}
+
+// Show trophy popup
+function showGreatDayPopup(child) {
+    const existing = document.getElementById('great-day-overlay');
+    if (existing) existing.remove();
+
+    const streak = child.streak || 1;
+    const streakText = streak > 1 ? `${streak} ${getLang() === 'he' ? 'ימים ברצף' : 'days in a row'} 🔥` : '';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'great-day-overlay';
+    overlay.className = 'great-day-overlay';
+    overlay.innerHTML = `
+        <div class="great-day-card">
+            <span class="material-symbols-rounded great-day-icon">emoji_events</span>
+            <h2 class="great-day-name">${child.name}</h2>
+            <p class="great-day-text">${getLang() === 'he' ? 'יום מעולה!' : 'Great Day!'}</p>
+            ${streakText ? `<p class="great-day-streak">${streakText}</p>` : ''}
+        </div>
+    `;
+    overlay.addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+
+    try {
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 },
+            colors: ['#FACE68', '#90D5C8', '#B59CD8', '#FAAC68', '#FA6868', '#FFB700'] });
+    } catch(e) {}
+
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 3500);
 }
 
 // Show a beautiful celebration popup
