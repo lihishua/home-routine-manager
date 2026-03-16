@@ -247,6 +247,7 @@ function updateHomeMenuGrid() {
     grid.innerHTML = routineHtml + fixedHtml;
     grid.classList.remove('routines-1', 'routines-2', 'routines-3');
     grid.classList.add(`routines-${active.length}`);
+
 }
 
 // Delete child with confirmation
@@ -2097,20 +2098,20 @@ function openMarketSelection(index) {
     overlay.id = "market-overlay";
     overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
     overlay.innerHTML = `
-        <div style="background:white; padding:30px; border-radius:30px; width:100%; max-width:400px; text-align:center;">
+        <div style="background:#FDF4E3; padding:30px; border-radius:30px; width:100%; max-width:400px; text-align:center;">
             <h2 style="margin-bottom:10px;">${t('whoDidTask')}</h2>
             <p style="margin-bottom:20px; font-weight:bold;">${item.task}</p>
-            <div style="display:grid; gap:10px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 ${currentFamily.children.map((child, ci) => {
-                    const buttonClass = getButtonColorByName(child.name);
+                    const colorVal = getChildColorValueByName(child.name);
                     return `
-                    <button onclick="processMarketWin(${index}, ${ci})" class="modal-child-btn ${buttonClass}">
+                    <button onclick="processMarketWin(${index}, ${ci})" class="modal-child-btn" style="background:${colorVal} !important; border-color:${colorVal} !important;">
                         ${child.name}
                     </button>
                     `;
                 }).join('')}
             </div>
-            <button onclick="document.getElementById('market-overlay').remove()" class="back-btn" style="margin-top:20px; padding:10px 30px;">${t('cancel')}</button>
+            <button onclick="document.getElementById('market-overlay').remove()" class="back-btn" style="margin-top:20px; padding:10px 30px; background:white !important; color:#134686 !important; border:2px solid #134686 !important; box-shadow:none !important;">${t('cancel')}</button>
         </div>`;
     document.body.appendChild(overlay);
 }
@@ -2496,7 +2497,292 @@ window.showAppContent = function() {
     // Build home menu grid based on active routines
     updateHomeMenuGrid();
     showView('home');
+    setTimeout(showOnboardingIfNeeded, 400);
 };
+
+let _onboardingSlide = 0;
+const _onboardingSlides = (he) => [
+    {
+        icon: 'loomi-home',
+        color: '#FDF4E3',
+        title: he ? 'ברוכים הבאים ל-LOOMI!' : 'Welcome to LOOMI!',
+        text:  he ? 'אפליקציה לניהול משימות הבית' : 'A home tasks management app',
+        target: null
+    },
+    {
+        icon: 'settings',
+        color: '#90D5C8',
+        title: he ? 'שלב 1 — הגדרות' : 'Step 1 — Settings',
+        text:  he ? 'לחצו על "ניהול והגדרות" והוסיפו ילדים ומשימות שגרה. הוסיפו גם משימות לבנק המשימות' : 'Tap "Settings" to add children and routine tasks — and add tasks to the Tasks Bank too',
+        target: '.home-settings-btn'
+    },
+    {
+        icon: 'checklist',
+        color: '#B59CD8',
+        title: he ? 'שלב 2 — מלאו אחר משימות השגרה' : 'Step 2 — Follow the Routine',
+        text:  he ? 'כנסו לשגרת הבוקר/צהריים/ערב, מלאו את כל המשימות וקבלו גביע בסוף יום. הגביע ישמר כל עוד ישמר רצף הביצועים' : 'Open morning/noon/evening routine, complete all tasks and earn a trophy. Keep it going to build a streak!',
+        target: '.menu-card[data-routine-btn]'
+    },
+    {
+        icon: 'grade',
+        color: '#FFB700',
+        title: he ? 'שלב 3 — כנסו לבנק המשימות' : 'Step 3 — Tasks Bank',
+        text: he ? 'שבת בבוקר? חוזרים מבית ספר? חופש פסח? זה הזמן לפתוח בנק משימות ולבחור משימה. אפשר גם לצבור כוכבים' : 'Lazy Saturday? Back from school? Spring break? Open the Tasks Bank and pick a task — and earn stars along the way',
+        target: '.menu-card.market-card'
+    }
+];
+
+function showOnboardingIfNeeded() {
+    if (localStorage.getItem('loomi-onboarded')) return;
+    _onboardingSlide = 0;
+    _renderOnboarding();
+}
+
+function _renderOnboarding() {
+    const he = getLang() === 'he';
+    const slides = _onboardingSlides(he);
+    const total = slides.length;
+
+    const dotsHtml = slides.map((_, i) =>
+        `<span class="ob-dot${i === _onboardingSlide ? ' active' : ''}" onclick="_goOnboardingSlide(${i})"></span>`
+    ).join('');
+
+    const isLast = _onboardingSlide === total - 1;
+    const slide = slides[_onboardingSlide];
+
+    let existing = document.getElementById('onboarding-overlay');
+    if (!existing) {
+        existing = document.createElement('div');
+        existing.id = 'onboarding-overlay';
+        existing.className = 'onboarding-overlay';
+        document.body.appendChild(existing);
+    }
+
+    existing.innerHTML = `
+        <svg id="ob-arrow-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;" opacity="0">
+            <defs>
+                <marker id="ob-arr" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                    <polyline points="0 0, 12 6, 0 12" fill="none" stroke="#134686" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+            <path id="ob-arrow-path" d="" stroke="#134686" stroke-width="3" fill="none" marker-end="url(#ob-arr)" stroke-linecap="round"/>
+        </svg>
+        <div id="ob-target-ring" class="ob-target-ring" style="display:none"></div>
+        <div class="onboarding-card">
+            <div class="ob-icon-circle" style="background:${slide.color}">
+                ${slide.icon === 'loomi-home'
+                    ? `<img src="app-icon.png" class="ob-loomi-img" alt="LOOMI">`
+                    : `<span class="material-symbols-rounded">${slide.icon}</span>`}
+            </div>
+            <h2 class="ob-title">${slide.title}</h2>
+            <p class="ob-text">${slide.text}</p>
+            <div class="ob-dots">${dotsHtml}</div>
+            <div class="ob-nav">
+                <button class="ob-skip" onclick="_skipOnboarding()">${he ? 'דלג' : 'Skip'}</button>
+                <button class="ob-next" onclick="${isLast ? 'startOnboarding()' : '_nextOnboardingSlide()'}">${isLast ? (he ? 'בואו נתחיל! ←' : "Let's go! →") : (he ? 'הבא ←' : 'Next →')}</button>
+            </div>
+        </div>
+    `;
+
+    requestAnimationFrame(() => _updateOnboardingArrow(slide.target));
+}
+
+function _updateOnboardingArrow(targetSelector) {
+    const svg = document.getElementById('ob-arrow-svg');
+    const path = document.getElementById('ob-arrow-path');
+    const ring = document.getElementById('ob-target-ring');
+    const card = document.querySelector('.onboarding-card');
+    if (!svg || !path || !ring || !card) return;
+
+    if (!targetSelector) {
+        svg.setAttribute('opacity', '0');
+        ring.style.display = 'none';
+        return;
+    }
+
+    const targetEl = document.querySelector(targetSelector);
+    if (!targetEl) {
+        svg.setAttribute('opacity', '0');
+        ring.style.display = 'none';
+        return;
+    }
+
+    const cardRect = card.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+
+    // Arrow: top-right of card → big C-curve sweeping right → right side of target
+    const startX = cardRect.right + 2;
+    const startY = cardRect.top + cardRect.height / 2;
+    const endX = targetRect.right - 16;
+    const endY = targetRect.top + targetRect.height / 2;
+
+    // Symmetric C-curve: both control points at same bowX for a clean arc
+    const bowX = Math.max(startX, endX) + 160;
+    path.setAttribute('d', `M ${startX} ${startY} C ${bowX} ${startY} ${bowX} ${endY} ${endX} ${endY}`);
+    svg.setAttribute('opacity', '1');
+
+    // Pulsing ring around target element
+    const pad = 6;
+    ring.style.display = 'block';
+    ring.style.left = (targetRect.left - pad) + 'px';
+    ring.style.top = (targetRect.top - pad) + 'px';
+    ring.style.width = (targetRect.width + pad * 2) + 'px';
+    ring.style.height = (targetRect.height + pad * 2) + 'px';
+    ring.style.borderRadius = targetRect.height > 70 ? '18px' : '50px';
+}
+
+function _goOnboardingSlide(i) {
+    _onboardingSlide = i;
+    _renderOnboarding();
+}
+
+function _nextOnboardingSlide() {
+    const total = _onboardingSlides(true).length;
+    if (_onboardingSlide < total - 1) {
+        _onboardingSlide++;
+        _renderOnboarding();
+    } else {
+        startOnboarding();
+    }
+}
+
+function _skipOnboarding() {
+    startOnboarding();
+}
+
+function startOnboarding() {
+    localStorage.setItem('loomi-onboarded', '1');
+    const overlay = document.getElementById('onboarding-overlay');
+    if (overlay) overlay.remove();
+}
+
+// ── Spotlight Tour ──────────────────────────────────────────────
+let _tourStep = 0;
+
+const _getTourSteps = () => {
+    const he = getLang() === 'he';
+    return [
+        {
+            view: 'home',
+            selector: '.home-settings-btn',
+            title: he ? 'שלב 1 — הגדרות' : 'Step 1 — Settings',
+            text:  he ? 'לחצו כאן כדי לפתוח את הגדרות המשפחה ולהוסיף ילדים' : 'Tap here to open Family Settings and add children'
+        },
+        {
+            view: 'settings',
+            selector: '#settings-child-list',
+            title: he ? 'שלב 2 — ילדים' : 'Step 2 — Children',
+            text:  he ? 'הוסיפו כאן את הילדים שלכם. לכל ילד אפשר להוסיף משימות בוקר, צהריים וערב' : 'Add your children here — each with morning, noon & evening tasks'
+        },
+        {
+            view: 'settings',
+            selector: '#settings-market-section',
+            title: he ? 'שלב 3 — בנק המטלות' : 'Step 3 — Tasks Bank',
+            text:  he ? 'הוסיפו משימות מיוחדות שהילדים יכולים לבצע ולהרוויח כוכבים נוספים' : 'Add special tasks kids can complete for extra stars'
+        }
+    ];
+};
+
+function startTour() {
+    localStorage.setItem('loomi-onboarded', '1');
+    const overlay = document.getElementById('onboarding-overlay');
+    if (overlay) overlay.remove();
+    _tourStep = 0;
+    _renderTourStep();
+}
+
+function _renderTourStep() {
+    const steps = _getTourSteps();
+    const step = steps[_tourStep];
+    const activeView = document.querySelector('.view:not(.hidden)');
+    const needsNav = step.view === 'settings' && activeView?.id !== 'view-settings';
+    if (needsNav) {
+        showView('settings');
+        setTimeout(_positionTourStep, 350);
+    } else {
+        _positionTourStep();
+    }
+}
+
+function _positionTourStep() {
+    const steps = _getTourSteps();
+    const step = steps[_tourStep];
+    const he = getLang() === 'he';
+    const total = steps.length;
+
+    const target = document.querySelector(step.selector);
+    if (!target) { _nextTourStep(); return; }
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    setTimeout(() => {
+        const rect = target.getBoundingClientRect();
+        const pad = 10;
+
+        let spot = document.getElementById('tour-spotlight');
+        if (!spot) {
+            spot = document.createElement('div');
+            spot.id = 'tour-spotlight';
+            spot.className = 'tour-spotlight';
+            document.body.appendChild(spot);
+        }
+        spot.style.top    = (rect.top  - pad) + 'px';
+        spot.style.left   = (rect.left - pad) + 'px';
+        spot.style.width  = (rect.width  + pad * 2) + 'px';
+        spot.style.height = (rect.height + pad * 2) + 'px';
+
+        const spaceBelow = window.innerHeight - rect.bottom - pad;
+        const showAbove  = spaceBelow < 170;
+        const tipW = Math.min(300, window.innerWidth - 40);
+        const tipLeft = Math.max(20, Math.min(rect.left + rect.width / 2 - tipW / 2, window.innerWidth - tipW - 20));
+
+        let tip = document.getElementById('tour-tooltip');
+        if (!tip) {
+            tip = document.createElement('div');
+            tip.id = 'tour-tooltip';
+            tip.className = 'tour-tooltip';
+            document.body.appendChild(tip);
+        }
+
+        const isLast = _tourStep === total - 1;
+        tip.innerHTML = `
+            <div class="tour-step-count">${_tourStep + 1} / ${total}</div>
+            <div class="tour-title">${step.title}</div>
+            <div class="tour-text">${step.text}</div>
+            <div class="tour-nav">
+                <button class="tour-skip" onclick="_skipTour()">${he ? 'דלג' : 'Skip'}</button>
+                <button class="tour-next" onclick="_nextTourStep()">${isLast ? (he ? 'סיום! 🎉' : 'Done! 🎉') : (he ? 'הבא ←' : 'Next →')}</button>
+            </div>
+        `;
+        tip.style.left = tipLeft + 'px';
+        tip.style.width = tipW + 'px';
+        if (showAbove) {
+            tip.style.top    = 'auto';
+            tip.style.bottom = (window.innerHeight - rect.top + pad + 10) + 'px';
+        } else {
+            tip.style.bottom = 'auto';
+            tip.style.top    = (rect.bottom + pad + 10) + 'px';
+        }
+    }, 180);
+}
+
+function _nextTourStep() {
+    const total = _getTourSteps().length;
+    if (_tourStep < total - 1) {
+        _tourStep++;
+        _renderTourStep();
+    } else {
+        _endTour();
+    }
+}
+
+function _skipTour() { _endTour(); }
+
+function _endTour() {
+    document.getElementById('tour-spotlight')?.remove();
+    document.getElementById('tour-tooltip')?.remove();
+    try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } }); } catch(e) {}
+}
 
 window.showPolicy = (type) => {
     const content = type === 'privacy'
