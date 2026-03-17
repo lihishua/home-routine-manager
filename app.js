@@ -2513,29 +2513,34 @@ const _onboardingSlides = (he) => [
         icon: 'settings',
         color: '#90D5C8',
         title: he ? 'שלב 1 — הגדרות' : 'Step 1 — Settings',
-        text:  he ? 'לחצו על "ניהול והגדרות" והוסיפו ילדים ומשימות שגרה. הוסיפו גם משימות לבנק המשימות' : 'Tap "Settings" to add children and routine tasks — and add tasks to the Tasks Bank too',
+        text:  he ? 'לחצו על "ניהול והגדרות" והוסיפו ילדים ומשימות' : 'Tap "Settings" to add children and routine tasks — and add tasks to the Tasks Bank too',
         target: '.home-settings-btn'
     },
     {
         icon: 'checklist',
         color: '#B59CD8',
         title: he ? 'שלב 2 — מלאו אחר משימות השגרה' : 'Step 2 — Follow the Routine',
-        text:  he ? 'כנסו לשגרת הבוקר/צהריים/ערב, מלאו את כל המשימות וקבלו גביע בסוף יום. הגביע ישמר כל עוד ישמר רצף הביצועים' : 'Open morning/noon/evening routine, complete all tasks and earn a trophy. Keep it going to build a streak!',
+        text:  he ? 'כנסו לשגרת הבוקר/צהריים/ערב, <br> מלאו את כל המשימות וקבלו גביע בסוף יום' : 'Open morning/noon/evening routine, complete all tasks and earn a trophy. Keep it going to build a streak!',
         target: '.menu-card[data-routine-btn]'
     },
     {
         icon: 'grade',
         color: '#FFB700',
         title: he ? 'שלב 3 — כנסו לבנק המשימות' : 'Step 3 — Tasks Bank',
-        text: he ? 'שבת בבוקר? חוזרים מבית ספר? חופש פסח? זה הזמן לפתוח בנק משימות ולבחור משימה. אפשר גם לצבור כוכבים' : 'Lazy Saturday? Back from school? Spring break? Open the Tasks Bank and pick a task — and earn stars along the way',
+        text: he ? 'שבת בבוקר? חוזרים מבית ספר? חופש פסח? <br> זה הזמן לפתוח בנק משימות ולבחור משימה' : 'Lazy Saturday? Back from school? Spring break? Open the Tasks Bank and pick a task — and earn stars along the way',
         target: '.menu-card.market-card'
     }
 ];
 
 function showOnboardingIfNeeded() {
-    if (localStorage.getItem('loomi-onboarded')) return;
+    if (localStorage.getItem('loomi-onboarded')) {
+        _showHowItWorksBtn(); // returning user — show button straight away
+        return;
+    }
+    localStorage.setItem('loomi-onboarded', '1');
     _onboardingSlide = 0;
     _renderOnboarding();
+    // button appears via startOnboarding() when carousel ends
 }
 
 function _renderOnboarding() {
@@ -2651,9 +2656,60 @@ function _skipOnboarding() {
 }
 
 function startOnboarding() {
-    localStorage.setItem('loomi-onboarded', '1');
     const overlay = document.getElementById('onboarding-overlay');
-    if (overlay) overlay.remove();
+    const card = overlay?.querySelector('.onboarding-card');
+    const chip = document.getElementById('account-chip');
+
+    // Hide arrow/ring immediately
+    const svg = document.getElementById('ob-arrow-svg');
+    const ring = document.getElementById('ob-target-ring');
+    if (svg) svg.setAttribute('opacity', '0');
+    if (ring) ring.style.display = 'none';
+
+    if (card && chip) {
+        const cardRect = card.getBoundingClientRect();
+        const chipRect = chip.getBoundingClientRect();
+        // Switch to fixed positioning at current visual position
+        card.style.position = 'fixed';
+        card.style.left = (cardRect.left + cardRect.width / 2) + 'px';
+        card.style.top  = (cardRect.top  + cardRect.height / 2) + 'px';
+        card.style.bottom = 'auto';
+        card.style.transform = 'translate(-50%, -50%)';
+        card.style.width = cardRect.width + 'px';
+        void card.offsetWidth; // force reflow
+        // Animate toward chip
+        card.style.transition = 'left 0.45s cubic-bezier(0.4,0,0.6,1), top 0.45s cubic-bezier(0.4,0,0.6,1), transform 0.45s cubic-bezier(0.4,0,0.6,1), opacity 0.3s ease';
+        card.style.left = (chipRect.left + chipRect.width / 2) + 'px';
+        card.style.top  = (chipRect.top  + chipRect.height / 2) + 'px';
+        card.style.transform = 'translate(-50%, -50%) scale(0.08)';
+        card.style.opacity = '0';
+        setTimeout(() => { if (overlay) overlay.remove(); _showHowItWorksBtn(); }, 480);
+    } else {
+        if (overlay) overlay.remove();
+        _showHowItWorksBtn();
+    }
+}
+
+function _showHowItWorksBtn() {
+    if (document.getElementById('how-it-works-btn')) return;
+    if (!localStorage.getItem('loomi-onboarded')) return;
+    if (document.getElementById('onboarding-overlay')) return;
+    const chip = document.getElementById('account-chip');
+    if (!chip) return;
+    const he = getLang() === 'he';
+    const chipRect = chip.getBoundingClientRect();
+    const btn = document.createElement('button');
+    btn.id = 'how-it-works-btn';
+    btn.className = 'how-it-works-btn';
+    btn.innerHTML = `<span class="material-symbols-rounded" style="font-size:0.85rem">help</span>${he ? 'איך זה עובד?' : 'How it works?'}`;
+    btn.style.top  = (chipRect.bottom + 5) + 'px';
+    btn.style.right = '10px';
+    btn.onclick = () => {
+        btn.remove();
+        _onboardingSlide = 0;
+        _renderOnboarding();
+    };
+    document.body.appendChild(btn);
 }
 
 // ── Spotlight Tour ──────────────────────────────────────────────
