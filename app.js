@@ -154,37 +154,6 @@ function isLoomisEnabled() {
     return currentFamily.collectLoomis !== false;
 }
 
-// Toggle a routine (morning/noon/evening) on/off
-function toggleRoutine(routineType) {
-    if (!currentFamily.routineToggles) {
-        currentFamily.routineToggles = { morning: true, noon: false, evening: true };
-    }
-    currentFamily.routineToggles[routineType] = !currentFamily.routineToggles[routineType];
-    
-    // Ensure at least one routine is enabled
-    const toggles = currentFamily.routineToggles;
-    if (!toggles.morning && !toggles.noon && !toggles.evening) {
-        // Revert - can't disable all
-        currentFamily.routineToggles[routineType] = true;
-        return;
-    }
-    
-    saveData();
-    updateRoutineTogglesUI();
-    updateHomeMenuGrid();
-}
-
-// Update routine toggle buttons UI
-function updateRoutineTogglesUI() {
-    const toggles = currentFamily.routineToggles || { morning: true, noon: false, evening: true };
-    ['morning', 'noon', 'evening'].forEach(key => {
-        const btn = document.getElementById(`${key}-toggle-btn`);
-        if (btn) {
-            btn.classList.toggle('active', !!toggles[key]);
-        }
-    });
-}
-
 // Get array of active routine types based on which routines have chores.
 // If no children yet → return all 3 (empty/placeholder state).
 function getActiveRoutines() {
@@ -509,6 +478,10 @@ function _doShowView(viewId) {
     if (viewId === 'settings') { sortEvents(); sortChores(); renderSettings(); }
     if (viewId === 'home') updateHomeMenuGrid();
     if (viewId === 'market') renderMarket();
+
+    // Show/hide "how it works" button based on current view
+    const howBtn = document.getElementById('how-it-works-btn');
+    if (howBtn) howBtn.style.display = viewId === 'home' ? '' : 'none';
     if (isRoutine) {
         // Update the routine page title based on type
         const routineTitle = document.querySelector('#view-routine h2');
@@ -558,13 +531,6 @@ function renderHeaderNav() {
     }).join('');
 }
 
-// Clear every child's earned loomis.
-function resetAllLoomis() {
-    currentFamily.children.forEach(c => c.loomis = 0);
-        saveData();
-        renderSettings();
-        renderHeaderNav();
-    }
 
 // Track currently open child page
 let currentChildPageIndex = -1;
@@ -2513,21 +2479,21 @@ const _onboardingSlides = (he) => [
         icon: 'settings',
         color: '#90D5C8',
         title: he ? 'שלב 1 — הגדרות' : 'Step 1 — Settings',
-        text:  he ? 'לחצו על "ניהול והגדרות" והוסיפו ילדים ומשימות' : 'Tap "Settings" to add children and routine tasks — and add tasks to the Tasks Bank too',
+        text:  he ? 'לחצו על "ניהול והגדרות" והוסיפו ילדים ומשימות' : 'Tap "Settings" and add children and tasks',
         target: '.home-settings-btn'
     },
     {
         icon: 'checklist',
         color: '#B59CD8',
         title: he ? 'שלב 2 — מלאו אחר משימות השגרה' : 'Step 2 — Follow the Routine',
-        text:  he ? 'כנסו לשגרת הבוקר/צהריים/ערב, <br> מלאו את כל המשימות וקבלו גביע בסוף יום' : 'Open morning/noon/evening routine, complete all tasks and earn a trophy. Keep it going to build a streak!',
+        text:  he ? 'כנסו לשגרת הבוקר/צהריים/ערב, <br> מלאו את כל המשימות וקבלו גביע בסוף יום' : 'Open the morning/noon/evening routine,<br> complete all tasks and earn a trophy',
         target: '.menu-card[data-routine-btn]'
     },
     {
         icon: 'grade',
         color: '#FFB700',
         title: he ? 'שלב 3 — כנסו לבנק המשימות' : 'Step 3 — Tasks Bank',
-        text: he ? 'שבת בבוקר? חוזרים מבית ספר? חופש פסח? <br> זה הזמן לפתוח בנק משימות ולבחור משימה' : 'Lazy Saturday? Back from school? Spring break? Open the Tasks Bank and pick a task — and earn stars along the way',
+        text: he ? 'שבת בבוקר? חוזרים מבית ספר? חופש פסח? <br> זה הזמן לפתוח בנק משימות ולבחור משימה' : 'Lazy Saturday? Back from school? Spring break?<br> Open the Tasks Bank and pick a task',
         target: '.menu-card.market-card'
     }
 ];
@@ -2710,134 +2676,6 @@ function _showHowItWorksBtn() {
         _renderOnboarding();
     };
     document.body.appendChild(btn);
-}
-
-// ── Spotlight Tour ──────────────────────────────────────────────
-let _tourStep = 0;
-
-const _getTourSteps = () => {
-    const he = getLang() === 'he';
-    return [
-        {
-            view: 'home',
-            selector: '.home-settings-btn',
-            title: he ? 'שלב 1 — הגדרות' : 'Step 1 — Settings',
-            text:  he ? 'לחצו כאן כדי לפתוח את הגדרות המשפחה ולהוסיף ילדים' : 'Tap here to open Family Settings and add children'
-        },
-        {
-            view: 'settings',
-            selector: '#settings-child-list',
-            title: he ? 'שלב 2 — ילדים' : 'Step 2 — Children',
-            text:  he ? 'הוסיפו כאן את הילדים שלכם. לכל ילד אפשר להוסיף משימות בוקר, צהריים וערב' : 'Add your children here — each with morning, noon & evening tasks'
-        },
-        {
-            view: 'settings',
-            selector: '#settings-market-section',
-            title: he ? 'שלב 3 — בנק המטלות' : 'Step 3 — Tasks Bank',
-            text:  he ? 'הוסיפו משימות מיוחדות שהילדים יכולים לבצע ולהרוויח כוכבים נוספים' : 'Add special tasks kids can complete for extra stars'
-        }
-    ];
-};
-
-function startTour() {
-    localStorage.setItem('loomi-onboarded', '1');
-    const overlay = document.getElementById('onboarding-overlay');
-    if (overlay) overlay.remove();
-    _tourStep = 0;
-    _renderTourStep();
-}
-
-function _renderTourStep() {
-    const steps = _getTourSteps();
-    const step = steps[_tourStep];
-    const activeView = document.querySelector('.view:not(.hidden)');
-    const needsNav = step.view === 'settings' && activeView?.id !== 'view-settings';
-    if (needsNav) {
-        showView('settings');
-        setTimeout(_positionTourStep, 350);
-    } else {
-        _positionTourStep();
-    }
-}
-
-function _positionTourStep() {
-    const steps = _getTourSteps();
-    const step = steps[_tourStep];
-    const he = getLang() === 'he';
-    const total = steps.length;
-
-    const target = document.querySelector(step.selector);
-    if (!target) { _nextTourStep(); return; }
-
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    setTimeout(() => {
-        const rect = target.getBoundingClientRect();
-        const pad = 10;
-
-        let spot = document.getElementById('tour-spotlight');
-        if (!spot) {
-            spot = document.createElement('div');
-            spot.id = 'tour-spotlight';
-            spot.className = 'tour-spotlight';
-            document.body.appendChild(spot);
-        }
-        spot.style.top    = (rect.top  - pad) + 'px';
-        spot.style.left   = (rect.left - pad) + 'px';
-        spot.style.width  = (rect.width  + pad * 2) + 'px';
-        spot.style.height = (rect.height + pad * 2) + 'px';
-
-        const spaceBelow = window.innerHeight - rect.bottom - pad;
-        const showAbove  = spaceBelow < 170;
-        const tipW = Math.min(300, window.innerWidth - 40);
-        const tipLeft = Math.max(20, Math.min(rect.left + rect.width / 2 - tipW / 2, window.innerWidth - tipW - 20));
-
-        let tip = document.getElementById('tour-tooltip');
-        if (!tip) {
-            tip = document.createElement('div');
-            tip.id = 'tour-tooltip';
-            tip.className = 'tour-tooltip';
-            document.body.appendChild(tip);
-        }
-
-        const isLast = _tourStep === total - 1;
-        tip.innerHTML = `
-            <div class="tour-step-count">${_tourStep + 1} / ${total}</div>
-            <div class="tour-title">${step.title}</div>
-            <div class="tour-text">${step.text}</div>
-            <div class="tour-nav">
-                <button class="tour-skip" onclick="_skipTour()">${he ? 'דלג' : 'Skip'}</button>
-                <button class="tour-next" onclick="_nextTourStep()">${isLast ? (he ? 'סיום! 🎉' : 'Done! 🎉') : (he ? 'הבא ←' : 'Next →')}</button>
-            </div>
-        `;
-        tip.style.left = tipLeft + 'px';
-        tip.style.width = tipW + 'px';
-        if (showAbove) {
-            tip.style.top    = 'auto';
-            tip.style.bottom = (window.innerHeight - rect.top + pad + 10) + 'px';
-        } else {
-            tip.style.bottom = 'auto';
-            tip.style.top    = (rect.bottom + pad + 10) + 'px';
-        }
-    }, 180);
-}
-
-function _nextTourStep() {
-    const total = _getTourSteps().length;
-    if (_tourStep < total - 1) {
-        _tourStep++;
-        _renderTourStep();
-    } else {
-        _endTour();
-    }
-}
-
-function _skipTour() { _endTour(); }
-
-function _endTour() {
-    document.getElementById('tour-spotlight')?.remove();
-    document.getElementById('tour-tooltip')?.remove();
-    try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } }); } catch(e) {}
 }
 
 window.showPolicy = (type) => {
