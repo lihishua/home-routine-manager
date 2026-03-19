@@ -2467,6 +2467,8 @@ window.showAppContent = function() {
 };
 
 let _onboardingSlide = 0;
+let _obDragX = null;
+let _obSwipeInit = false;
 const _onboardingSlides = (he) => [
     {
         icon: 'loomi-home',
@@ -2507,6 +2509,19 @@ function showOnboardingIfNeeded() {
     _onboardingSlide = 0;
     _renderOnboarding();
     // button appears via startOnboarding() when carousel ends
+}
+
+function _ensureSwipeHandlers() {
+    if (_obSwipeInit) return;
+    _obSwipeInit = true;
+    window.addEventListener('pointerup', e => {
+        if (_obDragX === null) return;
+        const dx = e.clientX - _obDragX;
+        _obDragX = null;
+        if (Math.abs(dx) > 40) {
+            dx < 0 ? _prevOnboardingSlide() : _nextOnboardingSlide();
+        }
+    });
 }
 
 function _renderOnboarding() {
@@ -2556,6 +2571,20 @@ function _renderOnboarding() {
     `;
 
     requestAnimationFrame(() => _updateOnboardingArrow(slide.target));
+
+    // Swipe: module-level Pointer Events approach (initialized once per app lifetime)
+    _ensureSwipeHandlers();
+    if (!existing._swipeReady) {
+        existing._swipeReady = true;
+        existing.addEventListener('pointerdown', e => {
+            if (e.target.closest('button, .ob-dot')) return;
+            _obDragX = e.clientX;
+        });
+    }
+}
+
+function _prevOnboardingSlide() {
+    if (_onboardingSlide > 0) { _onboardingSlide--; _renderOnboarding(); }
 }
 
 function _updateOnboardingArrow(targetSelector) {

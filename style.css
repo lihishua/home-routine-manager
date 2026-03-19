@@ -3926,8 +3926,35 @@ input[type="email"], input[type="password"] {
     text-align: center;
     z-index: 2;
     pointer-events: all;
+
     box-shadow: 0 8px 48px rgba(0,0,0,0.22);
     border: 1.5px solid rgba(19,70,134,0.1);
+    user-select: none;
+    cursor: grab;
+}
+@media (max-width: 600px) {
+    .onboarding-card {
+        bottom: auto;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px 14px 10px;
+        width: calc(100% - 48px);
+        max-width: 300px;
+        border-radius: 18px;
+    }
+    .ob-icon-circle {
+        width: 38px !important;
+        height: 38px !important;
+        margin: 0 auto 7px !important;
+    }
+    .onboarding-card .ob-icon-circle .material-symbols-rounded { font-size: 1.2rem !important; }
+    .ob-loomi-img { width: 34px !important; height: 34px !important; }
+    .ob-title { font-size: 0.88rem !important; height: 1.4rem !important; margin-bottom: 6px !important; }
+    .ob-text  { font-size: 0.76rem !important; height: 52px !important; margin-bottom: 8px !important; line-height: 1.4 !important; }
+    .ob-dots  { gap: 6px !important; margin-bottom: 8px !important; }
+    .ob-dot   { width: 6px !important; height: 6px !important; }
+    .ob-next  { padding: 7px 14px !important; font-size: 0.82rem !important; }
+    .ob-skip  { padding: 6px 12px !important; font-size: 0.78rem !important; }
 }
 .ob-target-ring {
     position: absolute;
