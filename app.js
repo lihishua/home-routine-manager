@@ -2522,6 +2522,7 @@ function _ensureSwipeHandlers() {
             dx < 0 ? _prevOnboardingSlide() : _nextOnboardingSlide();
         }
     });
+    window.addEventListener('pointercancel', () => { _obDragX = null; });
 }
 
 function _renderOnboarding() {
