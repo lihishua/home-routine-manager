@@ -184,7 +184,6 @@
         }
 
         // 4. THE LOGIN FUNCTIONS
-        var _forgotUid = null; // uid cached between forgot-password step 1 → step 2
 
         function normalizeUsername(name) {
             return name.trim().toLowerCase();
@@ -210,12 +209,8 @@
             var sugg = document.getElementById('username-suggestions');
             if (sugg) sugg.style.display = 'none';
             // Reset forgot section state when leaving it
-            var forgotEmailStep = document.getElementById('auth-forgot-email-step');
-            if (forgotEmailStep) forgotEmailStep.style.display = 'none';
             var forgotUsernameInput = document.getElementById('auth-forgot-username');
             if (forgotUsernameInput) { forgotUsernameInput.disabled = false; forgotUsernameInput.value = ''; }
-            var forgotContactEmail = document.getElementById('auth-forgot-contact-email');
-            if (forgotContactEmail) forgotContactEmail.value = '';
             if (mode === 'signup') {
                 var uFrom = document.getElementById('auth-username');
                 var uTo = document.getElementById('auth-username-signup');
@@ -227,7 +222,7 @@
                 if (uFrom2 && uTo2 && uFrom2.value) uTo2.value = uFrom2.value;
                 setTimeout(function() { var el = document.getElementById('auth-username'); if (el) el.focus(); }, 50);
             } else if (mode === 'forgot') {
-                setTimeout(function() { var el = document.getElementById('auth-forgot-email'); if (el) el.focus(); }, 50);
+                setTimeout(function() { var el = document.getElementById('auth-forgot-username'); if (el) el.focus(); }, 50);
             }
         };
 
@@ -357,108 +352,30 @@
 
         window.handleForgotPassword = async () => {
             var username = document.getElementById('auth-forgot-username').value.trim();
-            var emailStep = document.getElementById('auth-forgot-email-step');
             var errorEl = document.getElementById('auth-error');
             var btn = document.getElementById('send-forgot-btn');
             errorEl.style.color = 'red';
 
-            // STEP 2: email step is visible — trigger Cloud Function
-            if (emailStep && emailStep.style.display !== 'none') {
-                var contactEmail = document.getElementById('auth-forgot-contact-email').value.trim();
-                if (!contactEmail || contactEmail.indexOf('@') === -1) {
-                    errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please enter a valid email';
-                    return;
-                }
-                if (btn) btn.disabled = true;
-                errorEl.style.color = '#888';
-                errorEl.innerText = typeof t === 'function' ? t('loading') : 'שולח...';
-                try {
-                    // Create Firestore doc — Cloud Function picks it up and updates Firebase Auth email
-                    var reqId = Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-                    var reqRef = doc(db, 'passwordResets', reqId);
-                    await setDoc(reqRef, {
-                        username: username,
-                        uid: _forgotUid,
-                        contactEmail: contactEmail,
-                        status: 'pending',
-                        createdAt: new Date().toISOString()
-                    });
-                    // Watch for Cloud Function to finish
-                    var unsub = onSnapshot(reqRef, async function(snapDoc) {
-                        var d = snapDoc.data();
-                        if (!d) return;
-                        if (d.status === 'ready') {
-                            unsub();
-                            try {
-                                // Firebase Auth email is now the contact email — send reset link
-                                await sendPasswordResetEmail(auth, contactEmail);
-                                errorEl.style.color = 'green';
-                                errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : 'Reset link sent! Check your inbox.';
-                            } catch (e2) {
-                                errorEl.style.color = 'red';
-                                errorEl.innerText = e2.message || 'Failed to send reset email.';
-                                if (btn) btn.disabled = false;
-                            }
-                        } else if (d.status === 'error') {
-                            unsub();
-                            errorEl.style.color = 'red';
-                            errorEl.innerText = d.error || 'Something went wrong. Try again.';
-                            if (btn) btn.disabled = false;
-                        }
-                    });
-                    // Safety timeout after 15s
-                    setTimeout(function() {
-                        unsub();
-                        if (btn.disabled && errorEl.style.color !== 'green') {
-                            btn.disabled = false;
-                            errorEl.style.color = 'red';
-                            errorEl.innerText = 'Timeout. Please try again.';
-                        }
-                    }, 15000);
-                } catch (e) {
-                    if (btn) btn.disabled = false;
-                    errorEl.style.color = 'red';
-                    errorEl.innerText = (e && e.message) || 'Failed. Try again.';
-                }
-                return;
-            }
-
-            // STEP 1: look up username
             if (!username) {
-                errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please enter your username';
+                errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please enter your family name';
                 return;
             }
             if (btn) btn.disabled = true;
+
             try {
                 var normalized = normalizeUsername(username);
-                var usernameSnap = await getDoc(doc(db, 'usernames', normalized));
-                if (!usernameSnap.exists()) {
+                var snap = await getDoc(doc(db, 'usernames', normalized));
+                if (!snap.exists() || !snap.data().email) {
                     if (btn) btn.disabled = false;
-                    errorEl.innerText = typeof t === 'function' ? t('usernameNotFound') : 'Username not found.';
+                    errorEl.innerText = typeof t === 'function' ? t('usernameNotFound') : 'Family name not found.';
                     return;
                 }
-                var data = usernameSnap.data();
-                _forgotUid = data.uid;  // cache uid for step 2
-                var storedEmail = data.email;
-                if (storedEmail && storedEmail.indexOf('@loomi-users.com') === -1) {
-                    // Has real recovery email — Firebase auto-sends reset link
-                    await sendPasswordResetEmail(auth, storedEmail);
-                    errorEl.style.color = 'green';
-                    errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : 'Reset link sent! Check your inbox.';
-                } else {
-                    // No recovery email — reveal step 2 (Cloud Function flow)
-                    if (btn) btn.disabled = false;
-                    var usernameInput = document.getElementById('auth-forgot-username');
-                    if (usernameInput) usernameInput.disabled = true;
-                    if (emailStep) emailStep.style.display = '';
-                    setTimeout(function() {
-                        var el = document.getElementById('auth-forgot-contact-email');
-                        if (el) el.focus();
-                    }, 50);
-                }
+                await sendPasswordResetEmail(auth, snap.data().email);
+                errorEl.style.color = 'green';
+                errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : 'Reset link sent! Check your inbox.';
             } catch (e) {
                 if (btn) btn.disabled = false;
-                errorEl.innerText = (e && (e.text || e.message)) || 'Failed. Try again.';
+                errorEl.innerText = (e && e.message) || 'Failed. Try again.';
             }
         };
 
@@ -591,11 +508,6 @@
                 <div id="auth-forgot-section" style="display:none">
                     <p id="forgot-hint" class="auth-forgot-hint">הזינו את שם המשתמש/משפחה</p>
                     <input type="text" id="auth-forgot-username" autocomplete="username" oninput="document.getElementById('auth-error').innerText=''">
-                    <!-- Step 2: shown only when no recovery email on file -->
-                    <div id="auth-forgot-email-step" style="display:none">
-                        <p id="forgot-email-hint" class="auth-forgot-hint" style="margin-top:10px;font-size:0.82rem;">הזינו מייל ליצירת קשר ונחזור אליכם</p>
-                        <input type="email" id="auth-forgot-contact-email" autocomplete="email" oninput="document.getElementById('auth-error').innerText=''">
-                    </div>
                     <div class="auth-buttons">
                         <button id="send-forgot-btn" onclick="handleForgotPassword()">שלח</button>
                         <button id="back-from-forgot-btn" onclick="switchAuthMode('login')">חזרה</button>
