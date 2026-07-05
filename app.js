@@ -1,4 +1,13 @@
 // DAYS is now provided by i18n.js via getDays()
+
+// Fallback logout — works even if the Firebase module script fails to load
+window.handleLogout = async function() {
+    try {
+        if (window.firebaseAuth) await window.firebaseAuth.signOut();
+    } catch(e) {}
+    location.reload();
+};
+
 let currentFamily = JSON.parse(localStorage.getItem('myFamilyConfig')) || FAMILY_DATA;
 window.currentFamily = currentFamily; // Make globally accessible for Firebase
 let currentRoutineType = null; // Track which routine view is active (morning/evening)
@@ -2460,6 +2469,9 @@ window.showAppContent = function() {
     initTooltipEngine();
     updateFeedbackSectionVisibility();
     updateAccountChip();
+    // Remove any stale "how it works" button so it gets repositioned fresh
+    var staleBtn = document.getElementById('how-it-works-btn');
+    if (staleBtn) staleBtn.remove();
     // Build home menu grid based on active routines
     updateHomeMenuGrid();
     showView('home');
@@ -3033,6 +3045,88 @@ async function submitFeedback() {
     }
 }
 
+window.showProfileSettings = function() {
+    var dd = document.getElementById('account-dropdown');
+    if (dd) dd.style.display = 'none';
+    var user = window.currentFirebaseUser;
+    if (!user) return;
+    var he = typeof getLang === 'function' && getLang() === 'he';
+    var currentEmail = user.email || '';
+    var isSynthetic = currentEmail.indexOf('@loomi-users.com') !== -1;
+    var displayEmail = isSynthetic ? '' : currentEmail;
+
+    var overlay = document.createElement('div');
+    overlay.id = 'profile-settings-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+    var emailStatusLine = displayEmail
+        ? '<p style="margin:0 0 14px;font-size:0.82rem;color:#4caf50;text-align:center;direction:ltr;">' +
+            '✓ ' + (he ? 'מקושר: ' : 'Linked: ') + '<strong>' + displayEmail + '</strong></p>'
+        : '<p style="margin:0 0 14px;font-size:0.82rem;color:#aaa;text-align:center;">' +
+            (he ? 'אין אימייל מקושר עדיין' : 'No email linked yet') + '</p>';
+
+    overlay.innerHTML =
+        '<div style="background:white;border-radius:20px;padding:28px 24px;width:min(340px,100%);box-shadow:0 20px 60px rgba(0,0,0,0.25);">' +
+            '<h3 style="margin:0 0 4px;color:#134686;font-family:Fredoka,sans-serif;font-size:1.4rem;">' + (he ? 'הגדרות פרופיל' : 'Profile Settings') + '</h3>' +
+            '<p style="margin:0 0 12px;font-size:0.82rem;color:#999;">' + (he ? 'אימייל לשחזור סיסמה בלבד' : 'Email for password recovery only') + '</p>' +
+            emailStatusLine +
+            '<input type="email" id="profile-email-input" value="' + displayEmail + '" ' +
+                'placeholder="' + (he ? (displayEmail ? 'אימייל חדש' : 'האימייל שלכם') : (displayEmail ? 'New email' : 'Your email')) + '" ' +
+                'style="width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem;font-family:Assistant,sans-serif;box-sizing:border-box;margin-bottom:10px;direction:ltr;text-align:left;outline:none;transition:border-color 0.2s;" ' +
+                'onfocus="this.style.borderColor=\'#5A9CB5\'" onblur="this.style.borderColor=\'#e0e0e0\'">' +
+            '<p id="profile-email-status" style="min-height:18px;font-size:0.82rem;margin:0 0 14px;text-align:center;"></p>' +
+            '<div style="display:flex;gap:10px;">' +
+                '<button onclick="saveRecoveryEmail()" style="flex:1;padding:12px;background:#134686;color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;font-family:Assistant,sans-serif;cursor:pointer;">' + (he ? 'שמור' : 'Save') + '</button>' +
+                '<button onclick="document.getElementById(\'profile-settings-overlay\').remove()" style="flex:1;padding:12px;background:transparent;color:#134686;border:2px solid #134686;border-radius:12px;font-size:1rem;font-weight:700;font-family:Assistant,sans-serif;cursor:pointer;">' + (he ? 'סגור' : 'Close') + '</button>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    setTimeout(function() { var el = document.getElementById('profile-email-input'); if (el) el.focus(); }, 50);
+};
+
+window.saveRecoveryEmail = async function() {
+    var input = document.getElementById('profile-email-input');
+    var statusEl = document.getElementById('profile-email-status');
+    if (!input || !statusEl) return;
+    var email = input.value.trim();
+    var he = typeof getLang === 'function' && getLang() === 'he';
+    if (!email || email.indexOf('@') === -1) {
+        statusEl.style.color = '#FA6868';
+        statusEl.textContent = he ? 'נא להזין כתובת אימייל תקינה' : 'Please enter a valid email';
+        return;
+    }
+    var user = window.currentFirebaseUser;
+    if (!user) return;
+    statusEl.style.color = '#888';
+    statusEl.textContent = he ? 'שומר...' : 'Saving...';
+    try {
+        await window.firebaseUpdateEmail(user, email);
+        var normalized = user.displayName ? user.displayName.trim().toLowerCase() : null;
+        if (normalized) {
+            await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'usernames', normalized), { email: email }, { merge: true });
+        }
+        statusEl.style.color = '#4caf50';
+        statusEl.textContent = he ? '✓ נשמר! כעת ניתן לאפס סיסמה באמצעות האימייל' : '✓ Saved! You can now reset your password via email.';
+        setTimeout(function() { var ov = document.getElementById('profile-settings-overlay'); if (ov) ov.remove(); }, 2000);
+    } catch (e) {
+        statusEl.style.color = '#FA6868';
+        if (e.code === 'auth/requires-recent-login') {
+            statusEl.textContent = he ? 'נדרשת כניסה מחדש — התנתקו והתחברו שוב' : 'Please log out and log back in, then try again.';
+        } else if (e.code === 'auth/email-already-in-use') {
+            statusEl.textContent = he ? 'האימייל כבר בשימוש' : 'Email already in use.';
+        } else {
+            statusEl.textContent = e.message || (he ? 'שגיאה' : 'Error');
+        }
+    }
+};
+
+window.sendForgotPasswordEmail = async function(username, contactEmail) {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_PIN_TEMPLATE_ID, {
+        to_email: 'lihishua@gmail.com',
+        message:  '🔐 בקשת איפוס סיסמה\nשם משתמש: ' + username + '\nמייל ליצירת קשר: ' + contactEmail + '\n\n➡️ Firebase Console → Authentication → מצאי את המשתמש → Reset password → שלחי את הסיסמה החדשה למייל ליצירת קשר'
+    });
+};
+
 function updateFeedbackSectionVisibility() {
     const section = document.getElementById('feedback-section');
     if (!section) return;
@@ -3040,17 +3134,33 @@ function updateFeedbackSectionVisibility() {
 }
 
 function updateAccountChip() {
-    const chip = document.getElementById('account-chip');
+    var chip = document.getElementById('account-chip');
     if (!chip) return;
-    const isGuest = window.isGuestMode || !window.currentFirebaseUser;
-    const username = isGuest ? (t('guest') || 'אורח') : window.currentFirebaseUser.email.split('@')[0];
-    const logoutTitle = t('logout') || 'התנתק';
+
+    var isGuest = !!(window.isGuestMode || !window.currentFirebaseUser);
+    var username = 'אורח';
+    if (!isGuest) {
+        var u = window.currentFirebaseUser;
+        username = (u && u.displayName) || (u && u.email && u.email.indexOf('@loomi-users.com') === -1 && u.email.split('@')[0]) || (u && u.email && u.email.split('@')[0]) || 'user';
+    } else {
+        username = (typeof t === 'function' && t('guest')) || 'אורח';
+    }
+
+    var logoutTitle  = (typeof t === 'function' && t('logout'))          || 'התנתק';
+    var profileTitle = (typeof t === 'function' && t('profileSettings')) || 'הגדרות פרופיל';
+
+    var profileBtn = isGuest ? '' :
+        '<button class="account-dropdown-item" onclick="showProfileSettings()">' +
+            '<i class="material-symbols-rounded">manage_accounts</i> ' + profileTitle +
+        '</button>';
+
     chip.innerHTML =
         '<span class="account-chip-label" onclick="toggleAccountDropdown(event)">' +
             '<i class="material-symbols-rounded account-chip-icon">person</i>' +
             '<span class="account-chip-username">' + username + '</span>' +
         '</span>' +
         '<div class="account-dropdown" id="account-dropdown" style="display:none;">' +
+            profileBtn +
             '<button class="account-dropdown-item" onclick="handleLogout()">' +
                 '<i class="material-symbols-rounded">logout</i> ' + logoutTitle +
             '</button>' +
@@ -3058,13 +3168,16 @@ function updateAccountChip() {
 }
 
 function toggleAccountDropdown(e) {
-    if (e) e.stopPropagation();
+    if (e) { e.stopPropagation(); e.preventDefault(); }
     const dd = document.getElementById('account-dropdown');
     if (!dd) return;
     const isOpen = dd.style.display !== 'none';
     dd.style.display = isOpen ? 'none' : 'block';
     if (!isOpen) {
-        document.addEventListener('click', _closeAccountDropdown, { once: true });
+        // Defer so this same click event doesn't immediately close the dropdown
+        setTimeout(function() {
+            document.addEventListener('click', _closeAccountDropdown, { once: true });
+        }, 0);
     }
 }
 

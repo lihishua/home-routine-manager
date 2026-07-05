@@ -122,11 +122,29 @@ const TRANSLATIONS = {
         feedbackError: 'שגיאה בשליחה. אנא נסו שוב.',
         feedbackEmptyError: 'אנא כתבו הודעה לפני השליחה',
         feedbackPlaceholder: 'כתבו כאן את המשוב שלכם...',
-        emailPlaceholder: 'אימייל',
+        usernamePlaceholder: 'שם משתמש/משפחה',
         passwordPlaceholder: 'סיסמה',
-        loginFailed: 'ההתחברות נכשלה. בדוק אימייל/סיסמה.',
-        enterEmailFirst: 'נא להזין כתובת אימייל קודם.',
+        recoveryEmailPlaceholder: 'אימייל (לשחזור סיסמה)',
+        forgotEmailPlaceholder: 'האימייל שנרשמתם איתו',
+        recoveryEmailHint: 'לשחזור סיסמה בלבד',
+        authForgotHint: 'הזינו את שם המשתמש/משפחה',
+        forgotUsernamePlaceholder: 'שם משתמש/משפחה',
+        resetRequestSent: 'הבקשה נשלחה! ניצור איתכם קשר בקרוב.',
+        noRecoveryEmail: 'לא נמצא אימייל לשחזור. הוסיפו אימייל בהגדרות הפרופיל לאחר הכניסה.',
+        forgotContactEmailPlaceholder: 'מייל ליצירת קשר',
+        forgotEmailStepHint: 'הזינו מייל ליצירת קשר ונחזור אליכם',
+        usernameNotFound: 'שם המשתמש לא נמצא.',
+        profileSettings: 'הגדרות פרופיל',
+        loginFailed: 'ההתחברות נכשלה. בדוק שם משפחה/סיסמה.',
+        fillAllFields: 'נא למלא את כל השדות',
+        passwordTooShort: 'הסיסמה חייבת להכיל לפחות 6 תווים',
+        usernameTaken: 'השם הזה תפוס. נסו:',
+        emailAlreadyInUse: 'כתובת האימייל הזו כבר רשומה',
+        invalidEmail: 'כתובת אימייל לא תקינה',
+        enterEmailFirst: 'נא להזין כתובת אימייל.',
         resetEmailSent: 'נשלח! בדוק את תיבת המייל שלך.',
+        resetEmailError: 'האימייל לא נמצא. בדקו ונסו שוב.',
+        send: 'שלח',
 
         // Settings PIN lock
         settingsLock: 'נעילת הגדרות',
@@ -286,11 +304,29 @@ const TRANSLATIONS = {
         feedbackError: 'Error sending. Please try again.',
         feedbackEmptyError: 'Please write a message before sending',
         feedbackPlaceholder: 'Write your feedback here...',
-        emailPlaceholder: 'Email',
+        usernamePlaceholder: 'Username / Family name',
         passwordPlaceholder: 'Password',
-        loginFailed: 'Login failed. Check email/password.',
-        enterEmailFirst: 'Please enter your email address first.',
-        resetEmailSent: 'Reset email sent.. Check your inbox.',
+        recoveryEmailPlaceholder: 'Email (for password recovery)',
+        forgotEmailPlaceholder: 'The email you registered with',
+        recoveryEmailHint: 'For password recovery only',
+        authForgotHint: 'Enter your username / family name',
+        forgotUsernamePlaceholder: 'Username / Family name',
+        resetRequestSent: 'Request sent! We\'ll be in touch soon.',
+        noRecoveryEmail: 'No recovery email on file. Add one in Profile Settings after logging in.',
+        forgotContactEmailPlaceholder: 'Your contact email',
+        forgotEmailStepHint: 'Enter a contact email and we\'ll get back to you',
+        usernameNotFound: 'Username not found.',
+        profileSettings: 'Profile Settings',
+        loginFailed: 'Login failed. Check family name/password.',
+        fillAllFields: 'Please fill in all fields',
+        passwordTooShort: 'Password must be at least 6 characters',
+        usernameTaken: 'This name is taken. Try:',
+        emailAlreadyInUse: 'This email is already registered.',
+        invalidEmail: 'Invalid email address.',
+        enterEmailFirst: 'Please enter your email address.',
+        resetEmailSent: 'Sent! Check your inbox.',
+        resetEmailError: 'Email not found. Check and try again.',
+        send: 'Send',
 
         // Settings PIN lock
         settingsLock: 'Lock Settings',
@@ -396,18 +432,26 @@ function applyLanguage() {
     }
     
     // Login page
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
-    if (emailInput) emailInput.placeholder = t('emailPlaceholder');
-    if (passInput) passInput.placeholder = t('passwordPlaceholder');
-    
-    const loginBtn = document.querySelector('.auth-buttons button:first-child');
-    const signupBtn = document.querySelector('.auth-buttons button:last-child');
-    if (loginBtn) loginBtn.textContent = t('login');
-    if (signupBtn) signupBtn.textContent = t('signUp');
-    
-    const forgotLink = document.querySelector('.forgot-link');
-    if (forgotLink) forgotLink.textContent = t('forgotPassword');
+    const setPlaceholder = (id, key) => { const el = document.getElementById(id); if (el) el.placeholder = t(key); };
+    setPlaceholder('auth-username',        'usernamePlaceholder');
+    setPlaceholder('auth-username-signup', 'usernamePlaceholder');
+    setPlaceholder('auth-password',        'passwordPlaceholder');
+    setPlaceholder('auth-password-signup', 'passwordPlaceholder');
+    setPlaceholder('auth-recovery-email',  'recoveryEmailPlaceholder');
+    setPlaceholder('auth-forgot-username',       'forgotUsernamePlaceholder');
+    setPlaceholder('auth-forgot-contact-email', 'forgotContactEmailPlaceholder');
+    setText('forgot-email-hint', 'forgotEmailStepHint');
+
+    const setText = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = t(key); };
+    setText('login-btn',           'login');
+    setText('to-signup-btn',       'signUp');
+    setText('signup-confirm-btn',  'signUp');
+    setText('back-from-signup-btn','back');
+    setText('send-forgot-btn',     'send');
+    setText('back-from-forgot-btn','back');
+    setText('forgot-link',         'forgotPassword');
+    setText('forgot-hint',         'authForgotHint');
+    setText('recovery-hint',       'recoveryEmailHint');
     
     const guestLink = document.querySelector('.guest-link');
     if (guestLink) guestLink.textContent = t('guestEntry');

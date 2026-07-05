@@ -168,7 +168,6 @@ header {
     width: 100%;
     padding: 10px 20px;
     background: #134686; /* Deep Blue header */
-    z-index: 1000;
     position: relative;
     border-bottom: none;
 }
@@ -182,7 +181,7 @@ header .icon-btn {
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 1001;
+    z-index: 1050;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -232,7 +231,7 @@ header .icon-btn {
     position: absolute;
     top: calc(100% + 4px);
     right: 0;
-    z-index: 1002;
+    z-index: 1100;
 }
 .account-dropdown-item {
     display: flex;
@@ -3495,6 +3494,75 @@ input[type="email"], input[type="password"] {
 
 .forgot-link:hover {
     color: #134686;
+}
+
+.username-suggestions {
+    margin: -8px 0 12px;
+    padding: 10px 12px;
+    background: #fff8e6;
+    border: 1.5px solid #FACE68;
+    border-radius: 10px;
+}
+
+.suggestions-label {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    color: #555;
+    text-align: center;
+}
+
+.suggestions-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.suggestion-chip {
+    background: #134686;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-family: 'Assistant', sans-serif;
+    cursor: pointer;
+    direction: ltr;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.suggestion-chip:hover {
+    background: #1a5ba8;
+    transform: translateY(-1px);
+}
+
+.auth-optional-email input {
+    border-color: #e8e8e8;
+    background: #fafafa;
+    color: #666;
+    font-size: 0.92rem !important;
+}
+
+.auth-optional-email input:focus {
+    border-color: #5A9CB5;
+    background: white;
+}
+
+.recovery-hint {
+    display: block;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #bbb;
+    margin-top: -10px;
+    margin-bottom: 14px;
+}
+
+.auth-forgot-hint {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0 0 14px;
+    text-align: center;
+    line-height: 1.4;
 }
 
 /* ===== Celebration Popup (all chores done) ===== */

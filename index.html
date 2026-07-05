@@ -26,7 +26,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="style.css?v=359">
+    <link rel="stylesheet" href="style.css?v=362">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, updateProfile, updateEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -60,6 +60,7 @@
         window.firebaseGetDoc = getDoc;
         window.firebaseOnSnapshot = onSnapshot;
         window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
+        window.firebaseUpdateEmail = updateEmail;
 
         let currentUser = null;
         window.currentFirebaseUser = null;
@@ -183,43 +184,265 @@
         }
 
         // 4. THE LOGIN FUNCTIONS
+        var _forgotUid = null; // uid cached between forgot-password step 1 → step 2
+
+        function normalizeUsername(name) {
+            return name.trim().toLowerCase();
+        }
+
+        function generateUsernameSuggestions(name) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) {
+                return [name + 's', name + '1', name + '2'];
+            }
+            const first = parts[0];
+            const rest = parts.slice(1).join(' ');
+            return [first + 's', first + '1', rest + '.' + first];
+        }
+
+        window.switchAuthMode = (mode) => {
+            ['login', 'signup', 'forgot'].forEach(function(m) {
+                var el = document.getElementById('auth-' + m + '-section');
+                if (el) el.style.display = m === mode ? '' : 'none';
+            });
+            var errorEl = document.getElementById('auth-error');
+            if (errorEl) { errorEl.innerText = ''; errorEl.style.color = 'red'; }
+            var sugg = document.getElementById('username-suggestions');
+            if (sugg) sugg.style.display = 'none';
+            // Reset forgot section state when leaving it
+            var forgotEmailStep = document.getElementById('auth-forgot-email-step');
+            if (forgotEmailStep) forgotEmailStep.style.display = 'none';
+            var forgotUsernameInput = document.getElementById('auth-forgot-username');
+            if (forgotUsernameInput) { forgotUsernameInput.disabled = false; forgotUsernameInput.value = ''; }
+            var forgotContactEmail = document.getElementById('auth-forgot-contact-email');
+            if (forgotContactEmail) forgotContactEmail.value = '';
+            if (mode === 'signup') {
+                var uFrom = document.getElementById('auth-username');
+                var uTo = document.getElementById('auth-username-signup');
+                if (uFrom && uTo && uFrom.value) uTo.value = uFrom.value;
+                setTimeout(function() { var el = document.getElementById('auth-username-signup'); if (el) el.focus(); }, 50);
+            } else if (mode === 'login') {
+                var uFrom2 = document.getElementById('auth-username-signup');
+                var uTo2 = document.getElementById('auth-username');
+                if (uFrom2 && uTo2 && uFrom2.value) uTo2.value = uFrom2.value;
+                setTimeout(function() { var el = document.getElementById('auth-username'); if (el) el.focus(); }, 50);
+            } else if (mode === 'forgot') {
+                setTimeout(function() { var el = document.getElementById('auth-forgot-email'); if (el) el.focus(); }, 50);
+            }
+        };
+
+        window.selectSuggestion = (name) => {
+            var input = document.getElementById('auth-username-signup');
+            if (input) { input.value = name; input.focus(); }
+            var sugg = document.getElementById('username-suggestions');
+            if (sugg) sugg.style.display = 'none';
+            var errorEl = document.getElementById('auth-error');
+            if (errorEl) errorEl.innerText = '';
+        };
+
         window.handleSignUp = async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
+            var displayName = document.getElementById('auth-username-signup').value.trim();
+            var pass = document.getElementById('auth-password-signup').value;
+            var recoveryEmail = (document.getElementById('auth-recovery-email') || {}).value;
+            recoveryEmail = recoveryEmail ? recoveryEmail.trim() : '';
+            var errorEl = document.getElementById('auth-error');
+            var btn = document.getElementById('signup-confirm-btn');
+            errorEl.style.color = 'red';
+
+            if (!displayName || !pass) {
+                errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please fill in all fields';
+                return;
+            }
+            if (pass.length < 6) {
+                errorEl.innerText = typeof t === 'function' ? t('passwordTooShort') : 'Password must be at least 6 characters';
+                return;
+            }
+
+            var normalized = normalizeUsername(displayName);
+            var authEmail = recoveryEmail || (normalized.replace(/\s+/g, '.') + '@loomi-users.com');
+            if (btn) btn.disabled = true;
+
             try {
-                await createUserWithEmailAndPassword(auth, email, pass);
+                var usernameRef = doc(db, 'usernames', normalized);
+                var usernameSnap = await getDoc(usernameRef);
+
+                if (usernameSnap.exists()) {
+                    var suggestions = generateUsernameSuggestions(normalized);
+                    var takenText = typeof t === 'function' ? t('usernameTaken') : 'This name is taken. Try:';
+                    var suggEl = document.getElementById('username-suggestions');
+                    suggEl.innerHTML =
+                        '<p class="suggestions-label">' + takenText + '</p>' +
+                        '<div class="suggestions-chips">' +
+                        suggestions.map(function(s) {
+                            return '<button class="suggestion-chip" onclick="selectSuggestion(\'' + s.replace(/'/g, "\\'") + '\')">' + s + '</button>';
+                        }).join('') +
+                        '</div>';
+                    suggEl.style.display = 'block';
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+
+                var userCredential = await createUserWithEmailAndPassword(auth, authEmail, pass);
+                var user = userCredential.user;
+                await updateProfile(user, { displayName: displayName });
+                await setDoc(doc(db, 'usernames', normalized), {
+                    uid: user.uid,
+                    displayName: displayName,
+                    email: authEmail,  // always store (real or synthetic)
+                    createdAt: new Date().toISOString()
+                });
+
             } catch (error) {
-                document.getElementById('auth-error').innerText = error.message;
+                if (btn) btn.disabled = false;
+                if (error.code === 'auth/email-already-in-use') {
+                    var suggs = generateUsernameSuggestions(normalized);
+                    var takenMsg = typeof t === 'function' ? t('usernameTaken') : 'This name is taken. Try:';
+                    var sEl = document.getElementById('username-suggestions');
+                    sEl.innerHTML = '<p class="suggestions-label">' + takenMsg + '</p><div class="suggestions-chips">' +
+                        suggs.map(function(s) { return '<button class="suggestion-chip" onclick="selectSuggestion(\'' + s.replace(/'/g, "\\'") + '\')">' + s + '</button>'; }).join('') +
+                        '</div>';
+                    sEl.style.display = 'block';
+                } else {
+                    errorEl.innerText = error.message;
+                }
             }
         };
 
         window.handleLogin = async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
+            var displayName = document.getElementById('auth-username').value.trim();
+            var pass = document.getElementById('auth-password').value;
+            var errorEl = document.getElementById('auth-error');
+            var btn = document.getElementById('login-btn');
+            errorEl.style.color = 'red';
+
+            if (!displayName || !pass) {
+                errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please fill in all fields';
+                return;
+            }
+            if (btn) btn.disabled = true;
+
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (error) {
-                document.getElementById('auth-error').innerText = typeof t === 'function' ? t('loginFailed') : "Login failed. Check email/password.";
+                // Backward compat: direct email input
+                if (displayName.includes('@')) {
+                    await signInWithEmailAndPassword(auth, displayName, pass);
+                    return;
+                }
+                // Look up stored email (handles synthetic + real + post-reset emails)
+                var normalized = normalizeUsername(displayName);
+                var snap = await getDoc(doc(db, 'usernames', normalized));
+                var loginEmail = (snap.exists() && snap.data().email)
+                    || (normalized.replace(/\s+/g, '.') + '@loomi-users.com');
+                await signInWithEmailAndPassword(auth, loginEmail, pass);
+            } catch (e) {
+                if (btn) btn.disabled = false;
+                errorEl.innerText = typeof t === 'function' ? t('loginFailed') : 'Login failed. Check family name/password.';
             }
         };
 
-        // FORGOT PASSWORD FUNCTION
         window.handleForgotPassword = async () => {
-            const email = document.getElementById('email').value;
-            const errorEl = document.getElementById('auth-error');
-            
-            if (!email) {
-                errorEl.innerText = typeof t === 'function' ? t('enterEmailFirst') : "Please enter your email address first.";
+            var username = document.getElementById('auth-forgot-username').value.trim();
+            var emailStep = document.getElementById('auth-forgot-email-step');
+            var errorEl = document.getElementById('auth-error');
+            var btn = document.getElementById('send-forgot-btn');
+            errorEl.style.color = 'red';
+
+            // STEP 2: email step is visible — trigger Cloud Function
+            if (emailStep && emailStep.style.display !== 'none') {
+                var contactEmail = document.getElementById('auth-forgot-contact-email').value.trim();
+                if (!contactEmail || contactEmail.indexOf('@') === -1) {
+                    errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please enter a valid email';
+                    return;
+                }
+                if (btn) btn.disabled = true;
+                errorEl.style.color = '#888';
+                errorEl.innerText = typeof t === 'function' ? t('loading') : 'שולח...';
+                try {
+                    // Create Firestore doc — Cloud Function picks it up and updates Firebase Auth email
+                    var reqId = Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                    var reqRef = doc(db, 'passwordResets', reqId);
+                    await setDoc(reqRef, {
+                        username: username,
+                        uid: _forgotUid,
+                        contactEmail: contactEmail,
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    });
+                    // Watch for Cloud Function to finish
+                    var unsub = onSnapshot(reqRef, async function(snapDoc) {
+                        var d = snapDoc.data();
+                        if (!d) return;
+                        if (d.status === 'ready') {
+                            unsub();
+                            try {
+                                // Firebase Auth email is now the contact email — send reset link
+                                await sendPasswordResetEmail(auth, contactEmail);
+                                errorEl.style.color = 'green';
+                                errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : 'Reset link sent! Check your inbox.';
+                            } catch (e2) {
+                                errorEl.style.color = 'red';
+                                errorEl.innerText = e2.message || 'Failed to send reset email.';
+                                if (btn) btn.disabled = false;
+                            }
+                        } else if (d.status === 'error') {
+                            unsub();
+                            errorEl.style.color = 'red';
+                            errorEl.innerText = d.error || 'Something went wrong. Try again.';
+                            if (btn) btn.disabled = false;
+                        }
+                    });
+                    // Safety timeout after 15s
+                    setTimeout(function() {
+                        unsub();
+                        if (btn.disabled && errorEl.style.color !== 'green') {
+                            btn.disabled = false;
+                            errorEl.style.color = 'red';
+                            errorEl.innerText = 'Timeout. Please try again.';
+                        }
+                    }, 15000);
+                } catch (e) {
+                    if (btn) btn.disabled = false;
+                    errorEl.style.color = 'red';
+                    errorEl.innerText = (e && e.message) || 'Failed. Try again.';
+                }
                 return;
             }
 
+            // STEP 1: look up username
+            if (!username) {
+                errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please enter your username';
+                return;
+            }
+            if (btn) btn.disabled = true;
             try {
-                await sendPasswordResetEmail(auth, email);
-                errorEl.style.color = "green";
-                errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : "Reset email sent! Check your inbox.";
-            } catch (error) {
-                errorEl.style.color = "red";
-                errorEl.innerText = "Error: " + error.message;
+                var normalized = normalizeUsername(username);
+                var usernameSnap = await getDoc(doc(db, 'usernames', normalized));
+                if (!usernameSnap.exists()) {
+                    if (btn) btn.disabled = false;
+                    errorEl.innerText = typeof t === 'function' ? t('usernameNotFound') : 'Username not found.';
+                    return;
+                }
+                var data = usernameSnap.data();
+                _forgotUid = data.uid;  // cache uid for step 2
+                var storedEmail = data.email;
+                if (storedEmail && storedEmail.indexOf('@loomi-users.com') === -1) {
+                    // Has real recovery email — Firebase auto-sends reset link
+                    await sendPasswordResetEmail(auth, storedEmail);
+                    errorEl.style.color = 'green';
+                    errorEl.innerText = typeof t === 'function' ? t('resetEmailSent') : 'Reset link sent! Check your inbox.';
+                } else {
+                    // No recovery email — reveal step 2 (Cloud Function flow)
+                    if (btn) btn.disabled = false;
+                    var usernameInput = document.getElementById('auth-forgot-username');
+                    if (usernameInput) usernameInput.disabled = true;
+                    if (emailStep) emailStep.style.display = '';
+                    setTimeout(function() {
+                        var el = document.getElementById('auth-forgot-contact-email');
+                        if (el) el.focus();
+                    }, 50);
+                }
+            } catch (e) {
+                if (btn) btn.disabled = false;
+                errorEl.innerText = (e && (e.text || e.message)) || 'Failed. Try again.';
             }
         };
 
@@ -324,18 +547,49 @@
                 </div>
             </div>
             <div class="auth-box">
-                <input type="email" id="email" placeholder="Email" oninput="document.getElementById('auth-error').innerText=''">
-                <input type="password" id="password" placeholder="Password" oninput="document.getElementById('auth-error').innerText=''">
-                <div class="auth-buttons">
-                    <button onclick="handleLogin()">Login</button>
-                    <button onclick="handleSignUp()">Sign Up</button>
+                <!-- LOGIN mode (default) -->
+                <div id="auth-login-section">
+                    <input type="text" id="auth-username" autocomplete="username" oninput="document.getElementById('auth-error').innerText=''">
+                    <input type="password" id="auth-password" autocomplete="current-password" oninput="document.getElementById('auth-error').innerText=''">
+                    <div class="auth-buttons">
+                        <button id="login-btn" onclick="handleLogin()">התחברות</button>
+                        <button id="to-signup-btn" onclick="switchAuthMode('signup')">הרשמה</button>
+                    </div>
+                    <p id="forgot-link" class="forgot-link" onclick="switchAuthMode('forgot')">שכחתי סיסמא</p>
                 </div>
-                <p class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</p>
+                <!-- SIGNUP mode -->
+                <div id="auth-signup-section" style="display:none">
+                    <input type="text" id="auth-username-signup" autocomplete="username" oninput="document.getElementById('auth-error').innerText=''; document.getElementById('username-suggestions').style.display='none'">
+                    <div id="username-suggestions" class="username-suggestions" style="display:none"></div>
+                    <input type="password" id="auth-password-signup" autocomplete="new-password" oninput="document.getElementById('auth-error').innerText=''">
+                    <div class="auth-optional-email">
+                        <input type="email" id="auth-recovery-email" autocomplete="email" oninput="document.getElementById('auth-error').innerText=''">
+                        <span id="recovery-hint" class="recovery-hint">לשחזור סיסמה בלבד — אופציונלי</span>
+                    </div>
+                    <div class="auth-buttons">
+                        <button id="signup-confirm-btn" onclick="handleSignUp()">הרשמה</button>
+                        <button id="back-from-signup-btn" onclick="switchAuthMode('login')">חזרה</button>
+                    </div>
+                </div>
+                <!-- FORGOT PASSWORD mode -->
+                <div id="auth-forgot-section" style="display:none">
+                    <p id="forgot-hint" class="auth-forgot-hint">הזינו את שם המשתמש/משפחה</p>
+                    <input type="text" id="auth-forgot-username" autocomplete="username" oninput="document.getElementById('auth-error').innerText=''">
+                    <!-- Step 2: shown only when no recovery email on file -->
+                    <div id="auth-forgot-email-step" style="display:none">
+                        <p id="forgot-email-hint" class="auth-forgot-hint" style="margin-top:10px;font-size:0.82rem;">הזינו מייל ליצירת קשר ונחזור אליכם</p>
+                        <input type="email" id="auth-forgot-contact-email" autocomplete="email" oninput="document.getElementById('auth-error').innerText=''">
+                    </div>
+                    <div class="auth-buttons">
+                        <button id="send-forgot-btn" onclick="handleForgotPassword()">שלח</button>
+                        <button id="back-from-forgot-btn" onclick="switchAuthMode('login')">חזרה</button>
+                    </div>
+                </div>
                 <p id="auth-error" style="color: red;"></p>
             </div>
             <div class="guest-link-wrapper">
                 <p class="guest-link" onclick="handleGuestMode()"></p>
-                <span class="guest-info-icon" ontouchstart="event.preventDefault(); this.closest('.guest-link-wrapper').classList.toggle('tooltip-open')">?</span>
+                <span class="guest-info-icon" onclick="this.closest('.guest-link-wrapper').classList.toggle('tooltip-open')" ontouchstart="event.preventDefault(); this.closest('.guest-link-wrapper').classList.toggle('tooltip-open')">?</span>
                 <div class="guest-tooltip" id="guest-tooltip"></div>
             </div>
         </div>
@@ -531,7 +785,7 @@
         </div>
 
         <div class="settings-bottom-bar">
-            <button onclick="handleLogout()" class="logout-btn-small">התנתק</button>
+            <button onclick="showView('home')" class="save-btn">שמור וסגור</button>
         </div>
     </section>
 
@@ -548,8 +802,8 @@
     <!-- EmailJS — for sending feedback to loomi's Gmail -->
     <!-- Setup: https://emailjs.com → free account → connect Gmail → get IDs → fill in app.js EMAILJS_* constants -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script src="i18n.js?v=2"></script>
+    <script src="i18n.js?v=3"></script>
     <script src="data.js?v=125"></script>
-    <script src="app.js?v=151"></script>
+    <script src="app.js?v=160"></script>
 </body>
 </html>
