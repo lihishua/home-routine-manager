@@ -130,9 +130,6 @@ const TRANSLATIONS = {
         authForgotHint: 'הזינו את שם המשתמש/משפחה',
         forgotUsernamePlaceholder: 'שם משתמש/משפחה',
         resetRequestSent: 'הבקשה נשלחה! ניצור איתכם קשר בקרוב.',
-        noRecoveryEmail: 'לא נמצא אימייל לשחזור. הוסיפו אימייל בהגדרות הפרופיל לאחר הכניסה.',
-        forgotContactEmailPlaceholder: 'מייל ליצירת קשר',
-        forgotEmailStepHint: 'הזינו מייל ליצירת קשר ונחזור אליכם',
         usernameNotFound: 'שם המשתמש לא נמצא.',
         profileSettings: 'הגדרות פרופיל',
         loginFailed: 'ההתחברות נכשלה. בדוק שם משפחה/סיסמה.',
@@ -313,9 +310,6 @@ const TRANSLATIONS = {
         authForgotHint: 'Enter your username / family name',
         forgotUsernamePlaceholder: 'Username / Family name',
         resetRequestSent: 'Request sent! We\'ll be in touch soon.',
-        noRecoveryEmail: 'No recovery email on file. Add one in Profile Settings after logging in.',
-        forgotContactEmailPlaceholder: 'Your contact email',
-        forgotEmailStepHint: 'Enter a contact email and we\'ll get back to you',
         usernameNotFound: 'Username not found.',
         profileSettings: 'Profile Settings',
         loginFailed: 'Login failed. Check family name/password.',
@@ -441,8 +435,6 @@ function applyLanguage() {
     setPlaceholder('auth-password-signup', 'passwordPlaceholder');
     setPlaceholder('auth-recovery-email',  'recoveryEmailPlaceholder');
     setPlaceholder('auth-forgot-username',       'forgotUsernamePlaceholder');
-    setPlaceholder('auth-forgot-contact-email', 'forgotContactEmailPlaceholder');
-    setText('forgot-email-hint', 'forgotEmailStepHint');
 
     const setText = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = t(key); };
     setText('login-btn',           'login');

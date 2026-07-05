@@ -3051,9 +3051,7 @@ window.showProfileSettings = function() {
     var user = window.currentFirebaseUser;
     if (!user) return;
     var he = typeof getLang === 'function' && getLang() === 'he';
-    var currentEmail = user.email || '';
-    var isSynthetic = currentEmail.indexOf('@loomi-users.com') !== -1;
-    var displayEmail = isSynthetic ? '' : currentEmail;
+    var displayEmail = user.email || '';
 
     var overlay = document.createElement('div');
     overlay.id = 'profile-settings-overlay';
@@ -3119,14 +3117,6 @@ window.saveRecoveryEmail = async function() {
     }
 };
 
-window.sendForgotPasswordEmail = async function(username, contactEmail) {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_PIN_TEMPLATE_ID, {
-        to_email: 'lihishua@gmail.com',
-        message:  '🔐 בקשת איפוס סיסמה\nשם משתמש: ' + username + '\nמייל ליצירת קשר: ' + contactEmail + '\n\n➡️ Firebase Console → Authentication → מצאי את המשתמש → Reset password → שלחי את הסיסמה החדשה למייל ליצירת קשר'
-    });
-};
-
 function updateFeedbackSectionVisibility() {
     const section = document.getElementById('feedback-section');
     if (!section) return;
@@ -3141,7 +3131,7 @@ function updateAccountChip() {
     var username = 'אורח';
     if (!isGuest) {
         var u = window.currentFirebaseUser;
-        username = (u && u.displayName) || (u && u.email && u.email.indexOf('@loomi-users.com') === -1 && u.email.split('@')[0]) || (u && u.email && u.email.split('@')[0]) || 'user';
+        username = (u && u.displayName) || (u && u.email && u.email.split('@')[0]) || 'user';
     } else {
         username = (typeof t === 'function' && t('guest')) || 'אורח';
     }
