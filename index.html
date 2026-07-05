@@ -243,14 +243,17 @@
         window.handleSignUp = async () => {
             var displayName = document.getElementById('auth-username-signup').value.trim();
             var pass = document.getElementById('auth-password-signup').value;
-            var recoveryEmail = (document.getElementById('auth-recovery-email') || {}).value;
-            recoveryEmail = recoveryEmail ? recoveryEmail.trim() : '';
+            var email = document.getElementById('auth-recovery-email').value.trim();
             var errorEl = document.getElementById('auth-error');
             var btn = document.getElementById('signup-confirm-btn');
             errorEl.style.color = 'red';
 
-            if (!displayName || !pass) {
+            if (!displayName || !pass || !email) {
                 errorEl.innerText = typeof t === 'function' ? t('fillAllFields') : 'Please fill in all fields';
+                return;
+            }
+            if (email.indexOf('@') === -1) {
+                errorEl.innerText = typeof t === 'function' ? t('invalidEmail') : 'Please enter a valid email';
                 return;
             }
             if (pass.length < 6) {
@@ -259,13 +262,10 @@
             }
 
             var normalized = normalizeUsername(displayName);
-            var authEmail = recoveryEmail || (normalized.replace(/\s+/g, '.') + '@loomi-users.com');
             if (btn) btn.disabled = true;
 
             try {
-                var usernameRef = doc(db, 'usernames', normalized);
-                var usernameSnap = await getDoc(usernameRef);
-
+                var usernameSnap = await getDoc(doc(db, 'usernames', normalized));
                 if (usernameSnap.exists()) {
                     var suggestions = generateUsernameSuggestions(normalized);
                     var takenText = typeof t === 'function' ? t('usernameTaken') : 'This name is taken. Try:';
@@ -282,26 +282,19 @@
                     return;
                 }
 
-                var userCredential = await createUserWithEmailAndPassword(auth, authEmail, pass);
+                var userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 var user = userCredential.user;
                 await updateProfile(user, { displayName: displayName });
                 await setDoc(doc(db, 'usernames', normalized), {
                     uid: user.uid,
                     displayName: displayName,
-                    email: authEmail,  // always store (real or synthetic)
+                    email: email,
                     createdAt: new Date().toISOString()
                 });
-
             } catch (error) {
                 if (btn) btn.disabled = false;
                 if (error.code === 'auth/email-already-in-use') {
-                    var suggs = generateUsernameSuggestions(normalized);
-                    var takenMsg = typeof t === 'function' ? t('usernameTaken') : 'This name is taken. Try:';
-                    var sEl = document.getElementById('username-suggestions');
-                    sEl.innerHTML = '<p class="suggestions-label">' + takenMsg + '</p><div class="suggestions-chips">' +
-                        suggs.map(function(s) { return '<button class="suggestion-chip" onclick="selectSuggestion(\'' + s.replace(/'/g, "\\'") + '\')">' + s + '</button>'; }).join('') +
-                        '</div>';
-                    sEl.style.display = 'block';
+                    errorEl.innerText = typeof t === 'function' ? t('emailInUse') : 'This email is already in use';
                 } else {
                     errorEl.innerText = error.message;
                 }
@@ -563,8 +556,8 @@
                     <div id="username-suggestions" class="username-suggestions" style="display:none"></div>
                     <input type="password" id="auth-password-signup" autocomplete="new-password" oninput="document.getElementById('auth-error').innerText=''">
                     <div class="auth-optional-email">
-                        <input type="email" id="auth-recovery-email" autocomplete="email" oninput="document.getElementById('auth-error').innerText=''">
-                        <span id="recovery-hint" class="recovery-hint">לשחזור סיסמה בלבד — אופציונלי</span>
+                        <input type="email" id="auth-recovery-email" autocomplete="email" required oninput="document.getElementById('auth-error').innerText=''">
+                        <span id="recovery-hint" class="recovery-hint">לשחזור סיסמה בלבד</span>
                     </div>
                     <div class="auth-buttons">
                         <button id="signup-confirm-btn" onclick="handleSignUp()">הרשמה</button>
