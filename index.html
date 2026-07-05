@@ -301,6 +301,25 @@
             }
         };
 
+        // Backfill a usernames doc for a legacy email-only account (family name = email local part).
+        async function ensureUsernameDoc(user) {
+            var localPart = (user.email || '').split('@')[0];
+            if (!localPart) return;
+            var familyName = user.displayName || localPart;
+            var normalized = normalizeUsername(familyName);
+            var existing = await getDoc(doc(db, 'usernames', normalized));
+            if (existing.exists()) return;
+            if (!user.displayName) {
+                try { await updateProfile(user, { displayName: familyName }); } catch (e) {}
+            }
+            await setDoc(doc(db, 'usernames', normalized), {
+                uid: user.uid,
+                displayName: familyName,
+                email: user.email,
+                createdAt: new Date().toISOString()
+            });
+        }
+
         window.handleLogin = async () => {
             var displayName = document.getElementById('auth-username').value.trim();
             var pass = document.getElementById('auth-password').value;
@@ -315,17 +334,21 @@
             if (btn) btn.disabled = true;
 
             try {
-                // Backward compat: direct email input
-                if (displayName.includes('@')) {
-                    await signInWithEmailAndPassword(auth, displayName, pass);
+                // Legacy email-only account: sign in by email, then backfill a family name.
+                if (displayName.indexOf('@') !== -1) {
+                    var cred = await signInWithEmailAndPassword(auth, displayName, pass);
+                    await ensureUsernameDoc(cred.user);
                     return;
                 }
-                // Look up stored email (handles synthetic + real + post-reset emails)
+                // Normal path: look up the real email by family name.
                 var normalized = normalizeUsername(displayName);
                 var snap = await getDoc(doc(db, 'usernames', normalized));
-                var loginEmail = (snap.exists() && snap.data().email)
-                    || (normalized.replace(/\s+/g, '.') + '@loomi-users.com');
-                await signInWithEmailAndPassword(auth, loginEmail, pass);
+                if (!snap.exists() || !snap.data().email) {
+                    if (btn) btn.disabled = false;
+                    errorEl.innerText = typeof t === 'function' ? t('loginFailed') : 'Login failed. Check family name/password.';
+                    return;
+                }
+                await signInWithEmailAndPassword(auth, snap.data().email, pass);
             } catch (e) {
                 if (btn) btn.disabled = false;
                 errorEl.innerText = typeof t === 'function' ? t('loginFailed') : 'Login failed. Check family name/password.';
