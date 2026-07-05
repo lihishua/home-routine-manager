@@ -83,6 +83,24 @@ Old accounts exist in Firebase Auth with a real email + password but have **no**
 - After this one-time migration the account can log in with its family name like
   any other. No migration script, no manual UID handling.
 
+### 5. Remove all unused unpushed work
+
+The user explicitly wants every part of the previous (unpushed) experiment they
+decided **not** to keep to be removed — not just bypassed. Before finishing,
+audit the full uncommitted diff against the last pushed commit
+(`git diff 1ee52f6 -- <file>` and untracked files) and delete anything that
+serves the abandoned optional-email / synthetic-email / Cloud-Function approach:
+
+- synthetic `@loomi-users.com` email generation and any reference to it
+- the optional-email signup UI and its i18n strings
+- `functions/` (Cloud Function) and the `functions` block in `firebase.json`
+- `passwordResets` Firestore writes and the `onSnapshot`/timeout wait
+- the forgot-password step-2 markup, handlers, and strings
+
+The family-name login system itself is **kept**. Scope of removal = only the
+pieces that contradict this spec, verified against the diff — no leftover dead
+code, unused CSS, or orphaned i18n keys.
+
 ## Non-goals
 
 - No data migration script; migration happens lazily on login.
