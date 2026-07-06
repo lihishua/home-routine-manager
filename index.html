@@ -332,7 +332,9 @@
                 // Legacy email-only account: sign in by email, then backfill a family name.
                 if (displayName.indexOf('@') !== -1) {
                     var cred = await signInWithEmailAndPassword(auth, displayName, pass);
-                    await ensureUsernameDoc(cred.user);
+                    // Sign-in already succeeded; a failed family-name backfill must not
+                    // surface a false "login failed" (onAuthStateChanged proceeds regardless).
+                    try { await ensureUsernameDoc(cred.user); } catch (mErr) { console.warn('username backfill failed:', mErr); }
                     return;
                 }
                 // Normal path: look up the real email by family name.

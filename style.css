@@ -3536,23 +3536,13 @@ input[type="email"], input[type="password"] {
     transform: translateY(-1px);
 }
 
-.auth-optional-email input {
-    border-color: #e8e8e8;
-    background: #fafafa;
-    color: #666;
-    font-size: 0.92rem !important;
-}
-
-.auth-optional-email input:focus {
-    border-color: #5A9CB5;
-    background: white;
-}
+/* Email is a required field; it inherits the standard .auth-box input styling. */
 
 .recovery-hint {
     display: block;
     text-align: center;
     font-size: 0.75rem;
-    color: #bbb;
+    color: #888;
     margin-top: -10px;
     margin-bottom: 14px;
 }

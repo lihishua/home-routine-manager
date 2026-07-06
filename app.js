@@ -3059,8 +3059,7 @@ window.showProfileSettings = function() {
     var emailStatusLine = displayEmail
         ? '<p style="margin:0 0 14px;font-size:0.82rem;color:#4caf50;text-align:center;direction:ltr;">' +
             '✓ ' + (he ? 'מקושר: ' : 'Linked: ') + '<strong>' + displayEmail + '</strong></p>'
-        : '<p style="margin:0 0 14px;font-size:0.82rem;color:#aaa;text-align:center;">' +
-            (he ? 'אין אימייל מקושר עדיין' : 'No email linked yet') + '</p>';
+        : '';
 
     overlay.innerHTML =
         '<div style="background:white;border-radius:20px;padding:28px 24px;width:min(340px,100%);box-shadow:0 20px 60px rgba(0,0,0,0.25);">' +
