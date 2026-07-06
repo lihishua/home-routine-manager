@@ -2705,13 +2705,11 @@ function _showHowItWorksBtn() {
     const chip = document.getElementById('account-chip');
     if (!chip) return;
     const he = getLang() === 'he';
-    const chipRect = chip.getBoundingClientRect();
     const btn = document.createElement('button');
     btn.id = 'how-it-works-btn';
     btn.className = 'how-it-works-btn';
-    btn.innerHTML = `<span class="material-symbols-rounded" style="font-size:0.85rem">help</span>${he ? 'איך זה עובד?' : 'How it works?'}`;
-    btn.style.top  = (chipRect.bottom + 5) + 'px';
-    btn.style.right = '10px';
+    btn.innerHTML = `<span class="material-symbols-rounded">help</span>${he ? 'איך זה עובד?' : 'How it works?'}`;
+    // Position is set in CSS (fixed, bottom-left) so it stays clear of the profile icon.
     btn.onclick = () => {
         btn.remove();
         _onboardingSlide = 0;
@@ -3122,35 +3120,63 @@ function updateFeedbackSectionVisibility() {
     section.style.display = (!window.isGuestMode && window.currentFirebaseUser) ? 'block' : 'none';
 }
 
+function _escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+}
+
+function _accountInitials(name) {
+    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
 function updateAccountChip() {
     var chip = document.getElementById('account-chip');
     if (!chip) return;
 
     var isGuest = !!(window.isGuestMode || !window.currentFirebaseUser);
-    var username = 'אורח';
-    if (!isGuest) {
-        var u = window.currentFirebaseUser;
-        username = (u && u.displayName) || (u && u.email && u.email.split('@')[0]) || 'user';
-    } else {
-        username = (typeof t === 'function' && t('guest')) || 'אורח';
-    }
-
     var logoutTitle  = (typeof t === 'function' && t('logout'))          || 'התנתק';
     var profileTitle = (typeof t === 'function' && t('profileSettings')) || 'הגדרות פרופיל';
+
+    // Identity header inside the menu (Option B): avatar + name + email.
+    var who, sub, avatar;
+    if (isGuest) {
+        who = (typeof t === 'function' && t('guest')) || 'אורח';
+        sub = '';
+        avatar = '<i class="material-symbols-rounded">person</i>';
+    } else {
+        var u = window.currentFirebaseUser;
+        who = (u && u.displayName) || (u && u.email && u.email.split('@')[0]) || 'user';
+        sub = (u && u.email) || '';
+        avatar = _escHtml(_accountInitials(who)) || '<i class="material-symbols-rounded">person</i>';
+    }
+
+    var idHeader =
+        '<div class="account-id">' +
+            '<span class="account-avatar">' + avatar + '</span>' +
+            '<span class="account-id-text">' +
+                '<span class="account-id-who">' + _escHtml(who) + '</span>' +
+                (sub ? '<span class="account-id-sub">' + _escHtml(sub) + '</span>' : '') +
+            '</span>' +
+        '</div>';
 
     var profileBtn = isGuest ? '' :
         '<button class="account-dropdown-item" onclick="showProfileSettings()">' +
             '<i class="material-symbols-rounded">manage_accounts</i> ' + profileTitle +
-        '</button>';
+        '</button>' +
+        '<div class="account-divider"></div>';
 
     chip.innerHTML =
-        '<span class="account-chip-label" onclick="toggleAccountDropdown(event)">' +
+        '<button type="button" class="account-chip-label" aria-label="' + _escHtml(who) + '" onclick="toggleAccountDropdown(event)">' +
             '<i class="material-symbols-rounded account-chip-icon">person</i>' +
-            '<span class="account-chip-username">' + username + '</span>' +
-        '</span>' +
+        '</button>' +
         '<div class="account-dropdown" id="account-dropdown" style="display:none;">' +
+            idHeader +
             profileBtn +
-            '<button class="account-dropdown-item" onclick="handleLogout()">' +
+            '<button class="account-dropdown-item account-dropdown-item--danger" onclick="handleLogout()">' +
                 '<i class="material-symbols-rounded">logout</i> ' + logoutTitle +
             '</button>' +
         '</div>';
